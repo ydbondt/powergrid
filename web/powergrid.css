@@ -1,0 +1,53 @@
+.cell {
+    display: inline-block;
+    width: 80px;
+	border-top: 1px solid rgba(0,0,0,0.2);
+	padding: 5px 8px;
+	overflow: hidden;
+}
+
+.row {
+    height: 31px;
+	white-space: nowrap;
+}
+
+.powergrid {
+	position: relative;
+	height: 216px;
+}
+
+.powergrid > .scrolling {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+    overflow-y: scroll;
+}
+
+.powergrid > .scrolling > .container.fixed {
+	position: absolute;
+	width: calc(4*96px);
+	overflow: hidden;
+	border-right: 2px solid black;
+}
+
+.powergrid > .scrolling > .container.scrolling {
+	position: absolute;
+	left: calc(4*96px);
+	right: 0px;
+	top: 0px;
+	overflow-x: hidden;
+	white-space: nowrap;
+}
+
+.powergrid > .hscroller {
+	left: 0px;
+	right: 16px;
+	position: absolute;
+	bottom: 0px;
+	height: 16px;
+	overflow-x: scroll;
+}
+
+.powergrid > .hscroller > .dummy {
+	height: 1px;
+}
