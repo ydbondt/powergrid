@@ -15,6 +15,9 @@ In scope:
 - inline editing & validation
 - paging
 - multiple selection modes: row, column, block
+- fill down/right
+- copy/paste blocks
+- undo
 
 Goals:
 - high performance by leveraging browser-native functionality
