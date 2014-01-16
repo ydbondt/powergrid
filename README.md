@@ -14,6 +14,7 @@ In scope:
 - row hierarchy
 - inline editing & validation
 - paging
+- multiple selection modes: row, column, block
 
 Goals:
 - high performance by leveraging browser-native functionality
