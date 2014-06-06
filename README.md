@@ -24,3 +24,4 @@ Goals:
 - low footprint
 - portability
 - flexibility
+- concurrency support (through use of Promises throughout the API)
