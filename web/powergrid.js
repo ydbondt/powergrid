@@ -51,6 +51,10 @@
 			});
 			
 			$(this).append(container);
+            
+            scrollingPart.on("scroll", function() {
+                hscroller[0].scrollLeft = this.scrollLeft;
+            });
 		}
 	});
 })(jQuery);

@@ -35,7 +35,8 @@
 	left: calc(4*96px);
 	right: 0px;
 	top: 0px;
-	overflow-x: hidden;
+    overflow-y: hidden;
+	overflow-x: scroll;
 	white-space: nowrap;
 }
 
