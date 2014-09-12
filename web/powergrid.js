@@ -11,50 +11,58 @@
 				}
 			}
 			
-			var frozenColumns=4;
+			var frozenColumnsLeft=4;
+            var frozenColumnsRight=2;
 			
 			var container = $("<div class='powergrid'>");
 			var scrollingcontainer = $("<div class='scrolling'>");
-			var fixedPart = $("<div class='container fixed'>");
+			var fixedPartLeft = $("<div class='container fixed left'>");
+			var fixedPartRight = $("<div class='container fixed right'>");
 			var scrollingPart = $("<div class='container scrolling'>");
 			
 			// start rendering
 			for(var x = 0; x < data.length; x++) {
-				var rowFixedPart = $("<div class='row fixed'>");
+				var rowFixedPartLeft = $("<div class='row fixed'>");
+				var rowFixedPartRight = $("<div class='row fixed'>");
 				var rowScrollingPart = $("<div class='row scrolling'>");
 				
 				for(var y = 0; y < data[x].length; y++) {
 					var cell = $("<div class='cell'>");
 					cell.text(data[x][y]);
-					if(y < frozenColumns) {
-						rowFixedPart.append(cell);
-					} else {
+					if(y < frozenColumnsLeft) {
+						rowFixedPartLeft.append(cell);
+					} else if(y > data[x].length - frozenColumnsRight - 1) {
+                        rowFixedPartRight.append(cell);
+                    } else {
 						rowScrollingPart.append(cell);
 					}
 				}
 				
-				fixedPart.append(rowFixedPart);
+				fixedPartLeft.append(rowFixedPartLeft);
+                fixedPartRight.append(rowFixedPartRight);
 				scrollingPart.append(rowScrollingPart);
 			}
 
-			scrollingcontainer.append(fixedPart).append(scrollingPart);
+			scrollingcontainer.append(fixedPartLeft).append(scrollingPart).append(fixedPartRight);
 			
 			
 			var hscroller = $("<div class='hscroller'><div class='dummy'></div></div>");
-			hscroller.children('.dummy').css("width", 30 * 80 + "px");
+			var scrollFiller = hscroller.children('.dummy');
 
-			container.append(scrollingcontainer);
+			$(this).append(container);
+
+            container.append(scrollingcontainer);
 			container.append(hscroller);
 			
 			hscroller.on("scroll", function() {
 				scrollingPart[0].scrollLeft = this.scrollLeft;
 			});
 			
-			$(this).append(container);
-            
             scrollingPart.on("scroll", function() {
                 hscroller[0].scrollLeft = this.scrollLeft;
             });
+            
+            scrollFiller.css("width", (scrollingPart[0].scrollWidth + hscroller[0].offsetWidth - scrollingPart[0].offsetWidth) + "px");
 		}
 	});
 })(jQuery);

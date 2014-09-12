@@ -25,15 +25,27 @@
 
 .powergrid > .scrolling > .container.fixed {
 	position: absolute;
-	width: calc(4*96px);
 	overflow: hidden;
+}
+
+.powergrid > .scrolling > .container.fixed.left {
+    left: 0px;
+	width: calc(4*96px);
 	border-right: 2px solid black;
+}
+
+.powergrid > .scrolling > .container.fixed.right {
+    right: 0px;
+	width: calc(2*96px);
+	border-left: 2px solid black;
 }
 
 .powergrid > .scrolling > .container.scrolling {
 	position: absolute;
-	left: calc(4*96px);
-	right: 0px;
+	margin-left: calc(4*96px);
+    margin-right: calc(2*96px);
+    left: 0px;
+    right: 0px;
 	top: 0px;
     overflow-y: hidden;
 	overflow-x: scroll;
