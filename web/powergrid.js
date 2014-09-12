@@ -44,24 +44,16 @@
 			}
 
 			scrollingcontainer.append(fixedPartLeft).append(scrollingPart).append(fixedPartRight);
-			
-			
-			var hscroller = $("<div class='hscroller'><div class='dummy'></div></div>");
-			var scrollFiller = hscroller.children('.dummy');
+            
+            scrollingcontainer.scroll(function(event) {
+                fixedPartLeft.css("left", scrollingcontainer.scrollLeft() + "px");
+                fixedPartRight.css("right", "-" + scrollingcontainer.scrollLeft() + "px");
+            });
 
 			$(this).append(container);
 
             container.append(scrollingcontainer);
-			container.append(hscroller);
 			
-			hscroller.on("scroll", function() {
-				scrollingPart[0].scrollLeft = this.scrollLeft;
-			});
-			
-            scrollingPart.on("scroll", function() {
-                hscroller[0].scrollLeft = this.scrollLeft;
-            });
-            
             scrollFiller.css("width", (scrollingPart[0].scrollWidth + hscroller[0].offsetWidth - scrollingPart[0].offsetWidth) + "px");
 		}
 	});

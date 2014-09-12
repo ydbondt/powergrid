@@ -20,12 +20,17 @@
 	position: absolute;
 	height: 100%;
 	width: 100%;
-    overflow-y: scroll;
+    overflow: scroll;
+}
+
+.container {
+    background: white;
 }
 
 .powergrid > .scrolling > .container.fixed {
 	position: absolute;
 	overflow: hidden;
+    z-index: 1;
 }
 
 .powergrid > .scrolling > .container.fixed.left {
@@ -47,8 +52,6 @@
     left: 0px;
     right: 0px;
 	top: 0px;
-    overflow-y: hidden;
-	overflow-x: scroll;
 	white-space: nowrap;
 }
 
