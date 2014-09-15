@@ -24,6 +24,7 @@
 			
 			var fixedLeft = $();
 			var fixedRight = $();
+            var scrollContainers = $().add(scrollingcontainer).add(headercontainer).add(footercontainer);
 
 			function createRowGroup(data, start, end, container) {
 				var fixedPartLeft = $("<div class='container fixed left'>");
@@ -67,9 +68,13 @@
 			$(this).append(container);
             
             $(".powergrid > div").scroll(function(event) {
-                $(".container.fixed.left").css("left", this.scrollLeft + "px");
-                $(".container.fixed.right").css("right", "-" + this.scrollLeft + "px");
-                $(".powergrid > div").scrollLeft(this.scrollLeft);
+                var self = this;
+                requestAnimationFrame(function() {
+                    // tested CSS class injection, but was slower than direct manipulation in this case
+                    fixedLeft.css("left", self.scrollLeft + "px");
+                    fixedRight.css("right", "-" + self.scrollLeft + "px");
+                    scrollContainers.scrollLeft(self.scrollLeft);
+                });
             });
 		}
 	});
