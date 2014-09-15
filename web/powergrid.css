@@ -13,39 +13,70 @@
 
 .powergrid {
 	position: relative;
-	height: 216px;
+	height: 100%;
 }
 
 .powergrid > .scrolling {
 	position: absolute;
-	height: 100%;
+    top: 62px;
+    bottom: 31px;
 	width: 100%;
     overflow: scroll;
+    z-index: 2;
+    border-top: 2px solid black;
+    background: white;
+}
+
+.powergrid > .header,
+.powergrid > .footer {
+	position: absolute;
+	width: 100%;
+    overflow-x: scroll;
+    overflow-y: visible;
+    background: white;
+}
+
+.powergrid .header {
+    top: 0px;
+    height: 78px;
+    z-index: 1;
+}
+
+.powergrid .footer {
+    bottom: 0px;
+    height: 46px;
+    border-top: 2px solid black;
+    z-index: 3;
 }
 
 .container {
     background: white;
 }
 
-.powergrid > .scrolling > .container.fixed {
+.powergrid > div > .container.fixed {
+    box-sizing: content-box;
 	position: absolute;
 	overflow: hidden;
     z-index: 1;
 }
 
-.powergrid > .scrolling > .container.fixed.left {
+.powergrid > div > .container.fixed.left {
     left: 0px;
 	width: calc(4*96px);
 	border-right: 2px solid black;
 }
 
 .powergrid > .scrolling > .container.fixed.right {
+    margin-right: -15px;   
+}
+
+.powergrid > div > .container.fixed.right {
     right: 0px;
 	width: calc(2*96px);
 	border-left: 2px solid black;
 }
 
-.powergrid > .scrolling > .container.scrolling {
+.powergrid > div > .container.scrolling {
 	position: absolute;
 	margin-left: calc(4*96px);
     margin-right: calc(2*96px);
@@ -53,17 +84,4 @@
     right: 0px;
 	top: 0px;
 	white-space: nowrap;
-}
-
-.powergrid > .hscroller {
-	left: 0px;
-	right: 16px;
-	position: absolute;
-	bottom: 0px;
-	height: 16px;
-	overflow-x: scroll;
-}
-
-.powergrid > .hscroller > .dummy {
-	height: 1px;
 }
