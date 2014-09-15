@@ -3,6 +3,8 @@
 	
 	$.fn.extend({
 		powerGrid: function() {
+            var baseSelector = "#" + this.attr('id');
+            
 			var data = [];
 			for(var x = 0; x < 500; x++) {
 				data[x] = [];
@@ -10,6 +12,15 @@
 					data[x][y] = x + "," + y;
 				}
 			}
+            
+            var scrollBarWidth = 15;
+            
+            var columns = data[0].map(function(e,i) {
+                return {
+                    title: "Column " + i,
+                    width: 100
+                };
+            });
 			
 			var frozenColumnsLeft=4;
             var frozenColumnsRight=2;
@@ -24,7 +35,27 @@
 			
 			var fixedLeft = $();
 			var fixedRight = $();
+            var middleScrollers = $();
             var scrollContainers = $().add(scrollingcontainer).add(headercontainer).add(footercontainer);
+            
+            function columnWidth(start, end) {
+                if(end == undefined) {
+                    return columns[start].width;
+                } else {
+                    return columns.slice(start, end).reduce(function(a,b) {
+                        return a + b.width;
+                    }, 0);
+                }
+            }
+            
+            function rowHeight(start, end) {
+                // if end is passed, calculates the accumulative heights of rows start until end (exclusive)
+                if(end == undefined) {
+                    return 31;
+                } else {
+                    return (end - start) * 31;
+                }
+            }
 
 			function createRowGroup(data, start, end, container) {
 				var fixedPartLeft = $("<div class='container fixed left'>");
@@ -33,6 +64,7 @@
 				
 				fixedLeft = fixedLeft.add(fixedPartLeft);
 				fixedRight = fixedRight.add(fixedPartRight);
+                middleScrollers = middleScrollers.add(scrollingPart);
 				
 				// start rendering
 				for(var x = start; x < end; x++) {
@@ -40,12 +72,21 @@
 					var rowFixedPartRight = $("<div class='row fixed'>");
 					var rowScrollingPart = $("<div class='row scrolling'>");
 					
-					for(var y = 0; y < data[x].length; y++) {
-						var cell = $("<div class='cell'>");
-						cell.text(data[x][y]);
+                    if(x == -1) {
+                        $(rowFixedPartLeft).add(rowFixedPartRight).add(rowScrollingPart).addClass("headerrow");
+                    }
+                    
+					for(var y = 0; y < columns.length; y++) {
+                        var cell;
+                        if(x == -1) {
+                            cell = $("<div class='cell columnheader'>").text(columns[y].title);
+                        } else {
+                            cell = $("<div class='cell'>").text(data[x][y]);
+                        }
+                        cell.addClass("column" + y);
 						if(y < frozenColumnsLeft) {
 							rowFixedPartLeft.append(cell);
-						} else if(y > data[x].length - frozenColumnsRight - 1) {
+						} else if(y > columns.length - frozenColumnsRight - 1) {
 	                        rowFixedPartRight.append(cell);
 	                    } else {
 							rowScrollingPart.append(cell);
@@ -59,12 +100,35 @@
 	
 				container.append(fixedPartLeft).append(scrollingPart).append(fixedPartRight);
 			}
-
-			createRowGroup(data, 0, frozenRowsTop, headercontainer);
+            
+			createRowGroup(data, -1, frozenRowsTop, headercontainer);
 			createRowGroup(data, frozenRowsTop, data.length - frozenRowsBottom, scrollingcontainer);
 			createRowGroup(data, data.length - frozenRowsBottom, data.length, footercontainer);
+            
+            function adjustHeights() {
+                var headerHeight = rowHeight(-1, frozenRowsTop);
+                var footerHeight = rowHeight(data.length - frozenRowsBottom, data.length);
+                headercontainer.css("height", (headerHeight + scrollBarWidth) + "px");
+                footercontainer.css("height", (footerHeight + scrollBarWidth) + "px");
+                scrollingcontainer.css("top", headerHeight + "px").css("bottom", footerHeight + "px");
+            }
+            
+            function adjustWidths() {
+                for(var x = 0; x < columns.length; x++) {
+                    var w = columnWidth(x);
+                    vein.inject(baseSelector + " .column" + x, {width: w + "px"});
+                }
+                
+                var leadingWidth = columnWidth(0, frozenColumnsLeft);
+                var trailingWidth = columnWidth(columns.length - frozenColumnsRight, columns.length);
+                fixedLeft.css("width", leadingWidth + "px");
+                fixedRight.css("width", trailingWidth + "px");
+                middleScrollers.css({"margin-left": leadingWidth + "px", "margin-right": trailingWidth + "px"});
+            }
 
             container.append(headercontainer).append(scrollingcontainer).append(footercontainer);
+            adjustHeights();
+            adjustWidths();
 			$(this).append(container);
             
             $(".powergrid > div").scroll(function(event) {

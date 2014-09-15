@@ -1,14 +1,23 @@
+body {
+    font-family: sans-serif;
+}
+
 .cell {
     display: inline-block;
-    width: 80px;
 	border-top: 1px solid rgba(0,0,0,0.2);
 	padding: 5px 8px;
 	overflow: hidden;
+    box-sizing: border-box;
 }
 
 .row {
     height: 31px;
 	white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.row.headerrow {
+    background-color: rgb(220,220,220);
 }
 
 .powergrid {
@@ -18,8 +27,6 @@
 
 .powergrid > .scrolling {
 	position: absolute;
-    top: 62px;
-    bottom: 31px;
 	width: 100%;
     overflow: scroll;
     z-index: 2;
@@ -38,13 +45,11 @@
 
 .powergrid .header {
     top: 0px;
-    height: 78px;
     z-index: 1;
 }
 
 .powergrid .footer {
     bottom: 0px;
-    height: 46px;
     border-top: 2px solid black;
     z-index: 3;
 }
@@ -62,7 +67,6 @@
 
 .powergrid > div > .container.fixed.left {
     left: 0px;
-	width: calc(4*96px);
 	border-right: 2px solid black;
 }
 
@@ -72,14 +76,11 @@
 
 .powergrid > div > .container.fixed.right {
     right: 0px;
-	width: calc(2*96px);
 	border-left: 2px solid black;
 }
 
 .powergrid > div > .container.scrolling {
 	position: absolute;
-	margin-left: calc(4*96px);
-    margin-right: calc(2*96px);
     left: 0px;
     right: 0px;
 	top: 0px;
