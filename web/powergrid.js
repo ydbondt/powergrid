@@ -120,10 +120,11 @@
                 }
                 
                 var leadingWidth = columnWidth(0, frozenColumnsLeft);
+                var middleWidth = columnWidth(frozenColumnsLeft, columns.length - frozenColumnsRight);
                 var trailingWidth = columnWidth(columns.length - frozenColumnsRight, columns.length);
                 fixedLeft.css("width", leadingWidth + "px");
                 fixedRight.css("width", trailingWidth + "px");
-                middleScrollers.css({"margin-left": leadingWidth + "px", "margin-right": trailingWidth + "px"});
+                middleScrollers.css({"margin-left": leadingWidth + "px", "margin-right": trailingWidth + "px", "width": (middleWidth + trailingWidth) + "px"});
             }
 
             container.append(headercontainer).append(scrollingcontainer).append(footercontainer);
