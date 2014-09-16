@@ -70,10 +70,6 @@ body {
 	border-right: 2px solid black;
 }
 
-.powergrid > .scrolling > .container.fixed.right {
-    margin-right: -15px;   
-}
-
 .powergrid > div > .container.fixed.right {
     right: 0px;
 	border-left: 2px solid black;

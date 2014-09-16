@@ -1,6 +1,29 @@
 (function($) {
-	// use strict;
+	"use strict";
 	
+    function determineScrollBarSize() {
+        var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: none; opacity: 0'></div>");
+        var filler = $("<div style='width:100%; height: 100%;'></div>");
+        dummy.append(filler);
+        $('body').append(dummy);
+        
+        var size = {
+            height: dummy.height() - filler.height(),
+            width: dummy.width() - filler.width()
+        };
+        
+        dummy.remove();
+        
+        return size;
+    }
+    
+    var scrollBarSize;
+    
+    $(function() {
+        scrollBarSize = determineScrollBarSize();
+        vein.inject('.powergrid > .scrolling > .container.fixed.right', {'margin-right': "-" + scrollBarSize.width + "px"});
+    });
+    
 	$.fn.extend({
 		powerGrid: function() {
             var baseSelector = "#" + this.attr('id');
@@ -12,8 +35,6 @@
 					data[x][y] = x + "," + y;
 				}
 			}
-            
-            var scrollBarWidth = 15;
             
             var columns = data[0].map(function(e,i) {
                 return {
@@ -108,8 +129,8 @@
             function adjustHeights() {
                 var headerHeight = rowHeight(-1, frozenRowsTop);
                 var footerHeight = rowHeight(data.length - frozenRowsBottom, data.length);
-                headercontainer.css("height", (headerHeight + scrollBarWidth) + "px");
-                footercontainer.css("height", (footerHeight + scrollBarWidth) + "px");
+                headercontainer.css("height", (headerHeight + scrollBarSize.height) + "px");
+                footercontainer.css("height", (footerHeight + scrollBarSize.height) + "px");
                 scrollingcontainer.css("top", headerHeight + "px").css("bottom", footerHeight + "px");
             }
             
