@@ -18,6 +18,21 @@ body {
 
 .row.headerrow {
     background-color: rgb(220,220,220);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fixed.left .cell.columnheader,
+.scrolling .cell.columnheader {
+    border-right: 5px solid rgba(0,0,0,0.1);
+}
+
+.fixed.right .cell.columnheader {
+    border-left: 5px solid rgba(0,0,0,0.1);
 }
 
 .powergrid {

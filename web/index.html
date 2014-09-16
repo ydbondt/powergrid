@@ -12,7 +12,7 @@
                 var columns = numbers.map(function(e) {
                     return {
                         title: "Column " + e,
-                        width: 100
+                        width: e==0?150:100
                     };
                 });
                 
@@ -35,6 +35,10 @@
                                 return "Cell " + idx + ", " + i;
                             });
                         }
+                    },
+                    
+                    extensions: {
+                        'columnsizing': {}   
                     }
                 });
             });

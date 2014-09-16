@@ -2,6 +2,7 @@ define(['jquery', 'vein'], function($, vein) {
 	"use strict";
 	
     function determineScrollBarSize() {
+        // Creates a dummy div just to measure the scrollbar sizes, then deletes it when it's no longer necessary.
         var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: none; opacity: 0'></div>");
         var filler = $("<div style='width:100%; height: 100%;'></div>");
         dummy.append(filler);
@@ -21,45 +22,71 @@ define(['jquery', 'vein'], function($, vein) {
     
     $(function() {
         scrollBarSize = determineScrollBarSize();
+        
+        //adjust the margin to compensate for the scrollbar
         vein.inject('.powergrid > .scrolling > .container.fixed.right', {'margin-right': "-" + scrollBarSize.width + "px"});
     });
     
 	function PowerGrid(target, options) {
         var grid = this;
-        
-        var baseSelector = this.baseSelector = "#" + target.attr('id'),
-
-            container = this.container = $("<div class='powergrid'>"),
-            scrollingcontainer = this.scrollingcontainer = $("<div class='scrolling'>"),
-            headercontainer = this.headercontainer = $("<div class='header'>"),
-            footercontainer = this.footercontainer = $("<div class='footer'>"),
-
-            scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
-        
         this.options = options;
-
-        this.fixedLeft = this.fixedRight = this.middleScrollers = $();
-
-        this.createRowGroup(-1, this.options.frozenRowsTop, headercontainer);
-        this.createRowGroup(this.options.frozenRowsTop, options.dataSource.recordCount() - this.options.frozenRowsBottom, scrollingcontainer);
-        this.createRowGroup(options.dataSource.recordCount() - this.options.frozenRowsBottom, this.options.dataSource.recordCount(), footercontainer);
-
-        container.append(headercontainer).append(scrollingcontainer).append(footercontainer);
+        this.target = target;
         
-        this.adjustHeights();
-        this.adjustWidths();
-        
-        $(target).append(container);
-
-        $(".powergrid > div").scroll(function(event) {
-            var self = this;
-            requestAnimationFrame(function() {
-                grid.syncScroll(self, event);
-            });
-        });
+        this.beginInit();
     }
     
     PowerGrid.prototype = {
+        beginInit: function() {
+            var pluginIdx = 0;
+            var keys = Object.keys(this.options.extensions);
+            var grid = this;
+            
+            if(keys.length) {
+                var files = keys.map(function(e) { return "extensions/" + e; });
+                require(files, function() {
+                    for(var x = 0; x < arguments.length; x++) {
+                        // probably should do some load order manipulation here
+                        arguments[x](grid, grid.options.extensions[keys[x]]);
+                    }
+                    grid.init();
+                });
+            } else {
+                this.init();
+            }
+        },
+        
+        init: function init() {
+            var grid = this;
+            var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
+
+                container = this.container = $("<div class='powergrid'>"),
+                scrollingcontainer = this.scrollingcontainer = $("<div class='scrolling'>"),
+                headercontainer = this.headercontainer = $("<div class='header'>"),
+                footercontainer = this.footercontainer = $("<div class='footer'>"),
+
+                scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
+
+            this.fixedLeft = this.fixedRight = this.middleScrollers = $();
+
+            this.createRowGroup(-1, this.options.frozenRowsTop, headercontainer);
+            this.createRowGroup(this.options.frozenRowsTop, this.options.dataSource.recordCount() - this.options.frozenRowsBottom, scrollingcontainer);
+            this.createRowGroup(this.options.dataSource.recordCount() - this.options.frozenRowsBottom, this.options.dataSource.recordCount(), footercontainer);
+
+            container.append(headercontainer).append(scrollingcontainer).append(footercontainer);
+
+            this.adjustHeights();
+            this.adjustWidths();
+
+            $(this.target).append(container);
+
+            $(".powergrid > div").scroll(function(event) {
+                var self = this;
+                requestAnimationFrame(function() {
+                    grid.syncScroll(self, event);
+                });
+            });
+        },
+        
         createRowGroup: function createRowGroup(start, end, container) {
             var fixedPartLeft = $("<div class='container fixed left'>");
             var fixedPartRight = $("<div class='container fixed right'>");
@@ -84,11 +111,13 @@ define(['jquery', 'vein'], function($, vein) {
                 for(var y = 0; y < this.options.columns.length; y++) {
                     var cell;
                     if(x == -1) {
-                        cell = $("<div class='cell columnheader'>").text(this.options.columns[y].title);
+                        cell = this.renderHeaderCell(this.options.columns[y], y);
                     } else {
-                        cell = $("<div class='cell'>").text(record[y]);
+                        cell = this.renderCell(record, y);
                     }
+                    
                     cell.addClass("column" + y);
+                    
                     if(y < this.options.frozenColumnsLeft) {
                         rowFixedPartLeft.append(cell);
                     } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
@@ -107,6 +136,7 @@ define(['jquery', 'vein'], function($, vein) {
         },
         
         adjustWidths: function adjustWidths() {
+            // Adjusts the widths of onscreen parts. Triggered during init, or when changing column specifications
             for(var x = 0; x < this.options.columns.length; x++) {
                 var w = this.columnWidth(x);
                 vein.inject(this.baseSelector + " .column" + x, {width: w + "px"});
@@ -121,6 +151,7 @@ define(['jquery', 'vein'], function($, vein) {
         },
         
         adjustHeights: function adjustHeights() {
+            // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
             var headerHeight = this.rowHeight(-1, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.options.dataSource.recordCount() - this.options.frozenRowsBottom, this.options.dataSource.recordCount());
             this.headercontainer.css("height", (headerHeight + scrollBarSize.height) + "px");
@@ -129,6 +160,7 @@ define(['jquery', 'vein'], function($, vein) {
         },
         
         columnWidth: function columnWidth(start, end) {
+            // Calculate the width of a single column, or of a range of columns
             if(end == undefined) {
                 return this.options.columns[start].width;
             } else {
@@ -148,10 +180,21 @@ define(['jquery', 'vein'], function($, vein) {
         },
         
         syncScroll: function syncScroll(source, event) {
+            // Sync the scrolling between the scrolling divs
             // tested CSS class injection, but was slower than direct manipulation in this case
             this.fixedLeft.css("left", source.scrollLeft + "px");
             this.fixedRight.css("right", "-" + source.scrollLeft + "px");
             this.scrollContainers.scrollLeft(source.scrollLeft);
+        },
+        
+        renderHeaderCell: function renderHeaderCell(column, columnIdx) {
+            // Render the cell for the header
+            return $("<div class='cell columnheader'>").text(column.title);
+        },
+        
+        renderCell: function renderCell(record, key) {
+            // Render a data cell
+            return $("<div class='cell'>").text(record[key]);
         }
     };
     
