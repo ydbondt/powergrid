@@ -7,7 +7,36 @@
 		<link href="powergrid.css" rel="stylesheet" />
 		<script>
 			require(['jquery', 'powergrid'], function($, powergrid) {
-                $("#test").PowerGrid();
+                var numbers = (function(s){var l,x=[];while(s>(l=x.length))x[l]=l;return x})(30);
+                
+                var columns = numbers.map(function(e) {
+                    return {
+                        title: "Column " + e,
+                        width: 100
+                    };
+                });
+                
+                $("#test").PowerGrid({
+                    columns: columns,
+                    
+                    frozenColumnsLeft: 4,
+                    frozenColumnsRight: 2,
+
+                    frozenRowsTop: 2,
+                    frozenRowsBottom: 1,
+                    
+                    dataSource: {
+                        recordCount: function() {
+                            return 500;
+                        },
+                        
+                        getRecord: function(idx) {
+                            return columns.map(function(e,i) {
+                                return "Cell " + idx + ", " + i;
+                            });
+                        }
+                    }
+                });
             });
 		</script>
 	</head>
