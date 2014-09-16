@@ -1,6 +1,6 @@
 Proof of concept of a HTML5 grid component with fixed columns
 
-Browser Targets: Chrome, Safari, IE10+
+Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE10+
 
 In scope:
 - fixed columns
