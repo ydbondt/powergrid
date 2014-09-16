@@ -1,6 +1,6 @@
 {
   "name": "PowerGrid",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/ccantill/powergrid",
   "authors": [
     "ccantill <christoph.cantillon@pearlchain.net>"
@@ -19,5 +19,9 @@
   ],
   "dependencies": {
     "veinjs": "*"
+  },
+  "devDependencies": {
+    "requirejs": "~2.1.15",
+    "jquery": "~2.1.1"
   }
 }
