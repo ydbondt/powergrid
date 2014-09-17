@@ -13,6 +13,12 @@ define(['override', 'vein'], function(override, vein) {
         //vein.inject(selector, style);
     }
     
+    function anim(event) {
+        requestAnimationFrame(function() {
+            event.data(event);
+        });
+    }
+    
     return function(grid, pluginOptions) {
         override(grid, function($super) {
             return {
@@ -53,7 +59,7 @@ define(['override', 'vein'], function(override, vein) {
 
                             cells.addClass("columndragging");
                             
-                            $(document).on("mousemove.columnTracking", requestAnimationFrame, function(event) {
+                            $(document).on("mousemove.columnTracking", function(event) {
                                 var newPos = (startX + event.pageX - oX);
                                 
                                 // find the new index for the column
@@ -62,7 +68,6 @@ define(['override', 'vein'], function(override, vein) {
                                 }
                                 newIdx--;
                                 if(newIdx < start) newIdx = start;
-                                console.log(newIdx, start, end);
                                 
                                 if(newIdx != idx) {
                                     var c = grid.options.columns.splice(idx,1);
@@ -72,12 +77,12 @@ define(['override', 'vein'], function(override, vein) {
                                 }
                                 
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
-                            }).on("mouseup.columnTracking", requestAnimationFrame, function(event) {
+                            }, anim).on("mouseup.columnTracking", function(event) {
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": "" });
                                 vein.inject(grid.baseSelector + " .column" + col.key, { "left": positions[idx] + "px" });
                                 cells.removeClass("columndragging");
-                            });
+                            }, anim);
                         }
                     });
                 }

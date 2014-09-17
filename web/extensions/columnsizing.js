@@ -9,6 +9,12 @@ define(['override'], function(override) {
         return -1;
     }
     
+    function anim(event) {
+        requestAnimationFrame(function() {
+            event.data(event);
+        });
+    }
+    
     return function(grid, pluginOptions) {
         override(grid, function($super) {
             return {
@@ -32,22 +38,22 @@ define(['override'], function(override) {
                         if(idx < grid.options.columns.length - grid.options.frozenColumnsRight // it's not a right frozen column
                            && event.offsetX > event.target.offsetWidth - 5) {
                             
-                            $(document).on("mousemove.columnTracking", requestAnimationFrame, function(event) {
+                            $(document).on("mousemove.columnTracking", function(event) {
                                 col.width = Math.max(0, event.pageX - oX + w);
                                 grid.adjustWidths();
                                 grid.adjustColumnPositions();
-                            }).on("mouseup.columnTracking", function(event) {
+                            }, anim).on("mouseup.columnTracking", function(event) {
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
-                            });
+                            }, anim);
                             
                         } else if(event.offsetX < 5 && idx >= grid.options.columns.length - grid.options.frozenColumnsRight) {
-                            $(document).on("mousemove.columnTracking", requestAnimationFrame, function(event) {
+                            $(document).on("mousemove.columnTracking", function(event) {
                                 col.width = Math.max(0, oX - event.pageX + w);
                                 grid.adjustWidths();
                                 grid.adjustColumnPositions();
-                            }).on("mouseup.columnTracking", function(event) {
+                            }, anim).on("mouseup.columnTracking", function(event) {
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
-                            });
+                            }, anim);
                         }
                     });
                 }
