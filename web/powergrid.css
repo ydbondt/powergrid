@@ -2,7 +2,19 @@ body {
     font-family: sans-serif;
 }
 
-.cell {
+.powergrid {
+	position: relative;
+	height: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.cell, .columnheader {
+    position: relative;
     display: inline-block;
 	border-top: 1px solid rgba(0,0,0,0.2);
 	padding: 5px 8px;
@@ -18,26 +30,28 @@ body {
 
 .row.headerrow {
     background-color: rgb(220,220,220);
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
-.fixed.left .cell.columnheader,
-.scrolling .cell.columnheader {
-    border-right: 5px solid rgba(0,0,0,0.1);
+
+.fixed.left .columnheader:after,
+.scrolling .columnheader:after {
+    right: 0px;
 }
 
-.fixed.right .cell.columnheader {
-    border-left: 5px solid rgba(0,0,0,0.1);
+.columnheader:after {
+    content: '';
+    position: absolute;
+    display: block;
+    border: 1px outset #AAA;
+    box-sizing: border-box;
+    width: 5px;
+    height: 100%;
+    top: 0px;
+    cursor: col-resize;
 }
 
-.powergrid {
-	position: relative;
-	height: 100%;
+.fixed.right .columnheader:after {
+    left: 0px;
 }
 
 .powergrid > .scrolling {
@@ -96,4 +110,10 @@ body {
     right: 0px;
 	top: 0px;
 	white-space: nowrap;
+}
+
+.columndragging {
+    background: white;
+    z-index: 10;
+    position: relative;
 }

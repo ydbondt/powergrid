@@ -12,7 +12,7 @@ define(['override'], function(override) {
                 init: function() {
                     $super.init();
                     var grid = this;
-                    this.target.on("mousedown", ".columnheader.cell", function(event) {
+                    this.target.on("mousedown", ".columnheader", function(event) {
                         var header = event.target,
                                 idx = parseInt($(header).attr("data-column-idx")),
                                 col = grid.options.columns[idx],

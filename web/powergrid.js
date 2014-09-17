@@ -65,6 +65,12 @@ define(['jquery', 'vein'], function($, vein) {
                 footercontainer = this.footercontainer = $("<div class='footer'>"),
 
                 scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
+            
+            this.options.columns.forEach(function(column, index) {
+                if(column.key === undefined) {
+                    column.key = index;
+                }
+            });
 
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
@@ -109,14 +115,14 @@ define(['jquery', 'vein'], function($, vein) {
                 var record = this.options.dataSource.getRecord(x);
 
                 for(var y = 0; y < this.options.columns.length; y++) {
-                    var cell;
+                    var cell, column = this.options.columns[y];
                     if(x == -1) {
-                        cell = this.renderHeaderCell(this.options.columns[y], y);
+                        cell = this.renderHeaderCell(column, y);
                     } else {
-                        cell = this.renderCell(record, y);
+                        cell = this.renderCell(record, column);
                     }
                     
-                    cell.addClass("column" + y);
+                    cell.addClass("column" + column.key);
                     
                     if(y < this.options.frozenColumnsLeft) {
                         rowFixedPartLeft.append(cell);
@@ -137,9 +143,11 @@ define(['jquery', 'vein'], function($, vein) {
         
         adjustWidths: function adjustWidths() {
             // Adjusts the widths of onscreen parts. Triggered during init, or when changing column specifications
-            for(var x = 0; x < this.options.columns.length; x++) {
+            var columns = this.options.columns;
+            for(var x = 0, l=columns.length; x < l; x++) {
+                var column = columns[x];
                 var w = this.columnWidth(x);
-                vein.inject(this.baseSelector + " .column" + x, {width: w + "px"});
+                vein.inject(this.baseSelector + " .column" + column.key, {width: w + "px"});
             }
 
             var leadingWidth = this.columnWidth(0, this.options.frozenColumnsLeft);
@@ -164,9 +172,10 @@ define(['jquery', 'vein'], function($, vein) {
             if(end == undefined) {
                 return this.options.columns[start].width;
             } else {
-                return this.options.columns.slice(start, end).reduce(function(a,b) {
-                    return a + b.width;
-                }, 0);
+                var sum=0;
+                while(start<end) {
+                    sum += this.options.columns[start++].width;
+                }
             }
         },
         
@@ -189,12 +198,12 @@ define(['jquery', 'vein'], function($, vein) {
         
         renderHeaderCell: function renderHeaderCell(column, columnIdx) {
             // Render the cell for the header
-            return $("<div class='cell columnheader'>").text(column.title);
+            return $("<div class='columnheader'>").text(column.title);
         },
         
-        renderCell: function renderCell(record, key) {
+        renderCell: function renderCell(record, column) {
             // Render a data cell
-            return $("<div class='cell'>").text(record[key]);
+            return $("<div class='cell'>").text(record[column.key]);
         }
     };
     
