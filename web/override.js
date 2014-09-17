@@ -1,4 +1,6 @@
 define(function() {
+    "use strict";
+    
     return function(object, override) {
         var $super = {};
         for(var x in object) {

@@ -82,14 +82,12 @@ define(['jquery', 'vein'], function($, vein) {
 
             this.adjustHeights();
             this.adjustWidths();
+            this.adjustColumnPositions();
 
             $(this.target).append(container);
 
-            $(".powergrid > div").scroll(function(event) {
-                var self = this;
-                requestAnimationFrame(function() {
-                    grid.syncScroll(self, event);
-                });
+            $(".powergrid > div").scroll(requestAnimationFrame, function(event) {
+                grid.syncScroll(this, event);
             });
         },
         
@@ -167,6 +165,24 @@ define(['jquery', 'vein'], function($, vein) {
             this.scrollingcontainer.css("top", headerHeight + "px").css("bottom", footerHeight + "px");
         },
         
+        adjustColumnPositions: function adjustColumnPositions() {
+            var columns = this.options.columns;
+            var pos = 0;
+            var positions = new Array(this.options.length);
+            for(var x=0, l = columns.length; x<l; x++) {
+                var column = columns[x];
+                if(x == this.options.frozenColumnsLeft || l-x == this.options.frozenColumnsRight) {
+                    pos = 0;
+                }
+                positions[x] = pos;
+                vein.inject(this.baseSelector + " .column" + column.key, {left: pos + "px"});
+                
+                pos += column.width;
+            }
+            
+            return positions;
+        },
+        
         columnWidth: function columnWidth(start, end) {
             // Calculate the width of a single column, or of a range of columns
             if(end == undefined) {
@@ -176,6 +192,7 @@ define(['jquery', 'vein'], function($, vein) {
                 while(start<end) {
                     sum += this.options.columns[start++].width;
                 }
+                return sum;
             }
         },
         
