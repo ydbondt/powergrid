@@ -1,48 +1,30 @@
-define(['override', 'vein'], function(override, vein) {
+define(['override', 'vein', 'utils'], function(override, vein, utils) {
     "use strict";
-    
-    function findInArray(array, selector) {
-        for(var x=0,l=array.length;x<l;x++) {
-            if(selector(array[x], x)) return x;
-        }
-        return -1;
-    }
     
     function updateStyle(selector, style) {
         $(selector).css(style);
         //vein.inject(selector, style);
     }
     
-    function anim(event) {
-        requestAnimationFrame(function() {
-            event.data(event);
-        });
-    }
-    
     return function(grid, pluginOptions) {
         override(grid, function($super) {
             return {
-                renderHeaderCell: function(column, idx) {
-                    var h = $super.renderHeaderCell(column, idx);
-                    h.attr("data-column-key", column.key);
-                    return h;
-                },
-                
                 init: function() {
                     $super.init();
                     var grid = this;
                     this.target.on("mousedown", ".columnheader", function(event) {
                         var header = event.target,
                             key = parseInt($(header).attr("data-column-key")),
-                            idx = findInArray(grid.options.columns, function(col) { return col.key == key; }),
+                            idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; }),
                             col = grid.options.columns[idx],
                             oX = event.pageX,
                             w = col.width;
                         
-                        if(event.offsetX <= event.target.offsetWidth - 8 && event.offsetX >= 8) {
+                        var offset = event.offsetX || event.originalEvent.layerX || 0;
+                        
+                        if(offset <= header.offsetWidth - 8 && offset >= 8) {
                             var positions = grid.adjustColumnPositions();
                             var startX = positions[idx];
-                            var offset = event.offsetX;
 
                             var start,end;
                             if(idx < grid.options.frozenColumnsLeft) {
@@ -77,12 +59,14 @@ define(['override', 'vein'], function(override, vein) {
                                 }
                                 
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
-                            }, anim).on("mouseup.columnTracking", function(event) {
+                            }, utils.handleEventInAnimationFrame).on("mouseup.columnTracking", function(event) {
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": "" });
                                 vein.inject(grid.baseSelector + " .column" + col.key, { "left": positions[idx] + "px" });
                                 cells.removeClass("columndragging");
-                            }, anim);
+                            }, utils.handleEventInAnimationFrame);
+                            
+                            event.stopPropagation();
                         }
                     });
                 }

@@ -102,9 +102,9 @@ define(['jquery', 'vein'], function($, vein) {
 
             // start rendering
             for(var x = start; x < end; x++) {
-                var rowFixedPartLeft = $("<div class='row fixed'>");
-                var rowFixedPartRight = $("<div class='row fixed'>");
-                var rowScrollingPart = $("<div class='row scrolling'>");
+                var rowFixedPartLeft = $("<div class='row fixed'>").attr("data-row-idx", x);
+                var rowFixedPartRight = $("<div class='row fixed'>").attr("data-row-idx", x);
+                var rowScrollingPart = $("<div class='row scrolling'>").attr("data-row-idx", x);
 
                 if(x == -1) {
                     $(rowFixedPartLeft).add(rowFixedPartRight).add(rowScrollingPart).addClass("headerrow");
@@ -117,10 +117,11 @@ define(['jquery', 'vein'], function($, vein) {
                     if(x == -1) {
                         cell = this.renderHeaderCell(column, y);
                     } else {
-                        cell = this.renderCell(record, column);
+                        cell = this.renderCell(record, column, x, y);
                     }
                     
                     cell.addClass("column" + column.key);
+                    cell.attr("data-column-key", column.key);
                     
                     if(y < this.options.frozenColumnsLeft) {
                         rowFixedPartLeft.append(cell);
@@ -220,7 +221,23 @@ define(['jquery', 'vein'], function($, vein) {
         
         renderCell: function renderCell(record, column) {
             // Render a data cell
-            return $("<div class='cell'>").text(record[column.key]);
+            return $("<div class='cell'>").append(this.renderCellContent(record, column, record[column.key]));
+        },
+        
+        renderCellContent: function renderCellContent(record, column, value) {
+            return $("<span>").text(value);
+        },
+        
+        getColumnForKey: function(key) {
+            for(var x=0,l=this.options.columns.length; x<l; x++) {
+                if(this.options.columns[x].key == key) {
+                    return this.options.columns[x];
+                }
+            }
+        },
+        
+        getRowForIndex: function(idx) {
+            return this.options.dataSource.getRecord(idx);
         }
     };
     

@@ -1,5 +1,6 @@
-body {
+* {
     font-family: sans-serif;
+    font-size: 12pt;
 }
 
 .powergrid {
@@ -20,7 +21,7 @@ body {
 	padding: 5px 8px;
 	overflow: hidden;
     box-sizing: border-box;
-    cursor: move;
+    cursor: default;
 }
 
 .row {
@@ -29,8 +30,21 @@ body {
     box-sizing: border-box;
 }
 
+.cell.pg-editing > input {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
 .cell {
+    background: rgb(220,220,200);
+}
+
+.cell.pg-editable {
     background: white;
+    cursor: text;
 }
 
 .row.headerrow,
@@ -38,12 +52,20 @@ body {
     background-color: rgb(220,220,220);
 }
 
-.fixed.left .columnheader:after,
-.scrolling .columnheader:after {
+.columnheader {
+    cursor: move;
+}
+
+.fixed.left .columnheader > .pg-resizehandle,
+.scrolling .columnheader > .pg-resizehandle {
     right: 0px;
 }
 
-.columnheader:after {
+.fixed.right .columnheader > .pg-resizehandle {
+    left: 0px;
+}
+
+.columnheader > .pg-resizehandle {
     content: '';
     position: absolute;
     display: block;
@@ -53,10 +75,6 @@ body {
     height: 100%;
     top: 0px;
     cursor: col-resize;
-}
-
-.fixed.right .columnheader:after {
-    left: 0px;
 }
 
 .powergrid > .scrolling {

@@ -12,9 +12,12 @@
                 var columns = numbers.map(function(e) {
                     return {
                         title: "Column " + e,
-                        width: e==0?150:100
+                        width: e==0?150:100,
+                        editable: e > 5 && e < 10
                     };
                 });
+                
+                var data = new Array(100);
                 
                 $("#test").PowerGrid({
                     columns: columns,
@@ -27,19 +30,28 @@
                     
                     dataSource: {
                         recordCount: function() {
-                            return 500;
+                            return data.length;
                         },
                         
                         getRecord: function(idx) {
-                            return columns.map(function(e,i) {
-                                return "Cell " + idx + ", " + i;
-                            });
+                            if(data[idx] === undefined) {
+                                return data[idx] = columns.map(function(e,i) {
+                                    return "Cell " + idx + ", " + i;
+                                });
+                            } else {
+                                return data[idx];
+                            }
+                        },
+                        
+                        setValue: function(rowIdx, key, value) {
+                            data[rowIdx][key] = value;
                         }
                     },
                     
                     extensions: {
                         'columnsizing': {},
-                        'columnmoving': {}
+                        'columnmoving': {},
+                        'editing': true
                     }
                 });
             });
