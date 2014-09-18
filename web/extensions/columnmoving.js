@@ -48,10 +48,13 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 var newPos = (startX + event.pageX - oX);
                                 
                                 // find the new index for the column
-                                for(var newIdx = start; newIdx < end; newIdx++) {
-                                    if(newPos + offset < positions[newIdx]) break;
+                                for(var newIdx = start, cw=0; newIdx < end; newIdx++) {
+                                    if(idx!=newIdx) cw += grid.options.columns[newIdx].width;
+                                    if(cw >= newPos) break;
                                 }
-                                newIdx--;
+                                
+                                if(newIdx > idx) newIdx--;
+                                
                                 if(newIdx < start) newIdx = start;
                                 
                                 if(newIdx != idx) {
