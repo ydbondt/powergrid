@@ -41,7 +41,10 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
 
                             cells.addClass("columndragging");
                             
+                            var tracking = true;
+                            
                             $(document).on("mousemove.columnTracking", function(event) {
+                                if(!tracking) return;
                                 var newPos = (startX + event.pageX - oX);
                                 
                                 // find the new index for the column
@@ -60,6 +63,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
                             }, utils.handleEventInAnimationFrame).on("mouseup.columnTracking", function(event) {
+                                tracking = false;
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": "" });
                                 vein.inject(grid.baseSelector + " .column" + col.key, { "left": positions[idx] + "px" });
