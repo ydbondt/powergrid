@@ -9,6 +9,15 @@
     user-select: none;
 }
 
+.pg-scroller {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: scroll;
+}
+
 .cell, .columnheader {
     position: absolute;
     display: inline-block;
@@ -53,6 +62,7 @@
 
 .columnheader {
     cursor: move;
+    height: 100%;
 }
 
 .fixed.left .columnheader > .pg-resizehandle,
@@ -73,50 +83,40 @@
     height: 100%;
     top: 0px;
     cursor: col-resize;
+    transition: 0.5s ease;
+}
+
+.columnheader > .pg-resizehandle:hover {
+    border-color: #FFF;
 }
 
 .powergrid > .scrolling {
 	position: absolute;
-	width: 100%;
-    overflow: scroll;
+    overflow: hidden;
     z-index: 2;
     border-top: 2px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
 
-.powergrid > .header,
-.powergrid > .footer {
+.powergrid > .pg-rowgroup {
 	position: absolute;
-	width: 100%;
-    overflow-x: scroll;
-    overflow-y: hidden;
+    overflow: hidden;
     background: white;
 }
 
-.powergrid > .header::-webkit-scrollbar {
-    width: 0 !important;
-    display: none;
-}
-
-.powergrid .header {
+.powergrid > .header {
     top: 0px;
     z-index: 1;
 }
 
-.powergrid .footer {
-    bottom: 0px;
+.powergrid > .footer {
     border-top: 2px solid rgba(0, 0, 0, 0.27);
     z-index: 3;
-}
-
-.container {
-    background: white;
 }
 
 .powergrid > div > .container.fixed {
     box-sizing: content-box;
 	position: absolute;
-	overflow: hidden;
     z-index: 1;
 }
 

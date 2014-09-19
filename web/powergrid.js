@@ -1,4 +1,4 @@
-define(['jquery', 'vein'], function($, vein) {
+define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 	"use strict";
 	
     function determineScrollBarSize() {
@@ -20,11 +20,15 @@ define(['jquery', 'vein'], function($, vein) {
     
     var scrollBarSize;
     
+    var scrollIsSyncing=false;
+    
     $(function() {
         scrollBarSize = determineScrollBarSize();
         
         //adjust the margin to compensate for the scrollbar
-        vein.inject('.powergrid > .scrolling > .container.fixed.right', {'margin-right': "-" + scrollBarSize.width + "px"});
+        vein.inject('.pg-rowgroup.header', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
+        vein.inject('.pg-rowgroup.scrolling', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
+        vein.inject('.pg-rowgroup.footer', {'width': "calc(100% - " + scrollBarSize.width + "px)", 'bottom': scrollBarSize.width + "px"});
     });
     
 	function PowerGrid(target, options) {
@@ -60,9 +64,11 @@ define(['jquery', 'vein'], function($, vein) {
             var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
 
                 container = this.container = $("<div class='powergrid'>"),
-                scrollingcontainer = this.scrollingcontainer = $("<div class='scrolling'>"),
-                headercontainer = this.headercontainer = $("<div class='header'>"),
-                footercontainer = this.footercontainer = $("<div class='footer'>"),
+                headercontainer = this.headercontainer = $("<div class='pg-rowgroup header'>"),
+                scrollingcontainer = this.scrollingcontainer = $("<div class='pg-rowgroup scrolling'>"),
+                footercontainer = this.footercontainer = $("<div class='pg-rowgroup footer'>"),
+                scroller = this.scroller = $("<div class='pg-scroller'>"),
+                scrollFiller = this.scrollFiller = $("<div class='pg-scroller-filler'>"),
 
                 scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
             
@@ -75,10 +81,11 @@ define(['jquery', 'vein'], function($, vein) {
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
             this.createRowGroup(-1, this.options.frozenRowsTop, headercontainer);
+            scrollingcontainer.append(headercontainer);
             this.createRowGroup(this.options.frozenRowsTop, this.options.dataSource.recordCount() - this.options.frozenRowsBottom, scrollingcontainer);
             this.createRowGroup(this.options.dataSource.recordCount() - this.options.frozenRowsBottom, this.options.dataSource.recordCount(), footercontainer);
 
-            container.append(headercontainer).append(scrollingcontainer).append(footercontainer);
+            container.append(headercontainer).append(scrollingcontainer).append(footercontainer).append(scroller.append(scrollFiller));
 
             this.adjustHeights();
             this.adjustWidths();
@@ -86,8 +93,19 @@ define(['jquery', 'vein'], function($, vein) {
 
             $(this.target).append(container);
 
-            $(".powergrid > div").scroll(requestAnimationFrame, function(event) {
-                grid.syncScroll(this, event);
+            var redrawing = false;
+            
+            $(".powergrid > .pg-scroller").on('scroll', function(evt) {
+                if(!redrawing) {
+                    var self = this;
+                    redrawing = true;
+//                    timer = setTimeout(function() {
+                        //requestAnimationFrame(function() {
+                            grid.syncScroll(self, evt);
+                            redrawing = false;
+                       //});
+//                    }, 1000);
+                }
             });
         },
         
@@ -154,16 +172,18 @@ define(['jquery', 'vein'], function($, vein) {
             var trailingWidth = this.columnWidth(this.options.columns.length - this.options.frozenColumnsRight, this.options.columns.length);
             this.fixedLeft.css("width", leadingWidth + "px");
             this.fixedRight.css("width", trailingWidth + "px");
-            this.middleScrollers.css({"margin-left": leadingWidth + "px", "margin-right": trailingWidth + "px", "width": (middleWidth + trailingWidth) + "px"});
+            this.middleScrollers.css({"left": leadingWidth + "px", "right": trailingWidth + "px"});
+            this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth) + "px"});
         },
         
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
             var headerHeight = this.rowHeight(-1, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.options.dataSource.recordCount() - this.options.frozenRowsBottom, this.options.dataSource.recordCount());
-            this.headercontainer.css("height", (headerHeight + scrollBarSize.height) + "px");
-            this.footercontainer.css("height", (footerHeight + scrollBarSize.height) + "px");
+            this.headercontainer.css("height", (headerHeight) + "px");
+            this.footercontainer.css("height", (footerHeight) + "px");
             this.scrollingcontainer.css("top", headerHeight + "px").css("bottom", footerHeight + "px");
+            this.scrollFiller.css({"height": this.rowHeight(0, this.options.dataSource.recordCount()) });
         },
         
         adjustColumnPositions: function adjustColumnPositions() {
@@ -207,11 +227,13 @@ define(['jquery', 'vein'], function($, vein) {
         },
         
         syncScroll: function syncScroll(source, event) {
+            scrollIsSyncing = true;
+            
             // Sync the scrolling between the scrolling divs
             // tested CSS class injection, but was slower than direct manipulation in this case
-            this.fixedLeft.css("left", source.scrollLeft + "px");
-            this.fixedRight.css("right", "-" + source.scrollLeft + "px");
-            this.scrollContainers.scrollLeft(source.scrollLeft);
+            
+            $(this.target).children('.powergrid').children('.scrolling').scrollTop(source.scrollTop);
+            $(this.target).children('.powergrid').children('.pg-rowgroup').children('.scrolling').css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
         },
         
         renderHeaderCell: function renderHeaderCell(column, columnIdx) {
