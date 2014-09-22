@@ -123,7 +123,104 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 
                 self.scroll(dX * ddX, dY * ddY);
             });
+            
+            this.initTouchScrollEvents();
         },
+        
+        initTouchScrollEvents: function() {
+            var self = this;
+            var tracking = false;
+            var lastX, lastY;
+            var timeUnit = 100; // 100ms
+            var inertialCutOff = 0.001; // minimum speed for inertial scrolling before cutoff
+            var inertia = 0.998; // inertia for inertial scrolling (higher means longer scrolling, 1 = infinite (frictionless) scrolling, 0 = no inertial scrolling)
+            
+            var eventQueue = []; // keep track of last 100ms of events to determine drag speed
+            
+            function pruneEventQueue() {
+                var t = eventQueue[0].t;
+                for(var x=1,l=eventQueue.length;x<l;x++) {
+                    if( (t - eventQueue[x].t) > timeUnit ) break;
+                }
+                eventQueue = eventQueue.slice(0, x);
+            }
+            
+            function startInertialScroll(speedX, speedY) {
+                var previousTime = new Date().getTime();
+
+                var scrollPosition = self.getScrollPosition();
+                
+                function draw() {
+                    if(tracking) return; // if tracking a new touch thing, stop inertial scrolling
+                    
+                    var t = new Date().getTime();
+                    var frameDuration = t - previousTime;
+                    previousTime = t;
+
+                    var r = Math.pow(inertia, frameDuration);
+                    speedX = speedX * r;
+                    speedY = speedY * r;
+
+                    if(Math.abs(speedX) >= inertialCutOff && Math.abs(speedY) >= inertialCutOff) {
+                        scrollPosition.left += speedX * frameDuration;
+                        scrollPosition.top += speedY * frameDuration;
+                        self.scrollTo(Math.round(scrollPosition.left), Math.round(scrollPosition.top));
+                        requestAnimationFrame(draw);
+                    }
+                };
+
+                requestAnimationFrame(draw);   
+            }
+            
+            this.target.on("touchstart", function(startevent) {
+                tracking = true;
+                lastX = startevent.originalEvent.touches[0].pageX, lastY = startevent.originalEvent.touches[0].pageY;
+            }).on("touchmove", function(dragevent) {
+                if(tracking) {
+                    var currentTime = new Date().getTime();
+                    
+                    var newX = dragevent.originalEvent.touches[0].pageX, newY = dragevent.originalEvent.touches[0].pageY;
+                    
+                    var dX = lastX - newX, dY = lastY - newY;
+                    
+                    var e = {
+                        x: dX,
+                        y: dY,
+                        t: currentTime
+                    };
+                    
+                    eventQueue.unshift(e);
+                    pruneEventQueue();
+                    
+                    lastX = newX;
+                    lastY = newY;
+                    
+                    self.scroll(dX, dY);
+                }
+            }).on("touchend", function(endevent) {
+                tracking = false;
+                
+                if(!eventQueue.length) return;
+                
+                var timeSinceLastEvent = (new Date().getTime()) - eventQueue[0].t;
+                if(timeSinceLastEvent < timeUnit) {
+                    var delta = eventQueue.reduce(function(a,b) {
+                        a.dX += b.x;
+                        a.dY += b.y;
+                        return a;
+                    }, { dX: 0, dY: 0 });
+                    
+                    var timeBetween = eventQueue[0].t - eventQueue[eventQueue.length-1].t;
+                    
+                    startInertialScroll(delta.dX / timeBetween, delta.dY / timeBetween);
+                } else {
+                    //console.log(timeSinceLastEvent);
+                }
+                
+                eventQueue = [];
+            });
+        },
+        
         
         createRowGroup: function createRowGroup(start, end, container) {
             var fixedPartLeft = $("<div class='container fixed left'>");
@@ -245,6 +342,18 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         scroll: function(dX, dY) {
             this.scroller[0].scrollTop += dY;
             this.scroller[0].scrollLeft += dX;
+        },
+        
+        scrollTo: function(x, y) {
+            this.scroller[0].scrollTop = Math.max(0, y);
+            this.scroller[0].scrollLeft = Math.max(0, x);
+        },
+        
+        getScrollPosition: function() {
+            return {
+                left: this.scroller[0].scrollLeft,
+                top: this.scroller[0].scrollTop
+            };
         },
         
         syncScroll: function syncScroll(source, event) {
