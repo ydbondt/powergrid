@@ -107,6 +107,22 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 //                    }, 1000);
                 }
             });
+            
+            this.initScrollEvents();
+        },
+        
+        initScrollEvents: function initScrollEvents() {
+            var self = this;
+            this.target.on("wheel", function(evt) {
+                var dX = evt.originalEvent.deltaX, dY = evt.originalEvent.deltaY, dM = evt.originalEvent.deltaMode, ddX, ddY;
+                switch(dM) {
+                    case 0: ddX=ddY=1; break;
+                    case 1: ddX=ddY=self.rowHeight(0); break;
+                    case 2: ddX=self.pageHeight(); ddY=self.pageWidth(); break;
+                }
+                
+                self.scroll(dX * ddX, dY * ddY);
+            });
         },
         
         createRowGroup: function createRowGroup(start, end, container) {
@@ -224,6 +240,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             } else {
                 return (end - start) * 31;
             }
+        },
+        
+        scroll: function(dX, dY) {
+            this.scroller[0].scrollTop += dY;
+            this.scroller[0].scrollLeft += dX;
         },
         
         syncScroll: function syncScroll(source, event) {
