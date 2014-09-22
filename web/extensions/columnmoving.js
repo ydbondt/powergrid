@@ -64,8 +64,11 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                     idx=newIdx;
                                 }
                                 
-                                updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
-                            }, utils.handleEventInAnimationFrame).on("mouseup.columnTracking", function(event) {
+                                requestAnimationFrame(function() {
+                                    if(!tracking) return;
+                                    updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
+                                });
+                            }).on("mouseup.columnTracking", function(event) {
                                 tracking = false;
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
                                 updateStyle(grid.baseSelector + " .column" + col.key, { "left": "" });
