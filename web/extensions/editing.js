@@ -52,7 +52,6 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         
                         var opts = {
                             target: target,
-                            sourceEvent: event,
                             key: key,
                             rowIdx: rowIdx,
                             record: record
