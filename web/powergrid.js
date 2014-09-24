@@ -111,10 +111,20 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 });
             }
             
-            $(this.dataSource).on("dataloaded rowsadded rowsremoved", function() {
-                grid.trigger('dataloaded');
+            $(this.dataSource).on("dataloaded", function(event) {
+                grid.trigger('dataloaded', event.data);
                 requestAnimationFrame(function() {
                     grid.renderData();
+                });
+            }).on("rowsremoved", function(event, data) {
+                requestAnimationFrame(function() {
+                    grid._removeRows(data.start, data.end);
+                    grid.trigger('rowsremoved', data);
+                });
+            }).on("rowsadded", function(event, data) {
+                requestAnimationFrame(function() {
+                    grid._addRows(data.start, data.end);
+                    grid.trigger('rowsadded', data);
                 });
             });
             
@@ -278,9 +288,22 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             this.renderRowGroupContents(start, end, fixedPartLeft, scrollingPart, fixedPartRight);
         },
         
-        renderRowGroupContents: function(start, end, fixedPartLeft, scrollingPart, fixedPartRight, prepend) {
+        renderRowGroupContents: function(start, end, fixedPartLeft, scrollingPart, fixedPartRight, prepend, atIndex) {
             // start rendering
-            var method = prepend === true ? 'prepend' : 'append';
+            
+            var method = atIndex === undefined ? (prepend === true ? 'prepend' : 'append') : (prepend === true ? 'before' : 'after');
+            
+            var targetLeft, targetMiddle, targetRight;
+            
+            if(atIndex === undefined) {
+                targetLeft = fixedPartLeft;
+                targetMiddle = scrollingPart;
+                targetRight = fixedPartRight;
+            } else {
+                targetLeft = fixedPartLeft.children(".row:eq(" + atIndex + ")");
+                targetMiddle = scrollingPart.children(".row:eq(" + atIndex + ")");
+                targetRight = fixedPartRight.children(".row:eq(" + atIndex + ")");
+            }
             
             var dataSubset = this.dataSource.getData(start<0?0:start, end);
             
@@ -320,10 +343,51 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                     }
                 }
 
-                fixedPartLeft[method](rowFixedPartLeft);
-                fixedPartRight[method](rowFixedPartRight);
-                scrollingPart[method](rowScrollingPart);
+                targetLeft[method](rowFixedPartLeft);
+                targetMiddle[method](rowScrollingPart);
+                targetRight[method](rowFixedPartRight);
             }
+        },
+        
+        _removeRows: function(start, end) {
+            console.log("Removing rows " +start + " to " + end);
+            function r(start, end, rowgroup) {
+                rowgroup.children(".container").each(function(i,part) {
+                    $(part).children(".row:lt(" + end + "):gt(" + (start-1) + ")").remove();
+                });
+                return end-start;
+            }
+            
+            var scrollEnd = this.dataSource.recordCount() - this.options.frozenRowsTop;
+            
+            if(start < end && start >= this.viewport.begin && start < this.viewport.end) {
+                var count = r(start - this.viewport.begin, Math.min(this.viewport.end, end) - this.viewport.begin, this.scrollingcontainer);
+                start = Math.min(scrollEnd, end);
+                this.viewport.end -= count;
+            }
+            
+            this.updateViewport();
+            this.adjustHeights();
+        },
+        
+        _addRows: function(start, end) {
+            if(start >= this.viewport.begin && start <= this.viewport.end) {
+                console.log("Adding rows " + start + " to " + end);
+                // new rows being added to the virtual scrolling container, so that means:
+                // a) insert some rows between two existing rows
+                // b) remove the rows that are no longer in the viewport
+                // Preferably we'd do b first.
+                
+                var leftPart = this.scrollingcontainer.children('.container.fixed.left'),
+                middlePart = this.scrollingcontainer.children('.container.scrolling'),
+                rightPart = this.scrollingcontainer.children('.container.fixed.right');
+                    
+                this.renderRowGroupContents(start, end, leftPart, middlePart, rightPart, false, start-this.viewport.begin-1);
+                this.viewport.end += (end - start);
+            }
+            
+            this.updateViewport();
+            this.adjustHeights();
         },
         
         updateViewport: function() {
@@ -343,7 +407,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             range.begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
             range.end = Math.min(end, range.end + this.options.virtualScrollingExcess);
             
-            if(range.begin == this.viewport.begin || range.end == this.viewport.end) return; // viewport hasn't changed, so bail out
+            if(range.begin == this.viewport.begin && range.end == this.viewport.end) return; // viewport hasn't changed, so bail out
             
             var leadingHeight = this.rowHeight(start, range.begin),
                 trailingHeight = this.rowHeight(range.end, end);

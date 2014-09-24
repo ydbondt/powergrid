@@ -118,7 +118,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                 row.__expanded = true;
                 var rows = this.flattenSubTree(row.children);
                 this.view.splice.apply(this.view, [start+1, 0].concat(rows));
-                $(this).trigger('rowsadded',{start: start+1, end: end});
+                $(this).trigger('rowsadded',{start: start+1, end: start+1 + rows.length});
             }
         },
 

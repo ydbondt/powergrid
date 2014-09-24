@@ -155,6 +155,7 @@
 
 .pg-treetoggle {
     background-image: url('./expand.svg');
+    cursor: default;
 }
 
 .pg-treetoggle.pg-tree-expanded {
