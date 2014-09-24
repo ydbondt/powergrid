@@ -14,7 +14,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                     var grid = this;
                     this.target.on("mousedown", ".columnheader", function(event) {
                         var header = event.target,
-                            key = parseInt($(header).attr("data-column-key")),
+                            key = $(header).attr("data-column-key"),
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; }),
                             col = grid.options.columns[idx],
                             oX = event.pageX,

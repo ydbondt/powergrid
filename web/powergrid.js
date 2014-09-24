@@ -44,6 +44,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             }
         }
         
+        this.dataSource = options.dataSource;
+        
         this.beginInit();
     }
     
@@ -78,8 +80,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 scroller = this.scroller = $("<div class='pg-scroller'>"),
                 scrollFiller = this.scrollFiller = $("<div class='pg-scroller-filler'>"),
 
-                scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer)),
-                recordCount = this.rowCount();
+                scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
             
             this.options.columns.forEach(function(column, index) {
                 if(column.key === undefined) {
@@ -89,14 +90,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
-            this.createRowGroup(-1, this.options.frozenRowsTop, headercontainer, true);
-            scrollingcontainer.append(headercontainer);
-            this.createRowGroup(this.options.frozenRowsTop, recordCount - this.options.frozenRowsBottom, scrollingcontainer, false);
-            this.createRowGroup(recordCount - this.options.frozenRowsBottom, recordCount, footercontainer, true);
+            this.createRowGroup(headercontainer);
+            this.createRowGroup(scrollingcontainer, false);
+            this.createRowGroup(footercontainer);
 
             container.append(headercontainer).append(scrollingcontainer).append(footercontainer).append(scroller.append(scrollFiller));
 
-            this.adjustHeights();
             this.adjustWidths();
             this.adjustColumnPositions();
 
@@ -106,13 +105,17 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 grid.syncScroll(this, evt);
             });
             
-            this.viewport = {
-                begin: 0,
-                end: 0
-            };
+            if(this.dataSource.isReady()) {
+                requestAnimationFrame(function() {
+                    grid.renderData();
+                });
+            }
             
-            requestAnimationFrame(function() {
-                grid.updateViewport();
+            $(this.dataSource).on("dataloaded rowsadded rowsremoved", function() {
+                grid.trigger('dataloaded');
+                requestAnimationFrame(function() {
+                    grid.renderData();
+                });
             });
             
             this.initScrollEvents();
@@ -225,15 +228,13 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                     var timeBetween = eventQueue[0].t - eventQueue[eventQueue.length-1].t;
                     
                     startInertialScroll(delta.dX / timeBetween, delta.dY / timeBetween);
-                } else {
-                    //console.log(timeSinceLastEvent);
                 }
                 
                 eventQueue = [];
             });
         },
         
-        createRowGroup: function createRowGroup(start, end, container, populate, adddummies) {
+        createRowGroup: function createRowGroup(container, adddummies) {
             var fixedPartLeft = $("<div class='container fixed left'>");
             var fixedPartRight = $("<div class='container fixed right'>");
             var scrollingPart = $("<div class='container scrolling'>");
@@ -244,9 +245,6 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             var self = this;
             
-            // we're rendering the contents in a new frame, after layout is done
-            if(populate) self.renderRowGroupContents(start, end, fixedPartLeft, scrollingPart, fixedPartRight);
-            
             if(adddummies) {
                 fixedPartLeft.add(scrollingPart).add(fixedPartRight).each(function(i, part) {
                     $(part).append("<div class='.pg-dummyLead'>").append("<div class='.pg-dummyTail'>");
@@ -256,20 +254,51 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             container.append(fixedPartLeft).append(scrollingPart).append(fixedPartRight);
         },
         
+        renderData: function() {
+            this.headercontainer.children('.container').empty();
+            this.footercontainer.children('.container').empty();
+            this.scrollingcontainer.children('.container').empty();
+            
+            this.viewport = {
+                begin: 0,
+                end: 0
+            };
+            
+            this.renderDataInRowGroup(this.headercontainer, -1, this.options.frozenRowsTop);
+            this.renderDataInRowGroup(this.footercontainer, this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
+            this.updateViewport();
+            this.adjustHeights();
+            this.trigger("datarendered");
+        },
+        
+        renderDataInRowGroup: function(container, start, end) {
+            var fixedPartLeft = container.children('.container.fixed.left');
+            var fixedPartRight = container.children('.container.fixed.right');
+            var scrollingPart = container.children('.container.scrolling');
+            this.renderRowGroupContents(start, end, fixedPartLeft, scrollingPart, fixedPartRight);
+        },
+        
         renderRowGroupContents: function(start, end, fixedPartLeft, scrollingPart, fixedPartRight, prepend) {
             // start rendering
             var method = prepend === true ? 'prepend' : 'append';
             
+            var dataSubset = this.dataSource.getData(start<0?0:start, end);
+            
             for(var x = prepend ? end - 1 : start; prepend ? x >= start : x < end; prepend ? x-- : x++) {
-                var rowFixedPartLeft = $("<div class='row fixed'>").attr("data-row-idx", x);
-                var rowFixedPartRight = $("<div class='row fixed'>").attr("data-row-idx", x);
-                var rowScrollingPart = $("<div class='row scrolling'>").attr("data-row-idx", x);
-
-                if(x == -1) {
-                    $(rowFixedPartLeft).add(rowFixedPartRight).add(rowScrollingPart).addClass("headerrow");
+                var rowFixedPartLeft = $("<div class='row fixed'>");
+                var rowFixedPartRight = $("<div class='row fixed'>");
+                var rowScrollingPart = $("<div class='row scrolling'>");
+                
+                var rows = $(rowFixedPartLeft).add(rowFixedPartRight).add(rowScrollingPart);
+                
+                var record = dataSubset[x-(start<0?0:start)]; // FIXME get rid of this header rendering here.
+                if(x >= 0) {
+                    rows.attr("data-row-idx", x).attr("data-row-id", record.id);
                 }
-
-                var record = this.options.dataSource.getRecord(x);
+                
+                if(x == -1) {
+                    rows.addClass("headerrow");
+                }
 
                 for(var y = 0; y < this.options.columns.length; y++) {
                     var cell, column = this.options.columns[y];
@@ -300,7 +329,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         updateViewport: function() {
             var self = this,
                 start = this.options.frozenRowsTop,
-                end = this.rowCount() - this.options.frozenRowsBottom,
+                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
@@ -330,10 +359,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 if(range.begin < this.viewport.begin) {
                     // have to add rows to beginning
                     this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, this.viewport.begin), leftPart, middlePart, rightPart, true);
-                    console.log("Adding rows to head", range.begin, this.viewport.begin);
                 } else if(range.begin > this.viewport.begin) {
                     // have to remove rows from beginning
-                    console.log("Culling rows from head", range.begin, this.viewport.begin);
                     allParts.each(function(i,part) {
                         $(part).children('.row:lt(' + (range.begin - self.viewport.begin) + ')').remove();
                     });
@@ -341,13 +368,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
                 if(range.end < this.viewport.end && range.end > this.viewport.begin) {
                     // have to remove rows from end
-                    console.log("Culling rows from tail", range.end, this.viewport.end);
                     allParts.each(function(i,part) {
                         $(part).children('.row:gt(' + (range.end - self.viewport.end - 1) + ')').remove();
                     });
                 } else if(range.end > this.viewport.end) {
                     // have to add rows to end
-                    console.log("Adding rows to tail", range.end, this.viewport.end);
                     this.renderRowGroupContents(Math.max(this.viewport.end, range.begin), Math.min(range.end, end), leftPart, middlePart, rightPart, false);
                 }
             } else {
@@ -401,11 +426,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
             var headerHeight = this.rowHeight(-1, this.options.frozenRowsTop);
-            var footerHeight = this.rowHeight(this.rowCount() - this.options.frozenRowsBottom, this.rowCount());
+            var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.headercontainer.css("height", (headerHeight) + "px");
             this.footercontainer.css("height", (footerHeight) + "px");
             this.scrollingcontainer.css("top", headerHeight + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
-            this.scrollFiller.css({"height": this.rowHeight(0, this.rowCount()) });
+            this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) });
         },
         
         adjustColumnPositions: function adjustColumnPositions() {
@@ -454,7 +479,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             // If start is defined, row position is measured relative to start index.
             // If end is defined, counting stops at end index
             var begin=-1, ct=0;
-            for(var x=(start||0),l=end||this.rowCount();x<l;x++) {
+            for(var x=(start||0),l=end||this.dataSource.recordCount();x<l;x++) {
                 ct += this.rowHeight(x);
                 if(ct>=top && begin===-1) {
                     begin = x;
@@ -506,8 +531,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         },
         
         afterscroll: function() {
+            var self = this;
             if(!this.updateViewportTimer) {
-                setTimeout(this.updateViewport.bind(this), 100);
+                this.updateViewportTimer = setTimeout(function() {
+                    requestAnimationFrame(self.updateViewport.bind(self));
+                    self.updateViewportTimer = null;
+                }, 100);
             }
             $(this).trigger('scroll');
         },
@@ -517,7 +546,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             return $("<div class='columnheader'>").text(column.title);
         },
         
-        renderCell: function renderCell(record, column) {
+        renderCell: function renderCell(record, column, rowIdx, columnIdx) {
             // Render the cell container
             return $("<div class='cell'>").append(this.renderCellContent(record, column, record[column.key]));
         },
@@ -536,13 +565,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             }
         },
         
-        getRowForIndex: function(idx) {
-            // Returns the row at the given index
-            return this.options.dataSource.getRecord(idx);
+        trigger: function(eventName, data) {
+            $(this).trigger(eventName, data);
         },
         
-        rowCount: function() {
-            return this.options.dataSource.recordCount();
+        on: function(eventName, handler) {
+            $(this).on(eventName, handler);
         }
     };
     

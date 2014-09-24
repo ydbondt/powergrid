@@ -17,7 +17,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                     var grid = this;
                     this.target.on("mousedown", ".pg-resizehandle", function(event) {
                         var header = event.target.parentNode,
-                            key = parseInt($(header).attr("data-column-key")),
+                            key = $(header).attr("data-column-key"),
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; }),
                             col = grid.options.columns[idx],
                             oX = event.pageX,

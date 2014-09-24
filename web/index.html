@@ -40,18 +40,38 @@
                             return data.length;
                         },
                         
-                        getRecord: function(idx) {
+                        getRowByIndex: function(idx) {
                             if(data[idx] === undefined) {
-                                return data[idx] = columns.map(function(e,i) {
+                                var row = columns.map(function(e,i) {
                                     return "Cell " + idx + ", " + i;
                                 });
+                                row.id = idx + "";
+                                return data[idx] = row;
                             } else {
                                 return data[idx];
                             }
                         },
                         
+                        getRowById: function(id) {
+                            return this.getRowByIndex(parseInt(id));
+                        },
+                        
+                        getData: function(start, end) {
+                            if(!start) start = 0;
+                            if(!end) end = this.recordCount();
+                            var d = new Array(end-start);
+                            for(var x = start; x < end; x++) {
+                                d[x-start] = this.getRowByIndex(x);
+                            }
+                            return d;
+                        },
+                        
                         setValue: function(rowIdx, key, value) {
                             data[rowIdx][key] = value;
+                        },
+                        
+                        isReady: function() {
+                            return true;
                         }
                     },
                     

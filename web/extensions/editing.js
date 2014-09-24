@@ -31,16 +31,16 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         }
                         
                         var key = $(targetCell).attr('data-column-key');
-                        var rowIdx = $(targetCell).parent().attr('data-row-idx');
-                        var record = grid.getRowForIndex(rowIdx);
+                        var rowId = $(targetCell).parent().attr('data-row-id');
+                        var record = grid.dataSource.getRecordById(rowId);
                         
-                        grid.editing.startEdit(targetCell, key, rowIdx, record);
+                        grid.editing.startEdit(targetCell, key, rowId, record);
                     });
                 },
                 
                 editing: {
                     grid: grid,
-                    startEdit: function(target, key, rowIdx, record) {
+                    startEdit: function(target, key, rowId, record) {
                         var column = grid.getColumnForKey(key);
                         var oldValue = record[key];
                         var editor = this.createEditor(column, oldValue);
@@ -53,7 +53,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         var opts = {
                             target: target,
                             key: key,
-                            rowIdx: rowIdx,
+                            rowId: rowId,
                             record: record
                         };
                         
@@ -66,19 +66,19 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         
                         
                         $(editor).on('commit', function(event, value, move) {
-                            editing.commit(target, rowIdx, record, column, value, oldValue, move);
+                            editing.commit(target, rowId, record, column, value, oldValue, move);
                         }).on('abort', function(event) {
-                            editing.abort(target, rowIdx, record, column, oldValue);
+                            editing.abort(target, rowId, record, column, oldValue);
                         });
                         $(target).addClass('pg-editing').empty().append(editor);
                     },
                     
-                    commit: function(target, rowIdx, record, column, value, oldValue, move) {
-                        grid.options.dataSource.setValue(rowIdx, column.key, value);
+                    commit: function(target, rowId, record, column, value, oldValue, move) {
+                        grid.options.dataSource.setValue(rowId, column.key, value);
                         this.endEdit(target, record, column, value);
                     },
                     
-                    abort: function(target, rowIdx, record, column, oldValue) {
+                    abort: function(target, rowId, record, column, oldValue) {
                         this.endEdit(target, record, column, oldValue);
                     },
                     

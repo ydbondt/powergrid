@@ -9,7 +9,7 @@ define(function() {
             }
         }
 
-        var overrides = override($super, object);
+        var overrides = override.apply(object, [$super, object]);
 
         for(var x in overrides) {
             object[x] = overrides[x];   
