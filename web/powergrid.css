@@ -1,66 +1,198 @@
-.cell {
+.powergrid {
+	position: relative;
+	height: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.pg-scroller {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: scroll;
+}
+
+.cell, .columnheader {
+    position: absolute;
     display: inline-block;
-    width: 80px;
 	border-top: 1px solid rgba(0,0,0,0.2);
 	padding: 5px 8px;
 	overflow: hidden;
+    box-sizing: border-box;
+    cursor: default;
+    height: 100%;
 }
 
 .row {
     height: 31px;
 	white-space: nowrap;
+    box-sizing: border-box;
+    position: relative;
 }
 
-.powergrid {
-	position: relative;
-	height: 216px;
+.cell.pg-editing > input {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+@-webkit-keyframes debug {
+    from {
+        background-color: green;
+    }
+    to {
+        background-color: white;
+    }
+}
+
+.debug .cell {
+    height: 100%;
+    background: rgb(240,240,240);
+    -webkit-animation: debug 1s;
+}
+
+.cell.pg-editable {
+    background: white;
+    cursor: text;
+}
+
+.row.headerrow,
+.columnheader {
+    background-color: rgb(134, 118, 118);
+    color: white;
+    font-weight: bold;
+}
+
+.columnheader {
+    cursor: move;
+    height: 100%;
+}
+
+.fixed.left .columnheader > .pg-resizehandle,
+.scrolling .columnheader > .pg-resizehandle {
+    right: 0px;
+}
+
+.fixed.right .columnheader > .pg-resizehandle {
+    left: 0px;
+}
+
+.columnheader > .pg-resizehandle {
+    position: absolute;
+    display: block;
+    border-right: 2px dotted #AAA;
+    box-sizing: border-box;
+    width: 5px;
+    height: 100%;
+    top: 0px;
+    cursor: col-resize;
+    transition: 0.5s ease;
+}
+
+.columnheader > .pg-resizehandle:hover {
+    border-color: #FFF;
 }
 
 .powergrid > .scrolling {
 	position: absolute;
-	height: 100%;
-	width: 100%;
-    overflow-y: scroll;
+    overflow: hidden;
+    z-index: 2;
+    border-top: 2px solid rgba(0, 0, 0, 0.27);
+    background: white;
 }
 
-.powergrid > .scrolling > .container.fixed {
+.powergrid > .pg-rowgroup {
 	position: absolute;
-	overflow: hidden;
+    overflow: hidden;
+    background: white;
 }
 
-.powergrid > .scrolling > .container.fixed.left {
+.powergrid > .header {
+    top: 0px;
+    z-index: 1;
+}
+
+.powergrid > .footer {
+    border-top: 2px solid rgba(0, 0, 0, 0.27);
+    z-index: 3;
+}
+
+.powergrid > div > .container.fixed {
+    box-sizing: content-box;
+	position: absolute;
+    z-index: 1;
+}
+
+.powergrid > div > .container.fixed.left {
     left: 0px;
-	width: calc(4*96px);
-	border-right: 2px solid black;
+	border-right: 2px solid rgba(0, 0, 0, 0.27);
 }
 
-.powergrid > .scrolling > .container.fixed.right {
+.powergrid > div > .container.fixed.right {
     right: 0px;
-	width: calc(2*96px);
-	border-left: 2px solid black;
+	border-left: 2px solid rgba(0, 0, 0, 0.27);
 }
 
-.powergrid > .scrolling > .container.scrolling {
+.powergrid > div > .container.scrolling {
 	position: absolute;
-	margin-left: calc(4*96px);
-    margin-right: calc(2*96px);
     left: 0px;
     right: 0px;
 	top: 0px;
-    overflow-y: hidden;
-	overflow-x: scroll;
 	white-space: nowrap;
 }
 
-.powergrid > .hscroller {
-	left: 0px;
-	right: 16px;
-	position: absolute;
-	bottom: 0px;
-	height: 16px;
-	overflow-x: scroll;
+.columndragging {
+    z-index: 10;
+    position: relative;
+    opacity: 0.8;
 }
 
-.powergrid > .hscroller > .dummy {
-	height: 1px;
+.pg-treetoggle, .pg-treeleaf {
+    width: 7px; height: 7px;
+    border: 1px solid black;
+    display: inline-block;
+    margin-right: 10px;
+    position: relative;
+    background-size: 100% 100%;
 }
+
+.pg-treetoggle {
+    background-image: url('./expand.svg');
+    cursor: default;
+}
+
+.pg-treetoggle.pg-tree-expanded {
+    background-image: url('./collapse.svg');
+}
+
+.pg-treeleaf {
+    border-color: rgba(0,0,0,0.2);
+}
+
+.pg-tree-level-0  { margin-left: 0; }
+.pg-tree-level-1  { margin-left: 1.5em; }
+.pg-tree-level-2  { margin-left: 3em; }
+.pg-tree-level-3  { margin-left: 4.5em; }
+.pg-tree-level-4  { margin-left: 6em; }
+.pg-tree-level-5  { margin-left: 7.5em; }
+.pg-tree-level-6  { margin-left: 9em; }
+.pg-tree-level-6  { margin-left: 10.5em; }
+.pg-tree-level-7  { margin-left: 12em; }
+.pg-tree-level-9  { margin-left: 13.5em; }
+.pg-tree-level-10 { margin-left: 15em; }
+.pg-tree-level-11 { margin-left: 16.5em; }
+.pg-tree-level-12 { margin-left: 18em; }
+.pg-tree-level-13 { margin-left: 19.5em; }
+.pg-tree-level-14 { margin-left: 21em; }
+.pg-tree-level-15 { margin-left: 22.5em; }
+.pg-tree-level-16 { margin-left: 24em; }
+.pg-tree-level-17 { margin-left: 25.5em; }
+.pg-tree-level-18 { margin-left: 27em; }

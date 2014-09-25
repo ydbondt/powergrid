@@ -1,0 +1,27 @@
+{
+  "name": "PowerGrid",
+  "version": "0.0.1",
+  "homepage": "https://github.com/ccantill/powergrid",
+  "authors": [
+    "ccantill <christoph.cantillon@pearlchain.net>"
+  ],
+  "main": "web/index.html",
+  "keywords": [
+    "grid"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "veinjs": "*"
+  },
+  "devDependencies": {
+    "requirejs": "~2.1.15",
+    "jquery": "~2.1.1"
+  }
+}

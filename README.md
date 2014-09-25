@@ -1,6 +1,6 @@
 Proof of concept of a HTML5 grid component with fixed columns
 
-Browser Targets: Chrome, Safari, IE10+
+Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE10+
 
 In scope:
 - fixed columns
@@ -25,3 +25,12 @@ Goals:
 - portability
 - flexibility
 - concurrency support (through use of Promises throughout the API)
+
+Getting started:
+- clone it
+- install nodejs & npm if not done so already
+- cd into the project directory
+- if not done so yet, install bower and grunt: sudo npm install -g bower && sudo npm install -g grunt-cli
+- npm install # install grunt tasks
+- bower install # fetch javascript dependencies
+- grunt bower # build requirejs config.js based on bower dependencies
