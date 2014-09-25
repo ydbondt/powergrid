@@ -26,6 +26,7 @@
 	overflow: hidden;
     box-sizing: border-box;
     cursor: default;
+    height: 100%;
 }
 
 .row {
@@ -43,9 +44,19 @@
     padding: 0;
 }
 
-.cell {
+@-webkit-keyframes debug {
+    from {
+        background-color: green;
+    }
+    to {
+        background-color: white;
+    }
+}
+
+.debug .cell {
     height: 100%;
     background: rgb(240,240,240);
+    -webkit-animation: debug 1s;
 }
 
 .cell.pg-editable {

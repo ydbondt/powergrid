@@ -293,6 +293,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             
             var method = atIndex === undefined ? (prepend === true ? 'prepend' : 'append') : (prepend === true ? 'before' : 'after');
             
+            var reverse = prepend ^ atIndex;
+            
             var targetLeft, targetMiddle, targetRight;
             
             if(atIndex === undefined) {
@@ -307,7 +309,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             
             var dataSubset = this.dataSource.getData(start<0?0:start, end);
             
-            for(var x = prepend ? end - 1 : start; prepend ? x >= start : x < end; prepend ? x-- : x++) {
+            for(var x = reverse ? end - 1 : start; reverse ? x >= start : x < end; reverse ? x-- : x++) {
                 var rowFixedPartLeft = $("<div class='row fixed'>");
                 var rowFixedPartRight = $("<div class='row fixed'>");
                 var rowScrollingPart = $("<div class='row scrolling'>");
@@ -413,10 +415,10 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 trailingHeight = this.rowHeight(range.end, end);
             
             function overlap(a,b) {
-                if(a.begin < b.begin && a.end > b.begin) return true;
-                if(a.begin < a.end && a.end > b.end) return true;
-                if(a.begin > b.begin && a.end < b.end) return true;
-                if(a.begin < b.begin && a.end > b.end) return true;
+                if(a.begin <= b.begin && a.end >= b.begin) return true;
+                if(a.begin <= a.end && a.end >= b.end) return true;
+                if(a.begin >= b.begin && a.end <= b.end) return true;
+                if(a.begin <= b.begin && a.end >= b.end) return true;
             }
             
             if(overlap(range, this.viewport)) {
