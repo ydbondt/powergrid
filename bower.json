@@ -18,7 +18,8 @@
     "tests"
   ],
   "dependencies": {
-    "veinjs": "*"
+    "veinjs": "*",
+    "es6-promise": "~1.0.0"
   },
   "devDependencies": {
     "requirejs": "~2.1.15",

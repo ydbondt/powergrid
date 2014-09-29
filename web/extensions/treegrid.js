@@ -1,4 +1,4 @@
-define(['override', 'jquery', 'utils'], function(override, $) {
+define(['override', 'jquery'], function(override, $) {
     
     "use strict";
     
@@ -120,6 +120,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                 this.view.splice.apply(this.view, [start+1, 0].concat(rows));
                 $(this).trigger('rowsadded',{start: start+1, end: start+1 + rows.length});
             }
+            
+            $(this).trigger('treetoggled', rowId, start, row.__expanded);
         },
 
         flattenSubTree: function(nodes) {
@@ -157,10 +159,15 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         treeDS.toggle(rowId);
                         
                         event.stopPropagation();
+                        event.preventDefault();
+                    });
+                    
+                    $(treeDS).on("treetoggled", function(event, rowId, rowIndex, newState) {
+                        grid.target.find(".row[data-row-id='" + rowId + "'] .pg-treetoggle").toggleClass("pg-tree-expanded", newState);
                     });
                 },
                 
-                renderCellContent: function(record, column, value) {
+                renderCellContent: function(record, rowIdx, column, value) {
                     var content = $super.renderCellContent.apply(this, arguments);
                     if(column.treeColumn) {
                         return $('<div>')

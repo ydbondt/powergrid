@@ -34,6 +34,8 @@
 	white-space: nowrap;
     box-sizing: border-box;
     position: relative;
+    transition: height 0.5s ease;
+    overflow: hidden;
 }
 
 .cell.pg-editing > input {
@@ -42,6 +44,18 @@
     border: none;
     margin: 0;
     padding: 0;
+}
+
+.pg-inner-row {
+    background: inherit;
+    position: absolute;
+    z-index: 2;
+}
+
+.pg-subview {
+    position: absolute;
+    z-index: 1;
+    bottom: 0px;
 }
 
 @-webkit-keyframes debug {
@@ -53,9 +67,11 @@
     }
 }
 
-.debug .cell {
-    height: 100%;
+.cell {
     background: rgb(240,240,240);
+}
+
+.debug .cell {
     -webkit-animation: debug 1s;
 }
 
@@ -155,22 +171,28 @@
     opacity: 0.8;
 }
 
-.pg-treetoggle, .pg-treeleaf {
-    width: 7px; height: 7px;
-    border: 1px solid black;
-    display: inline-block;
-    margin-right: 10px;
+.pg-treetoggle, .pg-treeleaf,
+.pg-subview-toggle {
+    width: 11px; height: 11px;
     position: relative;
-    background-size: 100% 100%;
-}
-
-.pg-treetoggle {
-    background-image: url('./expand.svg');
+    margin-right: 10px;
     cursor: default;
+    display: inline-block;
 }
 
-.pg-treetoggle.pg-tree-expanded {
+.pg-treetoggle, .pg-subview-toggle-default {
+    background-image: url('./expand.svg');
+    background-size: 11px 11px;
+    background-position: center center;
+}
+
+.pg-treetoggle.pg-tree-expanded, .pg-subview-toggle-default.pg-subview-expanded {
     background-image: url('./collapse.svg');
+}
+
+.pg-subview-toggle.pg-info {
+    background-image: url('./info.svg');
+    background-size: 100% 100%;
 }
 
 .pg-treeleaf {

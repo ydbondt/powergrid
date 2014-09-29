@@ -1,23 +1,23 @@
 Proof of concept of a HTML5 grid component with fixed columns
 
-Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE10+
+Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE9+
 
 In scope:
-- fixed columns
-- row grouping per column value
-- column moving
-- column resizing
-- column hiding
-- live sorting
-- virtual scrolling
-- grid within a grid
-- row hierarchy
-- inline editing & validation
-- paging
-- multiple selection modes: row, column, block
-- fill down/right
-- copy/paste blocks
-- undo
+- [x] fixed columns
+- [ ] row grouping per column value
+- [x] column moving
+- [x] column resizing
+- [ ] column hiding
+- [ ] live sorting
+- [x] virtual scrolling
+- [x] grid within a grid (possibility is there using subviews)
+- [x] row hierarchy
+- [x] inline editing & validation (almost done)
+- [ ] paging
+- [ ] multiple selection modes: row, column, block
+- [ ] fill down/right
+- [ ] copy/paste blocks
+- [ ] undo
 
 Goals:
 - high performance by leveraging browser-native functionality
@@ -25,6 +25,7 @@ Goals:
 - portability
 - flexibility
 - concurrency support (through use of Promises throughout the API)
+- touch support throughout
 
 Getting started:
 - clone it
