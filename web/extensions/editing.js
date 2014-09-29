@@ -24,7 +24,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                     
                     $super.init();
                     
-                    this.target.on("click", ".cell", function(event) {
+                    this.target.on("click", ".pg-cell", function(event) {
                         var targetCell = event.target;
                         while(targetCell && !$(targetCell).is('.cell')) {
                             targetCell = targetCell.parentNode;

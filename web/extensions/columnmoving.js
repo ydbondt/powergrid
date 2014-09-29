@@ -12,7 +12,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                 init: function() {
                     $super.init();
                     var grid = this;
-                    this.target.on("mousedown", ".columnheader", function(event) {
+                    this.target.on("mousedown", ".pg-columnheader", function(event) {
                         var header = event.target,
                             key = $(header).attr("data-column-key"),
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; }),
@@ -37,9 +37,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 end = positions.length - grid.options.frozenColumnsRight;
                             }
 
-                            var cells = $(grid.target).find(".column" + key);
+                            var cells = $(grid.target).find(".pg-column" + key);
 
-                            cells.addClass("columndragging");
+                            cells.addClass("pg-columndragging");
                             
                             var tracking = true;
                             
@@ -66,14 +66,14 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 
                                 requestAnimationFrame(function() {
                                     if(!tracking) return;
-                                    updateStyle(grid.baseSelector + " .column" + col.key, { "left": newPos + "px" });
+                                    updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": newPos + "px" });
                                 });
                             }).on("mouseup.columnTracking", function(event) {
                                 tracking = false;
                                 $(document).off("mousemove.columnTracking").off("mouseup.columnTracking");
-                                updateStyle(grid.baseSelector + " .column" + col.key, { "left": "" });
-                                vein.inject(grid.baseSelector + " .column" + col.key, { "left": positions[idx] + "px" });
-                                cells.removeClass("columndragging");
+                                updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": "" });
+                                vein.inject(grid.baseSelector + " .pg-column" + col.key, { "left": positions[idx] + "px" });
+                                cells.removeClass("pg-columndragging");
                             }, utils.handleEventInAnimationFrame);
                             
                             event.stopPropagation();

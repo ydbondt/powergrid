@@ -153,7 +153,7 @@ define(['override', 'jquery'], function(override, $) {
                     $super.init();
                     
                     this.target.on("click", ".pg-treetoggle", function(event) {
-                        var row = $(this).parents(".row").first(),
+                        var row = $(this).parents(".pg-row").first(),
                             rowId = row.attr("data-row-id");
                         
                         treeDS.toggle(rowId);
@@ -163,7 +163,7 @@ define(['override', 'jquery'], function(override, $) {
                     });
                     
                     $(treeDS).on("treetoggled", function(event, rowId, rowIndex, newState) {
-                        grid.target.find(".row[data-row-id='" + rowId + "'] .pg-treetoggle").toggleClass("pg-tree-expanded", newState);
+                        grid.target.find(".pg-row[data-row-id='" + rowId + "'] .pg-treetoggle").toggleClass("pg-tree-expanded", newState);
                     });
                 },
                 

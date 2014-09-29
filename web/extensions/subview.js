@@ -10,7 +10,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                     $super.init();
                     
                     this.target.on("click", ".pg-subview-toggle", function(event) {
-                        var row = $(this).parents(".row").first(),
+                        var row = $(this).parents(".pg-row").first(),
                             rowId = row.attr("data-row-id"),
                             rowIdx = parseInt(row.attr("data-row-idx"));
                         
