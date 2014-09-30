@@ -62,10 +62,47 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             if(keys.length) {
                 var files = keys.map(function(e) { return "extensions/" + e; });
                 require(files, function() {
+                    var plugins = {};
+                    var pluginList = [];
                     for(var x = 0; x < arguments.length; x++) {
-                        // probably should do some load order manipulation here
-                        arguments[x](grid, grid.options.extensions[keys[x]]);
+                        plugins[keys[x]] = arguments[x];
+                        pluginList.push(keys[x]);
                     }
+                    
+                    function testLoadOrder(keyA,keyB,dontRecurse) {
+                        var plugA = plugins[keyA], plugB = plugins[keyB];
+                        if(typeof plugA === 'object') {
+                            if(plugA.loadFirst) {
+                                for(var x=0,l=plugA.loadFirst.length;x<l;x++) {
+                                    var d = plugA.loadFirst[x];
+                                    if(d === keyB) return 1;
+                                    else {
+                                        var x = testLoadOrder(d, keyB);
+                                        if(x !== 0) {
+                                            return x;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if(dontRecurse === true) {
+                            return 0;
+                        } else {
+                            return testLoadOrder(keyB, keyA, true);
+                        }
+                    }
+                    
+                    pluginList.sort(testLoadOrder);
+                    
+                    pluginList.forEach(function(key) {
+                        var p = plugins[key];
+                        if(p.init) {
+                            p.init(grid, grid.options.extensions[key]);
+                        } else {
+                            p(grid, grid.options.extensions[key]);
+                        }
+                    });
+                    
                     grid.init();
                 });
             } else {
@@ -308,7 +345,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             var method = atIndex === undefined ? (prepend === true ? 'prepend' : 'append') : (prepend === true ? 'before' : 'after');
 
-            var reverse = prepend ^ atIndex;
+            var reverse = prepend ^ (atIndex !== undefined);
 
             var targetLeft, targetMiddle, targetRight;
 
@@ -671,7 +708,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
     };
 
     $.fn.extend({ PowerGrid: function(options) {
-        return new PowerGrid(this, options);
+        var d = this.data("powergrid");
+        if(!d) {
+            d = new PowerGrid(this, options);
+            this.data("powergrid", d);
+            return d;
+        } else {
+            return d;
+        }
     }});
 
     return PowerGrid;

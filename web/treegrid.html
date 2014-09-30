@@ -292,9 +292,6 @@
                     
                     frozenColumnsLeft: 1,
                     frozenColumnsRight: 2,
-
-                    frozenRowsTop: 2,
-                    frozenRowsBottom: 1,
                     
                     dataSource: new JSONDataSource({
                         url: './treedata.json'
@@ -304,7 +301,8 @@
                         'columnsizing': {},
                         'columnmoving': {},
                         'editing': true,
-                        'treegrid': {}
+                        'treegrid': {},
+                        'sorting': true
                     }
                 });
             });

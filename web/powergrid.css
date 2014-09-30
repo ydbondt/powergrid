@@ -29,6 +29,28 @@
     height: 100%;
 }
 
+.pg-sorter {
+    position: absolute;
+    display: inline-block;
+    width: 0px;
+    height: 0px;
+    border: solid;
+    border-width: 7px 4px;
+    top: 10px;
+    right: 10px;
+    border-color: transparent;
+}
+
+.pg-sort-ascending .pg-sorter {
+    top: 4px;
+    border-color: transparent transparent white transparent
+}
+
+.pg-sort-descending .pg-sorter {
+    top: 11px;
+    border-color: white transparent transparent transparent
+}
+
 .pg-row {
     height: 31px;
 	white-space: nowrap;
