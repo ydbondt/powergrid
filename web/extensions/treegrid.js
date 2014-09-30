@@ -62,7 +62,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 for(var x=0,l=nodes.length;x<l;x++) {
                     var r = nodes[x];
                     view.push(r);
-                    if(r.__expanded) {
+                    if(r.__expanded && r.children) {
                         build(r.children);
                     }
                 }
