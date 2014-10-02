@@ -7,8 +7,16 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
     // depending on which rows are collapsed or expanded.
     
     function TreeGridDataSource(delegate, options) {
+        var self = this;
         this.delegate = delegate;
         this.options = options;
+
+        var proto = Object.getPrototypeOf(this.delegate);
+        Object.keys(proto).forEach(function (member) {
+            if (!self[member] && (typeof proto[member] === "function")) {
+                self[member] = function() {return proto[member].apply(delegate, arguments) }
+            }
+        })
         
         if(delegate.isReady()) {
             this.load();
