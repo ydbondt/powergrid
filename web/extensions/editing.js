@@ -23,8 +23,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                     var grid = this;
                     
                     $super.init();
-                    
-                    this.target.on("click", ".pg-cell", function(event) {
+
+                    this.target.on("click", ".pg-cell.pg-editable", function(event) {
                         var targetCell = event.target;
                         while(targetCell && !$(targetCell).is('.pg-cell')) {
                             targetCell = targetCell.parentNode;
