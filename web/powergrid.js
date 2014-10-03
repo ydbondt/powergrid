@@ -671,12 +671,16 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         renderCell: function renderCell(record, column, rowIdx, columnIdx) {
             // Render the cell container
-            return $("<div class='pg-cell'>").append(this.renderCellContent(record, rowIdx, column, record[column.key]));
+            return $("<div class='pg-cell'>").append(this.renderCellContent(record, rowIdx, column, this.getCellTextValue(record[column.key], record, column)));
         },
 
         renderCellContent: function renderCellContent(record, rowIdx, column, value) {
             // Render the cell content
             return $("<span>").text(value);
+        },
+
+        getCellTextValue: function (value, record, column) {
+            return value;
         },
 
         getColumnForKey: function(key) {
