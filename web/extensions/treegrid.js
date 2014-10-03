@@ -237,6 +237,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
     };
     
     return {
+        loadFirst: ['templating'],
         init: function(grid, pluginOptions) {
             var treedepths = [],
                 data,
