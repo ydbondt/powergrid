@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "Glyphicons Halflings";
+    src: url("glyphicons-halflings-regular.woff") format('woff');
+}
+
 .powergrid {
 	position: relative;
 	height: 100%;
@@ -18,7 +23,8 @@
     overflow: scroll;
 }
 
-.pg-cell, .pg-columnheader {
+.pg-cell,
+.pg-columnheader {
     position: absolute;
     display: inline-block;
 	border-top: 1px solid rgba(0,0,0,0.2);
@@ -39,6 +45,48 @@
     top: 10px;
     right: 10px;
     border-color: transparent;
+}
+
+.pg-filter-box {
+    position: absolute;
+    height: 16px;
+    left: 0px;
+    right: 0px;
+}
+
+.pg-filter-box > input.pg-filter-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 19px;
+}
+
+.pg-filter {
+    position: absolute;
+    color: black;
+    font-family: "Glyphicons Halflings";
+    left: 5px;
+    top: 7px;
+    cursor: default;
+}
+
+.pg-filter:before {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    content: "\e138";
+    font-size: 0.8em;
+}
+
+.pg-filter-pane {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    margin-top: 16px;
+    border: 1px solid white;
+    border-radius: 0px 0px 10px 10px;
+    width: 150px;
+    padding: 10px;
+    box-shadow: 0px 2px 14px rgba(0,0,0,0.5);
 }
 
 .pg-sort-ascending .pg-sorter {
@@ -135,6 +183,11 @@
     transition: 0.5s ease;
 }
 
+.pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
+    border-left: 2px dotted #AAA;
+    border-right: none;
+}
+
 .pg-columnheader > .pg-resizehandle:hover {
     border-color: #FFF;
 }
@@ -193,22 +246,26 @@
     opacity: 0.8;
 }
 
-.pg-treetoggle, .pg-treeleaf,
+.pg-treetoggle,
+.pg-treeleaf,
 .pg-subview-toggle {
-    width: 11px; height: 11px;
+    width: 11px;
+    height: 11px;
     position: relative;
     margin-right: 10px;
     cursor: default;
     display: inline-block;
 }
 
-.pg-treetoggle, .pg-subview-toggle-default {
+.pg-treetoggle,
+.pg-subview-toggle-default {
     background-image: url('./expand.svg');
     background-size: 11px 11px;
     background-position: center center;
 }
 
-.pg-treetoggle.pg-tree-expanded, .pg-subview-toggle-default.pg-subview-expanded {
+.pg-treetoggle.pg-tree-expanded,
+.pg-subview-toggle-default.pg-subview-expanded {
     background-image: url('./collapse.svg');
 }
 

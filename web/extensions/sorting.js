@@ -2,7 +2,7 @@ define(['override', 'jquery','promise'], function(override, $, Promise) {
     "use strict";
     
     return {
-        loadFirst: ['columnmoving'],
+        loadFirst: ['columnmoving', 'columnsizing'],
         init: function(grid, pluginOptions) {
             override(grid, function($super) {
                 var sortColumns=[];

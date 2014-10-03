@@ -8,7 +8,7 @@ In scope:
 - [x] column moving
 - [x] column resizing
 - [ ] column hiding
-- [ ] live sorting
+- [x] live sorting
 - [x] virtual scrolling
 - [x] grid within a grid (possibility is there using subviews)
 - [x] row hierarchy
@@ -18,6 +18,9 @@ In scope:
 - [ ] fill down/right
 - [ ] copy/paste blocks
 - [ ] undo
+- [ ] filtering
+- [ ] settings persistence
+- [ ] comprehensive cell value formatting
 
 Goals:
 - high performance by leveraging browser-native functionality

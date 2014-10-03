@@ -77,9 +77,9 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                                     var d = plugA.loadFirst[x];
                                     if(d === keyB) return 1;
                                     else {
-                                        var x = testLoadOrder(d, keyB);
-                                        if(x !== 0) {
-                                            return x;
+                                        var r = testLoadOrder(d, keyB);
+                                        if(r !== 0) {
+                                            return r;
                                         }
                                     }
                                 }
@@ -167,6 +167,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                     grid._addRows(data.start, data.end);
                     grid.trigger('rowsadded', data);
                 });
+            }).on("datachanged", function(event, data) {
+                //requestAnimationFrame(function() {
+                    grid._dataChanged(data.data, data.oldData);
+                    grid.trigger('datachanged', data);
+                //});
             });
 
             this.initScrollEvents();
@@ -341,8 +346,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         },
 
         renderRowGroupContents: function(start, end, rowgroup, prepend, atIndex) {
-            // start rendering
-
+            if(atIndex == -1 && !prepend) {
+                // we're inserting a row after -1, so basically prepend before anything else
+                atIndex = undefined;
+                prepend = true;
+            }
+            
             var method = atIndex === undefined ? (prepend === true ? 'prepend' : 'append') : (prepend === true ? 'before' : 'after');
 
             var reverse = prepend ^ (atIndex !== undefined);
@@ -402,7 +411,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
                 this.afterRenderRow(record, x, rowParts);
 
-                $(rowParts).css('height', this.rowHeight(x) + "px");
+                $(rowParts).css('height', x == -1 ? this.headerHeight() : this.rowHeight(x) + "px");
 
                 if(targetLeft) targetLeft[method](rowFixedPartLeft);
                 if(targetMiddle) targetMiddle[method](rowScrollingPart);
@@ -416,8 +425,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         _removeRows: function(start, end) {
             console.log("Removing rows " +start + " to " + end);
             function r(start, end, rowgroup) {
+                var selector = ".pg-row:lt(" + end + ")";
+                if(start > 0) {
+                    selector += ":gt(" + (start-1) + ")";
+                }
                 rowgroup.children(".pg-container").each(function(i,part) {
-                    $(part).children(".pg-row:lt(" + end + "):gt(" + (start-1) + ")").remove();
+                    $(part).children(selector).remove();
                 });
                 return end-start;
             }
@@ -448,6 +461,22 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             this.updateViewport();
             this.adjustHeights();
+        },
+        
+        _applyDiff: function(diff) {
+            for(var x=0,l=diff.length;x<l;x++) {
+                var d = diff[x];
+                if(d.add) {
+                    this._addRows(d.add[0],d.add[1]);
+                } else if(d.remove) {
+                    this._removeRows(d.remove[0], d.remove[1]);
+                }
+            }
+        },
+        
+        _dataChanged: function(data, oldData) {
+            var diff = this.diff(oldData, data);
+            this._applyDiff(diff);
         },
 
         updateViewport: function() {
@@ -547,13 +576,17 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
-            var headerHeight = this.rowHeight(-1, this.options.frozenRowsTop);
+            var headerHeight = this.headerHeight() + this.rowHeight(0, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.headercontainer.css("height", (headerHeight) + "px");
             this.footercontainer.css("height", (footerHeight) + "px");
             this.scrollingcontainer.css("top", headerHeight + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
             
             this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
+        },
+        
+        headerHeight: function headerHeight() {
+            return 31;
         },
 
         adjustColumnPositions: function adjustColumnPositions() {
@@ -612,6 +645,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             }
             if(begin > -1) {
                 return { begin: begin, end: x };
+            } else {
+                return { begin: 0, end: 0 };
             }
         },
 
@@ -708,6 +743,64 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             } else {
                 return this.scrollinggroup;
             }
+        },
+        
+        diff: function(a, b) {
+            function idMap(a) {
+                var m = {};
+                for(var x=0,l=a.length;x<l;x++) m[a[x].id] = a[x];
+                return m;
+            }
+            
+            // special cases
+            if(!a.length && !b.length) return [];
+            if(!a.length) return [{add: [0, b.length]}];
+            if(!b.length) return [{remove: [0, a.length]}];
+            
+            var diff = [], lastdiff;
+            var ia = idMap(a);
+            var c = [];
+            // first find rows to remove
+            for(var xa=a.length-1,xb=b.length-1;xa>=0;) {
+                while(xb >= 0 && !ia[b[xb].id]) xb--;
+                if(xb < 0) {
+                    diff.push({remove: [0, xa+1]});
+                    break;
+                } else {
+                    var sa = xa;
+                    while(xa >=0 && a[xa].id !== b[xb].id) xa--;
+                    if(xa >= 0) c.unshift(a[xa]);
+                    if(xa !== sa) diff.push({remove: [xa+1, sa+1]});
+                    xa--;xb--;
+                }
+            }
+            
+            // find the ones to add now. since these operations will be done
+            // on a subset of a that only contains the items also in b, we
+            // use c as a base.
+            if(c.length == 0) {
+                // apparently there was no overlap between a and b, so all of b can be added
+                diff.push({add: [0, b.length]});
+            } else {
+                for(var xc=0, xb=0;xb < b.length && xc < c.length;) {
+                    while(xb < b.length && xc < c.length && c[xc].id === b[xb].id) {
+                        xc++; xb++;
+                    }
+
+                    if(xb >= b.length) break;
+
+                    var sb = xb;
+
+                    if(xc >= c.length) {
+                        xb = b.length;
+                    } else {
+                        while(c[xc].id !== b[xb].id) xb++;
+                    }
+                    if(sb !== xb) diff.push({add: [sb, xb]});
+                }
+            }
+            
+            return diff;
         }
     };
 

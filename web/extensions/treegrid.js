@@ -64,21 +64,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         rebuildView: function(data) {
-            var view = [];
-            
-            function build(nodes) {
-                for(var x=0,l=nodes.length;x<l;x++) {
-                    var r = nodes[x];
-                    view.push(r);
-                    if(r.__expanded && r.children) {
-                        build(r.children);
-                    }
-                }
-            }
-            
-            build(data, 0);
-            
-            return view;
+            return this.flattenSubTree(this.tree);
         },
         
         buildTree: function(data) {
@@ -170,11 +156,12 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                     start = x;
                 } else if(start !== undefined) {
                     if(this.view[x].__depth <= startDepth) {
-                        end = x;
                         break;
                     }
                 }
             }
+            
+            end = x;
 
             // collapse it. we must remove some rows from the view.
             row.__expanded = false;
@@ -207,18 +194,34 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
 
         flattenSubTree: function(nodes) {
-            var out = [];
-            function f(nodes) {
+            var view = [],
+                stack = [],
+                self = this;
+            
+            function build(nodes, depth, parentExpanded) {
                 for(var x=0,l=nodes.length;x<l;x++) {
-                    var node = nodes[x];
-                    out.push(node);
-                    if(node.children && node.__expanded) {
-                        f(nodes[x].children);
+                    var r = nodes[x];
+                    
+                    if(parentExpanded) {
+                        while(stack.length > depth) stack.pop();
+                        stack[depth] = r;
+                    }
+                    
+                    if(!self.filter || self.filter(r)) {
+                        view = view.concat(stack.filter(function(e) { return e; }));
+                        for(var y=0;y<stack.length;y++) {
+                            stack[y] = undefined;
+                        }
+                    }
+                    
+                    if(r.children && (r.__expanded || self.filter)) {
+                        build(r.children, depth + 1, r.__expanded);
                     }
                 }
             }
-            if(nodes) f(nodes);
-            return out;
+            
+            if(nodes) build(nodes, 0, true);
+            return view;
         },
         
         sort: function(comparator) {
@@ -233,6 +236,14 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             sort(this.tree);
             this.view = this.rebuildView(this.tree);
+        },
+        
+        applyFilter: function(columnSettings, filterFunction) {
+            this.filter = filterFunction;
+            var oldView = this.view,
+                view = this.view = this.rebuildView(this.tree);
+            
+            $(this).trigger('datachanged', { data: view, oldData: oldView });
         }
     };
     
