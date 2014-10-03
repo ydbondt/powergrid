@@ -134,7 +134,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             // expand it. then we must insert rows
             row.__expanded = true;
             if(start !== undefined) {
-                var rows = this.flattenSubTree(row.children);
+                var rows = this.flattenSubTree(row);
                 this.view.splice.apply(this.view, [start+1, 0].concat(rows));
                 $(this).trigger('rowsadded',{start: start+1, end: start+1 + rows.length});
             }
@@ -193,35 +193,46 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
         },
 
-        flattenSubTree: function(nodes) {
+        flattenSubTree: function(nodes, parentMatches) {
             var view = [],
                 stack = [],
                 self = this;
             
-            function build(nodes, depth, parentExpanded) {
+            function build(nodes, depth, parentExpanded, parentMatches) {
                 for(var x=0,l=nodes.length;x<l;x++) {
-                    var r = nodes[x];
+                    var r = nodes[x], match = parentMatches || !self.filter || self.filter(r);
                     
                     if(parentExpanded) {
                         while(stack.length > depth) stack.pop();
                         stack[depth] = r;
                     }
                     
-                    if(!self.filter || self.filter(r)) {
+                    if(match) {
                         view = view.concat(stack.filter(function(e) { return e; }));
                         for(var y=0;y<stack.length;y++) {
                             stack[y] = undefined;
                         }
                     }
                     
-                    if(r.children && (r.__expanded || self.filter)) {
-                        build(r.children, depth + 1, r.__expanded);
+                    if(r.children && (r.__expanded || (self.filter && !match))) {
+                        build(r.children, depth + 1, r.__expanded, match);
                     }
                 }
             }
             
-            if(nodes) build(nodes, 0, true);
+            var parentMatches = false;
+            
+            if(!$.isArray(nodes)) {
+                parentMatches = this.rowOrAncestorMatches(nodes);
+                nodes = nodes.children;
+            }
+            
+            if(nodes) build(nodes, 0, true, parentMatches);
             return view;
+        },
+        
+        rowOrAncestorMatches: function(row) {
+            return !this.filter || this.filter(row) || (row.parent !== undefined && this.rowOrAncestorMatches(this.getRecordById(row.parent)));
         },
         
         sort: function(comparator) {
