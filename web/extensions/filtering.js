@@ -3,23 +3,35 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
     
     return {
         init: function(grid, pluginOptions) {
-            override(grid, function($super) {
+            return override(grid, function($super) {
                 var columnSettings = {};
+                
+                var currentFilterPane;
                 
                 return {
                     init: function() {
                         this.target.on("click", ".pg-filter", function(event) {
                             var $this = $(this),
-                                key = $this.parents('.pg-columnheader').attr('data-column-header'),
+                                key = $this.parents('.pg-columnheader').attr('data-column-key'),
                                 column = grid.getColumnForKey(key);
                             
-                            var filterPane = $("<div class='pg-filter-pane'>");
-                            grid.filtering.renderFilterPane(filterPane, column);
-                            filterPane.css("top", $this.offset().top + "px").css("left", $this.offset().left + "px");
-                            $("body").append(filterPane);
+                            if(currentFilterPane) {
+                                grid.filtering.closeFilterPane();
+                            }
+                            
+                            currentFilterPane = $("<div class='pg-filter-pane'>");
+                            grid.filtering.renderFilterPane(currentFilterPane, column);
+                            currentFilterPane.css("top", $this.offset().top + "px").css("left", $this.offset().left + "px");
+                            $("body").append(currentFilterPane);
                             
                             event.preventDefault();
                             event.stopPropagation();
+                        });
+                        
+                        $("body").on("click", function(event) {
+                            if(currentFilterPane && $(this).parents(".pg-filter-pane").empty()) {
+                                grid.filtering.closeFilterPane();
+                            }
                         });
                         
                         this.target.on("click", ".pg-filter-box", function(event) {
@@ -40,11 +52,7 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
                             header.append(filterBox);
                             
                             header.on("keyup", ".pg-filter-input", function(event) {
-                                columnSettings[column.key] = {
-                                    value: this.value,
-                                    type: "contains"
-                                };
-                                grid.filtering.filter(columnSettings);
+                                grid.filtering.setColumnFilteringAttribute(column.key, { "value": this.value });
                             });
                         }
 
@@ -54,6 +62,19 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
                     filtering: {
                         renderFilterPane: function(container, column) {
                             container.html(filterPane);
+                            container.on("click", "[data-filter-method],[data-filter-type]", function(event) {
+                                grid.filtering.setColumnFilteringAttribute(column.key, 
+                                    {
+                                        method: $(this).attr("data-filter-method"),
+                                        type: $(this).attr("data-filter-type")
+                                    });
+                                grid.filtering.closeFilterPane();
+                            });
+                        },
+                        
+                        closeFilterPane: function() {
+                            currentFilterPane.remove();
+                            currentFilterPane = null;
                         },
                         
                         filter: function(settings) {
@@ -63,20 +84,39 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
                         rowMatches: function(settings, row) {
                             for(var x in settings) {
                                 if(!this.valueMatches(settings[x], row[x])) {
-                                    return false;
+                                    if(settings[x].type == 'inclusive') {
+                                        return 0;
+                                    }
+                                } else {
+                                    if(settings[x].type == 'exclusive') {
+                                        return -1;
+                                    }
                                 }
                             }
-                            return true;
+                            return 1;
                         },
                         
                         valueMatches: function(columnSetting, value) {
                             var hasValue = value !== undefined && value !== null && value !== "";
-                            switch(columnSetting.type) {
-                                case "contains": return !columnSetting.value || hasValue && (value.toLocaleUpperCase()).indexOf(columnSetting.value.toLocaleUpperCase()) > -1 ;
-                                case "beginsWith": return !columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(0, columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase();
-                                case "endsWith": return !columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(value.length - columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase();
+                            switch(columnSetting.method) {
+                                case "contains":
+                                    return (!columnSetting.value || hasValue && (value.toLocaleUpperCase()).indexOf(columnSetting.value.toLocaleUpperCase()) > -1);
+                                case "beginsWith":
+                                    return (!columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(0, columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase());
+                                case "endsWith":
+                                    return (!columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(value.length - columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase());
                                 default: throw "Unsupported filter operator " + columnSetting.type;
                             }
+                        },
+                        
+                        setColumnFilteringAttribute: function(key, attributes) {
+                            if(!columnSettings[key]) columnSettings[key] = this.createDefaultFiltering(key);
+                            $.extend(columnSettings[key], attributes);
+                            this.filter(columnSettings);
+                        },
+                        
+                        createDefaultFiltering: function(key) {
+                            return { value: '', method: 'contains', type: 'inclusive' };
                         }
                     }
                 }

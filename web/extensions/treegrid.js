@@ -8,21 +8,28 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
     
     function TreeGridDataSource(delegate, options) {
         var self = this;
-        this.delegate = delegate;
-        this.options = options;
-
-        var proto = Object.getPrototypeOf(this.delegate);
-        Object.keys(proto).forEach(function (member) {
-            if (!self[member] && (typeof proto[member] === "function")) {
-                self[member] = function() {return proto[member].apply(delegate, arguments) }
-            }
-        })
         
-        if(delegate.isReady()) {
+        this.options = options;
+        
+        if(!$.isArray(delegate)) {
+            this.delegate = delegate;
+            
+            var proto = Object.getPrototypeOf(this.delegate);
+            Object.keys(proto).forEach(function (member) {
+                if (!self[member] && (typeof proto[member] === "function")) {
+                    self[member] = function() {return proto[member].apply(delegate, arguments) }
+                }
+            })
+
+            if(delegate.isReady()) {
+                this.load();
+            }
+
+            $(delegate).on("dataloaded", this.load.bind(this));
+        } else {
+            this.tree = delegate;
             this.load();
         }
-        
-        $(delegate).on("dataloaded", this.load.bind(this));
     }
 
     TreeGridDataSource.prototype = {
@@ -37,7 +44,9 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         load: function() {
-            this.tree = this.buildTree(this.delegate.getData());
+            if(this.delegate) {
+                this.tree = this.buildTree(this.delegate.getData());
+            }
             this.view = this.initView(this.tree, this.options && this.options.initialTreeDepth || 0);
             $(this).trigger("dataloaded");
         },
@@ -200,7 +209,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             function build(nodes, depth, parentExpanded, parentMatches) {
                 for(var x=0,l=nodes.length;x<l;x++) {
-                    var r = nodes[x], match = parentMatches || !self.filter || self.filter(r);
+                    var r = nodes[x], f = self.filter && self.filter(r), match = f == 0 ? parentMatches : f == -1 ? false : true;
                     
                     if(parentExpanded) {
                         while(stack.length > depth) stack.pop();
@@ -214,7 +223,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         }
                     }
                     
-                    if(r.children && (r.__expanded || (self.filter && !match))) {
+                    if(f != -1 && r.children && (r.__expanded || (self.filter && !match))) {
                         build(r.children, depth + 1, r.__expanded, match);
                     }
                 }
