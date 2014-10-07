@@ -2,7 +2,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
     "use strict";
 
     var defaultOptions = {
-        virtualScrollingExcess: 30,
+        virtualScrollingExcess: 30, // defines the number of extra rows to render on each side (top/bottom) of the viewport. This reduces flickering when scrolling.
         frozenRowsTop: 0,
         frozenRowsBottom: 0,
         frozenColumnsLeft: 0,
@@ -32,9 +32,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         scrollBarSize = determineScrollBarSize();
 
         //adjust the margin to compensate for the scrollbar
-        vein.inject('.pg-rowgroup.pg-header', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
-        vein.inject('.pg-rowgroup.pg-scrolling', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
-        vein.inject('.pg-rowgroup.pg-footer', {'width': "calc(100% - " + scrollBarSize.width + "px)", 'bottom': scrollBarSize.width + "px"});
+        vein.inject('.pg-rowgroup', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
+        vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
     });
 
     function PowerGrid(target, options) {
@@ -115,6 +114,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
 
                 container = this.container = $("<div class='powergrid'>"),
+                columnheadercontainer = this.columnheadercontainer = $("<div class='pg-rowgroup pg-columnheaders'>"),
                 headercontainer = this.headercontainer = $("<div class='pg-rowgroup pg-header'>"),
                 scrollingcontainer = this.scrollingcontainer = $("<div class='pg-rowgroup pg-scrolling'>"),
                 footercontainer = this.footercontainer = $("<div class='pg-rowgroup pg-footer'>"),
@@ -131,11 +131,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
+            this.columnheadergroup = this.createRowGroup(columnheadercontainer);
             this.headergroup = this.createRowGroup(headercontainer);
             this.scrollinggroup = this.createRowGroup(scrollingcontainer, false);
             this.footergroup = this.createRowGroup(footercontainer);
+            
+            this.renderColumnHeaderContents(this.columnheadergroup);
 
-            container.append(headercontainer).append(scrollingcontainer).append(footercontainer).append(scroller.append(scrollFiller));
+            container.append(columnheadercontainer).append(headercontainer).append(scrollingcontainer).append(footercontainer).append(scroller.append(scrollFiller));
 
             this.adjustWidths();
             this.adjustColumnPositions();
@@ -291,7 +294,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 eventQueue = [];
             });
         },
-
+        
         createRowGroup: function createRowGroup(container, adddummies) {
             var fixedPartLeft = this.options.frozenColumnsLeft > 0 && $("<div class='pg-container pg-fixed pg-left'>");
             var fixedPartRight = this.options.frozenColumnsRight > 0 && $("<div class='pg-container pg-fixed pg-right'>");
@@ -334,15 +337,42 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 end: 0
             };
 
-            this.renderDataInRowGroup(this.headergroup, -1, this.options.frozenRowsTop);
-            this.renderDataInRowGroup(this.footergroup, this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
+            this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
+            this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
             this.updateViewport();
             this.adjustHeights();
             this.trigger("datarendered");
         },
+        
+        renderColumnHeaderContents: function(rowgroup) {
+            var rowFixedPartLeft = rowgroup.left && $("<div class='pg-row pg-fixed'>"),
+                rowScrollingPart = rowgroup.scrolling && $("<div class='pg-row pg-scrolling'>"),
+                rowFixedPartRight = rowgroup.right && $("<div class='pg-row pg-fixed'>"),
+                rowParts = $();
+            
+            if(rowgroup.left) rowgroup.left.append(rowFixedPartLeft);
+            if(rowgroup.scrolling) rowgroup.scrolling.append(rowScrollingPart);
+            if(rowgroup.right) rowgroup.right.append(rowFixedPartRight);
+            
+            if(rowFixedPartLeft) rowParts = rowParts.add(rowFixedPartLeft);
+            if(rowScrollingPart) rowParts = rowParts.add(rowScrollingPart);
+            if(rowFixedPartRight) rowParts = rowParts.add(rowFixedPartRight);
+            
+            for(var y = 0; y < this.options.columns.length; y++) {
+                var cell, column = this.options.columns[y];
+                cell = this.renderHeaderCell(column, y);
 
-        renderDataInRowGroup: function(group, start, end) {
-            this.renderRowGroupContents(start, end, group);
+                cell.addClass("pg-column" + column.key);
+                cell.attr("data-column-key", column.key);
+
+                if(y < this.options.frozenColumnsLeft) {
+                    rowFixedPartLeft.append(cell);
+                } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
+                    rowFixedPartRight.append(cell);
+                } else {
+                    rowScrollingPart.append(cell);
+                }
+            }
         },
 
         renderRowGroupContents: function(start, end, rowgroup, prepend, atIndex) {
@@ -380,22 +410,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 if(rowScrollingPart) rowParts = rowParts.add(rowScrollingPart);
                 if(rowFixedPartRight) rowParts = rowParts.add(rowFixedPartRight);
 
-                var record = dataSubset[x-(start<0?0:start)]; // FIXME get rid of this header rendering here.
-                if(x >= 0) {
-                    rowParts.attr("data-row-idx", x).attr("data-row-id", record.id);
-                }
-
-                if(x == -1) {
-                    rowParts.addClass("pg-headerrow");
-                }
+                var record = dataSubset[x-start];
+                rowParts.attr("data-row-idx", x).attr("data-row-id", record.id);
 
                 for(var y = 0; y < this.options.columns.length; y++) {
                     var cell, column = this.options.columns[y];
-                    if(x == -1) {
-                        cell = this.renderHeaderCell(column, y);
-                    } else {
-                        cell = this.renderCell(record, column, x, y);
-                    }
+                    cell = this.renderCell(record, column, x, y);
 
                     cell.addClass("pg-column" + column.key);
                     cell.attr("data-column-key", column.key);
@@ -411,7 +431,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
                 this.afterRenderRow(record, x, rowParts);
 
-                $(rowParts).css('height', x == -1 ? this.headerHeight() : this.rowHeight(x) + "px");
+                $(rowParts).css('height', this.rowHeight(x) + "px");
 
                 if(targetLeft) targetLeft[method](rowFixedPartLeft);
                 if(targetMiddle) targetMiddle[method](rowScrollingPart);
@@ -576,17 +596,19 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
-            var headerHeight = this.headerHeight() + this.rowHeight(0, this.options.frozenRowsTop);
+            var columnHeaderHeight = this.headerHeight();
+            var headerHeight = this.rowHeight(0, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
-            this.headercontainer.css("height", (headerHeight) + "px");
+            this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
+            this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer.css("height", (footerHeight) + "px");
-            this.scrollingcontainer.css("top", headerHeight + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
+            this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
             
             this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
         },
         
         headerHeight: function headerHeight() {
-            return 31;
+            return this.target.find(".pg-columnheader").height();
         },
 
         adjustColumnPositions: function adjustColumnPositions() {
@@ -701,7 +723,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         renderHeaderCell: function renderHeaderCell(column, columnIdx) {
             // Render the cell for the header
-            return $("<div class='pg-columnheader'>").text(column.title);
+            return $("<div class='pg-columnheader'>").append($("<span>").text(column.title));
         },
 
         renderCell: function renderCell(record, column, rowIdx, columnIdx) {
@@ -746,6 +768,9 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         },
         
         diff: function(a, b) {
+            // Utility function. Generates a list of actions (add, remove) to take to get from list a to list b.
+            // Extremely useful when doing incremental DOM tree updates from one dataset to another.
+            
             function idMap(a) {
                 var m = {};
                 for(var x=0,l=a.length;x<l;x++) m[a[x].id] = a[x];

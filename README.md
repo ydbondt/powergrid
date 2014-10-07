@@ -18,9 +18,9 @@ In scope:
 - [ ] fill down/right
 - [ ] copy/paste blocks
 - [ ] undo
-- [ ] filtering
+- [x] filtering
 - [ ] settings persistence
-- [ ] comprehensive cell value formatting
+- [x] comprehensive cell value formatting
 
 Goals:
 - high performance by leveraging browser-native functionality
