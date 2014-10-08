@@ -34,15 +34,11 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
                             }
                         });
                         
-                        this.target.on("click", ".pg-filter-box", function(event) {
+                        this.target.on("click mousedown", ".pg-filter-box", function(event) {
                             event.stopPropagation();
                         });
                         
                         $super.init();
-                    },
-                    
-                    headerHeight: function() {
-                        return $super.headerHeight() + 15;  
                     },
 
                     renderHeaderCell: function(column, columnIdx) {

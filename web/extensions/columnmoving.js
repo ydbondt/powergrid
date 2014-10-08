@@ -16,8 +16,8 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
 
                         var cells, oX, dragstarted, tracking, start, end, col, startX, positions, idx, offset, header, key, w;
 
-                        this.target.on("mousedown", ".pg-columnheader", function(event) {
-                            header = event.target;
+                        function startDrag(event) {
+                            header = this;
                             key = $(header).attr("data-column-key");
                             if(!key) return;
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; });
@@ -49,7 +49,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
 
                                 event.stopPropagation();
                             }
-                        }).on("mousemove", function(event) {
+                        }
+                        
+                        function doDrag(event) {
                             if(!tracking) return;
 
                             if(!dragstarted) {
@@ -85,9 +87,13 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 if(!tracking) return;
                                 updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": newPos + "px" });
                             });
-                        }).on("click", ".pg-columnheader", function(event) {
+                        }
+                    
+                        function endDrag(event) {
                             tracking = false;
                             if(dragstarted) {
+                                if(event.type === 'mouseup' && ($(event.target).hasClass('pg-columnheader') || $(event.target).parents(".pg-columnheader").length)) return;
+                                
                                 dragstarted = false;
                                 updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": "" });
                                 vein.inject(grid.baseSelector + " .pg-column" + col.key, { "left": positions[idx] + "px" });
@@ -95,7 +101,13 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
                             }
-                        });
+                        }
+                        
+                        this.target
+                            .on("mousedown", ".pg-columnheader", startDrag)
+                            .on("mousemove", doDrag)
+                            .on("mouseup", endDrag)
+                            .on("click", ".pg-columnheader", endDrag);
                     }
                 }
             });
