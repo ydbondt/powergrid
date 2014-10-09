@@ -73,6 +73,8 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             rowParts.css('height', grid.rowHeight(rowIdx) + "px");
                         }
                     }
+                    
+                    $super.afterRenderRow(record, rowIdx, rowParts);
                 },
                 
                 renderCellContent: function(record, rowIdx, column, value) {

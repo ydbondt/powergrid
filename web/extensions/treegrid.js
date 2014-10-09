@@ -299,14 +299,19 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
     };
     
     return {
-        loadFirst: ['templating'],
+        loadFirst: ['templating', 'grouping'],
         init: function(grid, pluginOptions) {
             var treedepths = [],
                 data,
                 view;
 
             override(grid, function($super) {
-                var treeDS = new TreeGridDataSource(this.dataSource, pluginOptions);
+                var treeDS;
+                if(pluginOptions.autoTreeDataSource !== false) {
+                    treeDS = new TreeGridDataSource(this.dataSource, pluginOptions);
+                } else {
+                    treeDS = this.dataSource;
+                }
 
                 return {
                     init: function() {
@@ -323,7 +328,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         });
 
                         $(treeDS).on("treetoggled", function(event, rowId, rowIndex, newState) {
-                            grid.target.find(".pg-row[data-row-id='" + rowId + "'] .pg-treetoggle").toggleClass("pg-tree-expanded", newState);
+                            grid.target.find(".pg-row[data-row-id='" + rowId + "']").toggleClass("pg-tree-expanded", newState);
                         });
                     },
 
