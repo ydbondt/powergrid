@@ -733,7 +733,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         renderCellContent: function renderCellContent(record, rowIdx, column, value) {
             // Render the cell content
-            return $("<span>").text(value);
+            return value != null ? $("<span>").text(value) : $("<span>");
         },
 
         getCellTextValue: function (value, record, column) {
