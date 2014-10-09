@@ -10,6 +10,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         var self = this;
         
         this.options = options;
+        this.treeSettings = {};
         
         if(!$.isArray(delegate)) {
             this.delegate = delegate;
@@ -19,7 +20,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 if (!self[member] && (typeof proto[member] === "function")) {
                     self[member] = function() {return proto[member].apply(delegate, arguments) }
                 }
-            })
+            });
 
             if(delegate.isReady()) {
                 this.load();
@@ -45,7 +46,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         
         load: function() {
             if(this.delegate) {
-                this.tree = this.buildTree(this.delegate.getData());
+                if (this.delegate.buildTree) {
+                    this.tree = this.delegate.buildTree();
+                } else {
+                    this.tree = this.buildTree(this.delegate.getData());
+                }
             }
             this.view = this.initView(this.tree, this.options && this.options.initialTreeDepth || 0);
             $(this).trigger("dataloaded");
@@ -53,16 +58,17 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         
         initView: function(data, initialTreeDepth) {
             var view = [];
+            var self = this;
             
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
-                    x.__depth = depth;
-                    x.__expanded = depth < (initialTreeDepth || 0);
+                    self.treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
                     if(depth <= (initialTreeDepth || 0)) {
                         view.push(x);
                     }
-                    if(x.children && x.children.length) {
-                        calcDepth(x.children, depth+1);
+                    var children = self.children(x);
+                    if(children && children.length) {
+                        calcDepth(children, depth+1);
                     }
                 });
             }
@@ -73,18 +79,21 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         rebuildView: function(data) {
-            return this.flattenSubTree(this.tree);
+            return this.flattenSubTree(data);
         },
         
         buildTree: function(data) {
-            var rootNodes = [],
-                recordByIdMap = {};
-            
+            var rootNodes = [];
+            this.recordByIdMap = {};
             for(var x=0,l=data.length;x<l;x++) {
                 var r = data[x];
-                recordByIdMap[r.id] = r;
+                this.recordByIdMap[r.id] = r;
+            }
+
+            for(var x=0,l=data.length;x<l;x++) {
+                var r = data[x];
                 if(r.parent !== undefined) {
-                    var parent = recordByIdMap[r.parent];
+                    var parent = this.recordByIdMap[r.parent];
                     if(!parent.children) {
                         parent.children = [];   
                     }
@@ -98,7 +107,10 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         getRecordById: function(id) {
-            return this.delegate.getRecordById(id);
+            if (this.delegate) {
+                return this.delegate.getRecordById(id);
+            }
+            return this.recordByIdMap[id];
         },
         
         getData: function(start, end) {
@@ -141,7 +153,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
             
             // expand it. then we must insert rows
-            row.__expanded = true;
+            this.treeSettings[row.id].expanded = true;
             if(start !== undefined) {
                 var rows = this.flattenSubTree(row);
                 this.view.splice.apply(this.view, [start+1, 0].concat(rows));
@@ -161,10 +173,10 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             for(x=0,l=this.view.length; x<l; x++) {
                 if(start === undefined && this.view[x].id == rowId) {
-                    startDepth = row.__depth;
+                    startDepth = this.treeSettings[row.id].depth;
                     start = x;
                 } else if(start !== undefined) {
-                    if(this.view[x].__depth <= startDepth) {
+                    if(this.treeSettings[this.view[x].id].depth <= startDepth) {
                         break;
                     }
                 }
@@ -173,7 +185,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             end = x;
 
             // collapse it. we must remove some rows from the view.
-            row.__expanded = false;
+            this.treeSettings[row.id].expanded = false;
             if(start !== undefined) {
                 this.view.splice(start+1, end-start-1);
                 $(this).trigger('rowsremoved',{start: start+1, end: end});
@@ -183,14 +195,15 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         isExpanded: function(row) {
-            return row.__expanded;
+            return this.treeSettings[row.id].expanded;
         },
         
         expandAll: function(rowId) {
             var ds = this;
             function expandall(row) {
-                if(row.children) {
-                    row.children.forEach(expandall);
+                var children = this.children(row);
+                if(children) {
+                    children.forEach(expandall);
                 }
                 ds.expand(row);
             }
@@ -209,7 +222,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             function build(nodes, depth, parentExpanded, parentMatches) {
                 for(var x=0,l=nodes.length;x<l;x++) {
-                    var r = nodes[x], f = self.filter && self.filter(r), match = f == 0 ? parentMatches : f == -1 ? false : true;
+                    var r = nodes[x], f = self.filter && self.filter(r), match = f == 0 ? parentMatches : f != -1;
                     
                     if(parentExpanded) {
                         while(stack.length > depth) stack.pop();
@@ -222,9 +235,10 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                             stack[y] = undefined;
                         }
                     }
-                    
-                    if(f != -1 && r.children && (r.__expanded || (self.filter && !match))) {
-                        build(r.children, depth + 1, r.__expanded, match);
+
+                    var children = self.children(r);
+                    if(f != -1 && children && (self.treeSettings[r.id].expanded || (self.filter && !match))) {
+                        build(children, depth + 1, self.treeSettings[r.id].expanded, match);
                     }
                 }
             }
@@ -232,8 +246,9 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             var parentMatches = false;
             
             if(!$.isArray(nodes)) {
+                var children = this.children(nodes);
                 parentMatches = this.rowOrAncestorMatches(nodes);
-                nodes = nodes.children;
+                nodes = children;
             }
             
             if(nodes) build(nodes, 0, true, parentMatches);
@@ -241,15 +256,16 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         rowOrAncestorMatches: function(row) {
-            return !this.filter || this.filter(row) || (row.parent !== undefined && this.rowOrAncestorMatches(this.getRecordById(row.parent)));
+            return !this.filter || this.filter(row) || (this.parent(row) !== undefined && this.rowOrAncestorMatches(this.getRecordById(this.parent(row))));
         },
         
         sort: function(comparator) {
             function sort(arr) {
                 arr.sort(comparator);
                 for(var x=0,l=arr.length;x<l;x++) {
-                    if(arr[x].children) {
-                        sort(arr[x].children);
+                    var children = this.children(arr[x]);
+                    if(children) {
+                        sort(children);
                     }
                 }
             }
@@ -264,7 +280,22 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 view = this.view = this.rebuildView(this.tree);
             
             $(this).trigger('datachanged', { data: view, oldData: oldView });
+        },
+
+        children: function(row) {
+            if (this.delegate && this.delegate.children) {
+                return this.delegate.children.apply(this.delegate, arguments);
+            }
+            return row.children;
+        },
+
+        parent: function(row) {
+            if (this.delegate && this.delegate.parent) {
+                return this.delegate.parent.apply(this.delegate, arguments);
+            }
+            return row.parent;
         }
+
     };
     
     return {
@@ -303,11 +334,12 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
 
                     renderCellContent: function(record, rowIdx, column, value) {
                         var content = $super.renderCellContent.apply(this, arguments);
+                        var children = this.dataSource.children(record);
                         if(column.treeColumn) {
                             return $('<div>')
-                                .addClass((record.children && record.children.length) ? "pg-treetoggle" : "pg-treeleaf")
-                                .addClass('pg-tree-level-' + record.__depth)
-                                .toggleClass("pg-tree-expanded", record.__expanded)
+                                .addClass((children && children.length) ? "pg-treetoggle" : "pg-treeleaf")
+                                .addClass('pg-tree-level-' + this.dataSource.treeSettings[record.id].depth)
+                                .toggleClass("pg-tree-expanded", this.dataSource.treeSettings[record.id].expanded)
                                 .add(content);
                         } else {
                             return content;

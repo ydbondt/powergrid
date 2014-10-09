@@ -204,6 +204,17 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             });
 
             this.initScrollEvents();
+            this.initRowHighlighting();
+        },
+
+        initRowHighlighting: function() {
+            this.target.on("mouseenter", ".pg-row", function(evt) {
+                var idx = $(evt.currentTarget).data('row-idx');
+                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').addClass('pg-hover');
+            }).on("mouseleave", ".pg-row", function(evt) {
+                var idx = $(evt.currentTarget).data('row-idx');
+                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').removeClass('pg-hover');
+            });
         },
 
         initScrollEvents: function initScrollEvents() {
@@ -586,7 +597,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 if(range.end < this.viewport.end && range.end > this.viewport.begin) {
                     // have to remove rows from end
                     allParts.each(function(i,part) {
-                        $(part).children('.pg-row:gt(' + (range.end - self.viewport.end - 1) + ')').remove();
+                        $(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')').remove();
                     });
                 } else if(range.end > this.viewport.end) {
                     // have to add rows to end
