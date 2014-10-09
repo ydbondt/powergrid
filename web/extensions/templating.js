@@ -33,7 +33,8 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     if (column.template) {
                         var data = {}
                         data[column.key] = value;
-                        return column.template.render(data, {record: record, column: column});
+                        var rendered = column.template.render(data, {record: record, column: column});
+                        return $super.renderCellContent.apply(this, [record, rowIdx, column, rendered]);
                     } else {
                         return $super.renderCellContent.apply(this, arguments);
                     }
