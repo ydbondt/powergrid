@@ -217,6 +217,10 @@
     cursor: text;
 }
 
+.pg-hover .pg-cell {
+    background-color: #DED1D1;
+}
+
 .pg-fixed.pg-left .pg-columnheader > .pg-resizehandle,
 .pg-scrolling .pg-columnheader > .pg-resizehandle {
     right: 0px;

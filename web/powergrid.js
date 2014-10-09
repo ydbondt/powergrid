@@ -178,6 +178,17 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             });
 
             this.initScrollEvents();
+            this.initRowHighlighting();
+        },
+
+        initRowHighlighting: function() {
+            this.target.on("mouseenter", ".pg-row", function(evt) {
+                var idx = $(evt.currentTarget).data('row-idx');
+                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').addClass('pg-hover');
+            }).on("mouseleave", ".pg-row", function(evt) {
+                var idx = $(evt.currentTarget).data('row-idx');
+                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').removeClass('pg-hover');
+            });
         },
 
         initScrollEvents: function initScrollEvents() {
