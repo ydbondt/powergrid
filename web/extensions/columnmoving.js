@@ -8,108 +8,58 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
     
     return {
         loadFirst: ['filtering'],
+        requires: {
+            dragging: {}
+        },
         init: function(grid, pluginOptions) {
-            override(grid, function($super) {
-                return {
-                    init: function() {
-                        $super.init();
+            var start, end, idx, oidx, startconfig, wasOutOfBounds;
+            
+            grid.on("columndragstart", function(event) {
+                idx = event.idx;
+                oidx = idx;
+                
+                if(idx < grid.options.frozenColumnsLeft) {
+                    start = 0; end = grid.options.frozenColumnsLeft;
+                } else if(idx > grid.options.columns.length - grid.options.frozenColumnsRight) {
+                    start = grid.options.columns.length - grid.options.frozenColumnsRight;
+                    end = grid.options.columns.length;
+                } else {
+                    start = grid.options.frozenColumnsLeft;
+                    end = grid.options.columns.length - grid.options.frozenColumnsRight;
+                }
+                
+                startconfig = $.extend([], grid.options.columns);
+                wasOutOfBounds = false;
+            }).on("columndragmove", function(event, ui) {
+                if(event.outOfViewPort) {
+                    if(!wasOutOfBounds) {
+                        wasOutOfBounds = true;
+                        grid.options.columns = startconfig;
+                        idx = oidx;
+                        grid.adjustColumnPositions();
+                    }
+                } else {
+                    var newPos = event.x;
 
-                        var cells, oX, dragstarted, tracking, start, end, col, startX, positions, idx, offset, header, key, w;
+                    // find the new index for the column
+                    for(var newIdx = start, cw=0; newIdx < end; newIdx++) {
+                        if(idx!=newIdx) cw += grid.options.columns[newIdx].width;
+                        if(cw > newPos) break;
+                    }
 
-                        function startDrag(event) {
-                            header = this;
-                            key = $(header).attr("data-column-key");
-                            if(!key) return;
-                            idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; });
-                            col = grid.options.columns[idx];
-                            w = col.width;
+                    if(newIdx > idx) newIdx--;
 
-                            oX = event.pageX;
+                    if(newIdx < start) newIdx = start;
 
-                            offset = event.offsetX || event.originalEvent.layerX || 0;
-
-                            if(offset <= header.offsetWidth - 8 && offset >= 8) {
-                                positions = grid.adjustColumnPositions();
-                                startX = positions[idx];
-
-                                if(idx < grid.options.frozenColumnsLeft) {
-                                    start = 0; end = grid.options.frozenColumnsLeft;
-                                } else if(idx > positions.length - grid.options.frozenColumnsRight) {
-                                    start = positions.length - grid.options.frozenColumnsRight;
-                                    end = positions.length;
-                                } else {
-                                    start = grid.options.frozenColumnsLeft;
-                                    end = positions.length - grid.options.frozenColumnsRight;
-                                }
-
-                                cells = $(grid.target).find(".pg-column" + key);
-
-                                tracking = true;
-                                dragstarted = false;
-
-                                event.stopPropagation();
-                            }
-                        }
-                        
-                        function doDrag(event) {
-                            if(!tracking) return;
-
-                            if(!dragstarted) {
-                                if(Math.abs(event.pageX - oX) > 20) {
-                                    cells.addClass("pg-columndragging");
-                                    dragstarted = true;
-                                    oX = event.pageX;
-                                } else {
-                                    return;
-                                }
-                            }
-
-                            var newPos = (startX + event.pageX - oX);
-
-                            // find the new index for the column
-                            for(var newIdx = start, cw=0; newIdx < end; newIdx++) {
-                                if(idx!=newIdx) cw += grid.options.columns[newIdx].width;
-                                if(cw >= newPos) break;
-                            }
-
-                            if(newIdx > idx) newIdx--;
-
-                            if(newIdx < start) newIdx = start;
-
-                            if(newIdx != idx) {
-                                var c = grid.options.columns.splice(idx,1);
-                                grid.options.columns.splice(newIdx, 0, c[0]);
-                                positions = grid.adjustColumnPositions();
-                                idx=newIdx;
-                            }
-
-                            requestAnimationFrame(function() {
-                                if(!tracking) return;
-                                updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": newPos + "px" });
-                            });
-                        }
-                    
-                        function endDrag(event) {
-                            tracking = false;
-                            if(dragstarted) {
-                                if(event.type === 'mouseup' && ($(event.target).hasClass('pg-columnheader') || $(event.target).parents(".pg-columnheader").length)) return;
-                                
-                                dragstarted = false;
-                                updateStyle(grid.baseSelector + " .pg-column" + col.key, { "left": "" });
-                                vein.inject(grid.baseSelector + " .pg-column" + col.key, { "left": positions[idx] + "px" });
-                                cells.removeClass("pg-columndragging");
-                                event.preventDefault();
-                                event.stopImmediatePropagation();
-                            }
-                        }
-                        
-                        this.target
-                            .on("mousedown", ".pg-columnheader", startDrag)
-                            .on("mousemove", doDrag)
-                            .on("mouseup", endDrag)
-                            .on("click", ".pg-columnheader", endDrag);
+                    if(newIdx != idx) {
+                        var c = grid.options.columns.splice(idx,1);
+                        grid.options.columns.splice(newIdx, 0, c[0]);
+                        grid.adjustColumnPositions();
+                        idx=newIdx;
                     }
                 }
+            }).on("columndragend", function(event, ui) {
+                startconfig = null;
             });
         }
     };

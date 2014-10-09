@@ -54,20 +54,46 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
     PowerGrid.prototype = {
         beginInit: function() {
-            var pluginIdx = 0;
-            var keys = Object.keys(this.options.extensions);
-            var grid = this;
+            var extensionKeys = Object.keys(this.options.extensions),
+                grid = this,
+                plugins = {},
+                pluginList = [];
 
-            if(keys.length) {
+            function loadExtensions(keys, callback) {
                 var files = keys.map(function(e) { return "extensions/" + e; });
                 require(files, function() {
-                    var plugins = {};
-                    var pluginList = [];
+                    var newkeys = [];
                     for(var x = 0; x < arguments.length; x++) {
                         plugins[keys[x]] = arguments[x];
                         pluginList.push(keys[x]);
+                        
+                        var reqs = arguments[x].requires;
+                        if(reqs) {
+                            for(var req in reqs) {
+                                if(!grid.options.extensions[req]) {
+                                    newkeys.push(req);
+                                }
+                                
+                                if(grid.options.extensions[req]) {
+                                    $.extend(grid.options.extensions[req], reqs[req]);
+                                } else {
+                                    grid.options.extensions[req] = reqs[req];
+                                }
+                            }
+                        }
                     }
                     
+                    if(newkeys.length) {
+                        loadExtensions(newkeys, callback);
+                    } else {
+                        callback();
+                    }
+                });
+            }
+            
+            if(extensionKeys.length) {
+                
+                loadExtensions(extensionKeys, function() {
                     function testLoadOrder(keyA,keyB,dontRecurse) {
                         var plugA = plugins[keyA], plugB = plugins[keyB];
                         if(typeof plugA === 'object') {
@@ -171,10 +197,10 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                     grid.trigger('rowsadded', data);
                 });
             }).on("datachanged", function(event, data) {
-                //requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
                     grid._dataChanged(data.data, data.oldData);
                     grid.trigger('datachanged', data);
-                //});
+                });
             });
 
             this.initScrollEvents();
@@ -413,21 +439,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 var record = dataSubset[x-start];
                 rowParts.attr("data-row-idx", x).attr("data-row-id", record.id);
 
-                for(var y = 0; y < this.options.columns.length; y++) {
-                    var cell, column = this.options.columns[y];
-                    cell = this.renderCell(record, column, x, y);
-
-                    cell.addClass("pg-column" + column.key);
-                    cell.attr("data-column-key", column.key);
-
-                    if(y < this.options.frozenColumnsLeft) {
-                        rowFixedPartLeft.append(cell);
-                    } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
-                        rowFixedPartRight.append(cell);
-                    } else {
-                        rowScrollingPart.append(cell);
-                    }
-                }
+                this.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
 
                 this.afterRenderRow(record, x, rowParts);
 
@@ -438,8 +450,26 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 if(targetRight) targetRight[method](rowFixedPartRight);
             }
         },
+        
+        renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
+            for(var y = 0; y < this.options.columns.length; y++) {
+                var cell, column = this.options.columns[y];
+                cell = this.renderCell(record, column, rowIdx, y);
 
-        afterRenderRow: function(record, rowIndex, left, scrolling, right) {
+                cell.addClass("pg-column" + column.key);
+                cell.attr("data-column-key", column.key);
+
+                if(y < this.options.frozenColumnsLeft) {
+                    rowFixedPartLeft.append(cell);
+                } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
+                    rowFixedPartRight.append(cell);
+                } else {
+                    rowScrollingPart.append(cell);
+                }
+            }
+        },
+
+        afterRenderRow: function(record, rowIndex, rowParts) {
         },
 
         _removeRows: function(start, end) {
@@ -466,15 +496,31 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             this.updateViewport();
             this.adjustHeights();
         },
+        
+        viewRange: function() {
+            var self = this,
+                start = this.options.frozenRowsTop,
+                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                sPos = this.getScrollPosition(),
+                sArea = this.getScrollAreaSize(),
+                range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end);
+            
+            range.begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
+            range.end = Math.min(end, range.end + this.options.virtualScrollingExcess);
+            
+            return range;
+        },
 
         _addRows: function(start, end) {
+            var range = this.viewRange();
+            
             if(start >= this.viewport.begin && start <= this.viewport.end) {
                 console.log("Adding rows " + start + " to " + end);
                 // new rows being added to the virtual scrolling container, so that means:
                 // a) insert some rows between two existing rows
                 // b) remove the rows that are no longer in the viewport
                 // Preferably we'd do b first.
-
+                end = Math.min(range.end, end);
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);
             }
@@ -623,6 +669,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
                 }
                 positions[x] = pos;
                 vein.inject(this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
+                column.offsetLeft = pos;
 
                 pos += column.width;
             }
@@ -750,11 +797,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         },
 
         trigger: function(eventName, data) {
-            $(this).trigger(eventName, data);
+            return $(this).trigger(eventName, data);
         },
 
         on: function(eventName, handler) {
-            $(this).on(eventName, handler);
+            return $(this).on(eventName, handler);
         },
 
         getRowGroupFor: function(rowIndex) {

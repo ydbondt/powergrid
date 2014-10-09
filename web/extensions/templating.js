@@ -24,7 +24,7 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     $super.init.apply(this, arguments);
                     this.options.columns.forEach(function(column) {
                         if(column.template) {
-                            column.template = $.templates(column.template);
+                            column.compiledTemplate = $.templates(column.template);
                         }
                     });
                 },
@@ -33,7 +33,7 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     if (column.template) {
                         var data = {}
                         data[column.key] = value;
-                        return column.template.render(data, {record: record, column: column});
+                        return column.compiledTemplate.render(data, {record: record, column: column});
                     } else {
                         return $super.renderCellContent.apply(this, arguments);
                     }

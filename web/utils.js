@@ -1,19 +1,31 @@
 (function(define) {
     "use strict";
     
-    define({
-        handleEventInAnimationFrame: function (event) {
-            var self = this, args = arguments;
-            requestAnimationFrame(function() {
-                event.data.apply(self, args);;
-            });
-        },
+    define(['jquery'], function($) {
+        return {
+            handleEventInAnimationFrame: function (event) {
+                var self = this, args = arguments;
+                requestAnimationFrame(function() {
+                    event.data.apply(self, args);;
+                });
+            },
 
-        findInArray: function (array, selector) {
-            for(var x=0,l=array.length;x<l;x++) {
-                if(selector(array[x], x)) return x;
+            findInArray: function (array, selector) {
+                for(var x=0,l=array.length;x<l;x++) {
+                    if(selector(array[x], x)) return x;
+                }
+                return -1;
+            },
+
+            elementFromPoint: function(x,y,selector) {
+                var elements = $(selector);
+                for(var i = elements.length - 1; i>=0; i--) {
+                    var e = $(elements.get(i)), o = e.offset();
+                    if(x >= o.left && y >= o.top && x < o.left + e.outerWidth() && y < o.top + e.outerHeight()) {
+                        return e;
+                    }
+                }
             }
-            return -1;
         }
     });
 })(define);

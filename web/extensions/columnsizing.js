@@ -40,6 +40,8 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                                 col.width = Math.max(0, event.pageX - oX + w);
                             } else if(resizing == -1) {
                                 col.width = Math.max(0, oX - event.pageX + w);
+                            } else {
+                                return;
                             }
                             grid.adjustWidths();
                             grid.adjustColumnPositions();
