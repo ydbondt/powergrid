@@ -10,8 +10,9 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         var self = this;
         
         this.options = options;
-        this.treeSettings = {};
-        
+        this._treeSettings = {};
+        this.recordByIdMap = {};
+
         if(!$.isArray(delegate)) {
             this.delegate = delegate;
             
@@ -31,9 +32,30 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             this.tree = delegate;
             this.load();
         }
+
+        $(this).on("dataloaded", function() {
+            self.updateRecordByIdMap(this.getData());
+        }).on("rowsadded", function(event, data) {
+            self.updateRecordByIdMap(this.getData(data.start, data.end));
+        });
     }
 
     TreeGridDataSource.prototype = {
+        updateRecordByIdMap: function(data) {
+            var self = this;
+            data.forEach(function(row) {
+                self.recordByIdMap[row.id] = row;
+            })
+        },
+
+        treeSettings: function(row) {
+            if (!this._treeSettings[row.id]) {
+                var depth = this.parent(row) ? this._treeSettings[this.parent(row)].depth + 1 : 0;
+                this._treeSettings[row.id] = {expanded: false, depth: depth};
+            }
+            return this._treeSettings[row.id];
+        },
+
         isReady: function() {
             return this.view !== undefined;
         },
@@ -62,13 +84,15 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
-                    self.treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
+                    self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
                     if(depth <= (initialTreeDepth || 0)) {
                         view.push(x);
-                    }
-                    var children = self.children(x);
-                    if(children && children.length) {
-                        calcDepth(children, depth+1);
+                        if (depth + 1 <= (initialTreeDepth || 0)) {
+                            var children = self.children(x);
+                            if(children && children.length) {
+                                calcDepth(children, depth+1);
+                            }
+                        }
                     }
                 });
             }
@@ -84,7 +108,6 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         
         buildTree: function(data) {
             var rootNodes = [];
-            this.recordByIdMap = {};
             for(var x=0,l=data.length;x<l;x++) {
                 var r = data[x];
                 this.recordByIdMap[r.id] = r;
@@ -107,9 +130,6 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         getRecordById: function(id) {
-            if (this.delegate) {
-                return this.delegate.getRecordById(id);
-            }
             return this.recordByIdMap[id];
         },
         
@@ -153,7 +173,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
             
             // expand it. then we must insert rows
-            this.treeSettings[row.id].expanded = true;
+            this.treeSettings(row).expanded = true;
             if(start !== undefined) {
                 var rows = this.flattenSubTree(row);
                 this.view.splice.apply(this.view, [start+1, 0].concat(rows));
@@ -173,10 +193,10 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             for(x=0,l=this.view.length; x<l; x++) {
                 if(start === undefined && this.view[x].id == rowId) {
-                    startDepth = this.treeSettings[row.id].depth;
+                    startDepth = this.treeSettings(row).depth;
                     start = x;
                 } else if(start !== undefined) {
-                    if(this.treeSettings[this.view[x].id].depth <= startDepth) {
+                    if(this.treeSettings(this.view[x]).depth <= startDepth) {
                         break;
                     }
                 }
@@ -185,7 +205,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             end = x;
 
             // collapse it. we must remove some rows from the view.
-            this.treeSettings[row.id].expanded = false;
+            this.treeSettings(row).expanded = false;
             if(start !== undefined) {
                 this.view.splice(start+1, end-start-1);
                 $(this).trigger('rowsremoved',{start: start+1, end: end});
@@ -195,7 +215,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         isExpanded: function(row) {
-            return this.treeSettings[row.id].expanded;
+            return this.treeSettings(row).expanded;
         },
         
         expandAll: function(rowId) {
@@ -236,9 +256,9 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         }
                     }
 
-                    var children = self.children(r);
-                    if(f != -1 && children && (self.treeSettings[r.id].expanded || (self.filter && !match))) {
-                        build(children, depth + 1, self.treeSettings[r.id].expanded, match);
+                    if(f != -1 && self.hasChildren(r) && (self.treeSettings(r).expanded || (self.filter && !match))) {
+                        var children = self.children(r);
+                        build(children, depth + 1, self.treeSettings(r).expanded, match);
                     }
                 }
             }
@@ -282,10 +302,22 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             $(this).trigger('datachanged', { data: view, oldData: oldView });
         },
 
-        children: function(row) {
-            if (this.delegate && this.delegate.children) {
-                return this.delegate.children.apply(this.delegate, arguments);
+        hasChildren: function(row) {
+            if (this.delegate && this.delegate.hasChildren) {
+                return this.delegate.hasChildren.apply(this.delegate, arguments);
             }
+            return row.children && row.children.length > 0;
+        },
+
+        children: function(row) {
+            if (this.delegate && !row.children) {
+                var children = this.delegate.children.apply(this.delegate, arguments);
+                console.debug("children initialized", children);
+                row.children = children;
+            }
+//            if (this.delegate && this.delegate.children) {
+//                return this.delegate.children.apply(this.delegate, arguments);
+//            }
             return row.children;
         },
 
@@ -334,12 +366,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
 
                     renderCellContent: function(record, rowIdx, column, value) {
                         var content = $super.renderCellContent.apply(this, arguments);
-                        var children = this.dataSource.children(record);
                         if(column.treeColumn) {
                             return $('<div>')
-                                .addClass((children && children.length) ? "pg-treetoggle" : "pg-treeleaf")
-                                .addClass('pg-tree-level-' + this.dataSource.treeSettings[record.id].depth)
-                                .toggleClass("pg-tree-expanded", this.dataSource.treeSettings[record.id].expanded)
+                                .addClass((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf")
+                                .addClass('pg-tree-level-' + this.dataSource.treeSettings(record).depth)
+                                .toggleClass("pg-tree-expanded", this.dataSource.treeSettings(record).expanded)
                                 .add(content);
                         } else {
                             return content;
