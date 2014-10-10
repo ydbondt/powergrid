@@ -181,7 +181,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 $(this).trigger('rowsadded',{start: start+1, end: start+1 + rows.length});
             }
                         
-            $(this).trigger('treetoggled', rowId, start, this.isExpanded(row));
+            $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
         },
         
         collapse: function(row) {
@@ -212,7 +212,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 $(this).trigger('rowsremoved',{start: start+1, end: end});
             }
                         
-            $(this).trigger('treetoggled', rowId, start, this.isExpanded(row));
+            $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
         },
         
         isExpanded: function(row) {
@@ -362,9 +362,14 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                             event.preventDefault();
                         });
 
-                        $(treeDS).on("treetoggled", function(event, rowId, rowIndex, newState) {
-                            grid.target.find(".pg-row[data-row-id='" + rowId + "']").toggleClass("pg-tree-expanded", newState);
+                        $(treeDS).on("treetoggled", function(event, ui) {
+                            grid.target.find(".pg-row[data-row-id='" + ui.id + "']").toggleClass("pg-tree-expanded", ui.state);
                         });
+                    },
+                    
+                    afterRenderRow: function(record, idx, rowparts) {
+                        $super.afterRenderRow(record, idx, rowparts);
+                        rowparts.toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
                     },
 
                     renderCellContent: function(record, rowIdx, column, value) {
@@ -372,8 +377,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         if(column.treeColumn) {
                             return $('<div>')
                                 .addClass((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf")
-                                .addClass('pg-tree-level-' + this.dataSource.treeSettings(record).depth)
-                                .toggleClass("pg-tree-expanded", this.dataSource.treeSettings(record).expanded)
+                                .addClass('pg-tree-level-' + treeDS.treeSettings(record).depth)
                                 .add(content);
                         } else {
                             return content;
