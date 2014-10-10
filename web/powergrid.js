@@ -631,7 +631,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             var trailingWidth = this.columnWidth(this.options.columns.length - this.options.frozenColumnsRight, this.options.columns.length);
             this.fixedLeft.css("width", leadingWidth + "px");
             this.fixedRight.css("width", trailingWidth + "px");
-            this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
+            this.columnheadergroup.right && this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
             this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px"});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
         },
