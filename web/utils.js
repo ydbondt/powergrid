@@ -25,6 +25,13 @@
                         return e;
                     }
                 }
+            },
+            
+            loggingInterceptor: function(callback) {
+                var args = Array.prototype.slice.apply(arguments, [1]);
+                var r = callback.apply(this, args);
+                console.log(args.map(function(e) { return e }).join(",") + " -> " + r);
+                return r;
             }
         }
     });

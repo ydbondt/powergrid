@@ -9,7 +9,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                     init: function() {
                         $super.init();
 
-                        var cells, oX, oY, dragstarted, tracking, col, startX, idx, offset, header, key, dragTarget;
+                        var cells, oX, oY, dragstarted, tracking, col, startX, idx, offset, header, key, dragTarget, offsetX, offsetY;
 
                         function startDrag(event) {
                             header = this;
@@ -23,6 +23,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
 
                             oX = event.pageX;
                             oY = event.pageY;
+                            
+                            offsetX = event.offsetX;
+                            offsetY = event.offsetY;
 
                             offset = event.offsetX || event.originalEvent.layerX || 0;
 
@@ -44,7 +47,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             if(!dragstarted) {
                                 var dragevent = new $.Event('columndragstart', {
                                     idx: idx,
-                                    column: col
+                                    column: col,
+                                    offsetX: offsetX,
+                                    offsetY: offsetY
                                 });
                                 grid.trigger(dragevent);
                                 
@@ -89,7 +94,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             }
                             
                             grid.trigger(new $.Event("columndragmove", {
-                                x: newX, y: newY, outOfViewPort: outOfViewPort
+                                column: col, x: newX, y: newY, outOfViewPort: outOfViewPort
                             }));
 
                             requestAnimationFrame(function() {

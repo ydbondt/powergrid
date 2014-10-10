@@ -1,6 +1,6 @@
-define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'text!../templates/grouper.html',
+define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dragndrop', 'text!../templates/grouper.html',
         'text!../templates/grouprow.html', 'text!../templates/groupindicator.html'],
-       function(override, $, jsrender, Promise, treegrid, grouperTemplate, grouprow, groupindicator) {
+       function(override, $, jsrender, Promise, treegrid, DragNDrop, grouperTemplate, grouprow, groupindicator) {
     "use strict";
     
     function GroupingDataSource(delegate) {
@@ -124,6 +124,8 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'tex
                         
                         var grouper = $(grouperTemplate);
                         
+                        this.grouping.initReordering(grouper);
+                        
                         this.grouping.grouper = grouper;
                         
                         grouper.on("columndropped", function(event) {
@@ -162,6 +164,35 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'tex
                     
                     grouping: {
                         groups: [],
+                        
+                        initReordering: function(grouper) {
+                            new DragNDrop(grouper, ".pg-group-indicator", ".pg-group-indicator");
+
+                            var newOrder;
+                            
+                            grouper.on("customdragstart", function(event) {
+                            }).on("customdragover", ".pg-group-indicator", function(event) {
+                                var targetKey = $(this).attr("data-group-key"),
+                                    dragKey = $(event.dragee).attr("data-group-key"),
+                                    gKeys = (newOrder || grid.grouping.groups).map(function(e) { return e.key; }),
+                                    tIdx = gKeys.indexOf(targetKey),
+                                    dIdx = gKeys.indexOf(dragKey);
+
+                                if(tIdx < dIdx && event.pageX < ($(this).offset().left + $(event.dragee).outerWidth())) {
+                                    $(this).before(event.dragee.detach());
+                                } else if(dIdx < tIdx) {
+                                    $(this).after(event.dragee.detach());
+                                }
+                                newOrder = grouper.children(".pg-group-indicator").map(function(i,e) {
+                                    return grid.getColumnForKey( $(e).attr("data-group-key") );
+                                }).toArray();
+                            }).on("customdragend", ".pg-group-indicator", function(event) {
+                                console.log(newOrder.map(function(e) { return e.key; }));
+                                grid.grouping.groups = newOrder;
+                                grid.grouping.updateGroups();
+                                newOrder = undefined;
+                            });
+                        },
                         
                         addGroupBy: function(column) {
                             this.groups.push(column);

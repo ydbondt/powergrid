@@ -49,90 +49,85 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         this.dataSource = options.dataSource;
 
+        if(target === false) return;
         this.beginInit();
     }
 
     PowerGrid.prototype = {
         beginInit: function() {
-            var extensionKeys = Object.keys(this.options.extensions),
-                grid = this,
-                plugins = {},
-                pluginList = [];
+            var grid = this;
 
-            function loadExtensions(keys, callback) {
-                var files = keys.map(function(e) { return "extensions/" + e; });
-                require(files, function() {
-                    var newkeys = [];
-                    for(var x = 0; x < arguments.length; x++) {
-                        plugins[keys[x]] = arguments[x];
-                        pluginList.push(keys[x]);
-                        
-                        var reqs = arguments[x].requires;
-                        if(reqs) {
-                            for(var req in reqs) {
-                                if(!grid.options.extensions[req]) {
-                                    newkeys.push(req);
-                                }
-                                
-                                if(grid.options.extensions[req]) {
-                                    $.extend(grid.options.extensions[req], reqs[req]);
-                                } else {
-                                    grid.options.extensions[req] = reqs[req];
-                                }
+            this.loadExtensions(function(pluginList, plugins) {
+                pluginList = grid.sortByLoadOrder(pluginList, plugins);
+
+                pluginList.forEach(function(key) {
+                    console.info("Initing extension " + key);
+                    var p = plugins[key];
+                    if(p.init) {
+                        p.init(grid, grid.options.extensions[key]);
+                    } else {
+                        p(grid, grid.options.extensions[key]);
+                    }
+                });
+
+                grid.init();
+            });
+        },
+        
+        loadExtensions: function(callback, keys, plugins, pluginList) {
+            var grid = this;
+            if(arguments.length < 4) {
+                keys = Object.keys(this.options.extensions),
+                plugins = {};
+                pluginList = [];
+            }
+            var files = keys.map(function(e) { return "extensions/" + e; });
+            require(files, function() {
+                var newkeys = [];
+                for(var x = 0; x < arguments.length; x++) {
+                    plugins[keys[x]] = arguments[x];
+                    pluginList.push(keys[x]);
+
+                    var reqs = arguments[x].requires;
+                    if(reqs) {
+                        for(var req in reqs) {
+                            if(!grid.options.extensions[req]) {
+                                newkeys.push(req);
+                            }
+
+                            if(grid.options.extensions[req]) {
+                                $.extend(grid.options.extensions[req], reqs[req]);
+                            } else {
+                                grid.options.extensions[req] = reqs[req];
                             }
                         }
                     }
-                    
-                    if(newkeys.length) {
-                        loadExtensions(newkeys, callback);
-                    } else {
-                        callback();
+                }
+
+                if(newkeys.length) {
+                    grid.loadExtensions(callback, newkeys, plugins, pluginList);
+                } else {
+                    callback(pluginList, plugins);
+                }
+            });
+        },
+        
+        sortByLoadOrder: function(pluginList, plugins) {
+            var sorted = [], added = {};
+            
+            function add(key) {
+                if(plugins[key] !== undefined && added[key] === undefined) {
+                    if(plugins[key].loadFirst) {
+                        plugins[key].loadFirst.forEach(add);
                     }
-                });
+                    sorted.push(key);
+                    added[key] = true;
+                }
             }
             
-            if(extensionKeys.length) {
-                
-                loadExtensions(extensionKeys, function() {
-                    function testLoadOrder(keyA,keyB,dontRecurse) {
-                        var plugA = plugins[keyA], plugB = plugins[keyB];
-                        if(typeof plugA === 'object') {
-                            if(plugA.loadFirst) {
-                                for(var x=0,l=plugA.loadFirst.length;x<l;x++) {
-                                    var d = plugA.loadFirst[x];
-                                    if(d === keyB) return 1;
-                                    else {
-                                        var r = testLoadOrder(d, keyB);
-                                        if(r !== 0) {
-                                            return r;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if(dontRecurse === true) {
-                            return 0;
-                        } else {
-                            return testLoadOrder(keyB, keyA, true);
-                        }
-                    }
-                    
-                    pluginList.sort(testLoadOrder);
-                    
-                    pluginList.forEach(function(key) {
-                        var p = plugins[key];
-                        if(p.init) {
-                            p.init(grid, grid.options.extensions[key]);
-                        } else {
-                            p(grid, grid.options.extensions[key]);
-                        }
-                    });
-                    
-                    grid.init();
-                });
-            } else {
-                this.init();
-            }
+            pluginList.forEach(add);
+            
+            return sorted;
         },
 
         init: function init() {

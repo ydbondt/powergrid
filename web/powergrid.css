@@ -166,6 +166,12 @@
     border-color: white transparent transparent transparent
 }
 
+.pg-grouper > .pg-grouper-placeholder {
+    font-style: italic;
+    font-size: 9pt;
+    padding-left: 4px;
+}
+
 .pg-grouper > .pg-grouper-placeholder:not(:only-child) {
     display: none;
 }
@@ -184,8 +190,14 @@
     background: #887878;
     color: white;
     padding: 2px 10px;
-    margin-left: 14px;
+    margin-right: 11px;
     cursor: default;
+    font-size: 85%;
+    height: 16px;
+}
+
+.pg-grouper-placeholder + .pg-group-indicator:before {
+    display: none;
 }
 
 .pg-group-indicator:before,

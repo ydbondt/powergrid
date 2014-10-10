@@ -26,11 +26,15 @@
             function runTests() {
                 // require the unit tests.
                 require(
-                    ['QUnit', 'tests/sorting', 'tests/treegrid', 'tests/finddifference', 'tests/filtering'],
+                    ['QUnit', 'tests/sorting', 'tests/treegrid', 'tests/finddifference', 'tests/filtering', 'tests/pluginloadorder'],
                     function(QUnit) {
                         // run the tests.
                         //sorting.run();
 
+                        for(var x = 1; x < arguments.length; x++) {
+                            arguments[x]();
+                        }
+                        
                         // start QUnit.
                         QUnit.load();
                         QUnit.start();
