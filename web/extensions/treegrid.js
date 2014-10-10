@@ -314,7 +314,6 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         children: function(row) {
             if (!this.childrenByIdMap[row.id]) {
                 var children = row.children || this.delegate && typeof this.delegate.children === 'function' && this.delegate.children.apply(this.delegate, arguments);
-                console.debug("children initialized", children);
                 this.childrenByIdMap[row.id] = children;
                 if(children !== undefined) {
                     for(var x=0,l=children.length;x<l;x++) {
