@@ -77,19 +77,17 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                     this.tree = this.buildTree(this.delegate.getData());
                 }
             }
-            this.view = this.initView(this.tree, this.options && this.options.initialTreeDepth || 0);
+            this.initView(this.options && this.options.initialTreeDepth || 0);
             $(this).trigger("dataloaded");
         },
         
-        initView: function(data, initialTreeDepth) {
-            var view = [];
+        initView: function(initialTreeDepth) {
             var self = this;
             
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
                     self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
                     if(depth <= (initialTreeDepth || 0)) {
-                        view.push(x);
                         if (depth + 1 <= (initialTreeDepth || 0)) {
                             var children = self.children(x);
                             if(children && children.length) {
@@ -100,13 +98,13 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 });
             }
             
-            calcDepth(data, 0);
+            calcDepth(this.tree, 0);
             
-            return view;
+            this.rebuildView();
         },
         
-        rebuildView: function(data) {
-            return this.flattenSubTree(data);
+        rebuildView: function() {
+            this.view = this.flattenSubTree(this.tree);
         },
         
         buildTree: function(data) {
@@ -295,15 +293,15 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
             
             sort(this.tree);
-            this.view = this.rebuildView(this.tree);
+            this.rebuildView();
         },
         
         applyFilter: function(columnSettings, filterFunction) {
             this.filter = filterFunction;
-            var oldView = this.view,
-                view = this.view = this.rebuildView(this.tree);
+            var oldView = this.view;
+            this.rebuildView();
             
-            $(this).trigger('datachanged', { data: view, oldData: oldView });
+            $(this).trigger('datachanged', { data: this.view, oldData: oldView });
         },
 
         hasChildren: function(row) {
