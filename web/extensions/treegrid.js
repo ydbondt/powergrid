@@ -10,9 +10,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         var self = this;
         
         this.options = options;
-        this._treeSettings = {};
-        this.recordByIdMap = {};
-
+        
         if(!$.isArray(delegate)) {
             this.delegate = delegate;
             
@@ -67,6 +65,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         load: function() {
+            this._treeSettings = {};
+            this.recordByIdMap = {};
+            this.parentByIdMap = {};
+            this.childrenByIdMap = {};
+
             if(this.delegate) {
                 if (this.delegate.buildTree) {
                     this.tree = this.delegate.buildTree();
@@ -221,7 +224,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         expandAll: function(rowId) {
             var ds = this;
             function expandall(row) {
-                var children = this.children(row);
+                var children = ds.children(row);
                 if(children) {
                     children.forEach(expandall);
                 }
@@ -280,10 +283,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         sort: function(comparator) {
+            var ds = this;
             function sort(arr) {
                 arr.sort(comparator);
                 for(var x=0,l=arr.length;x<l;x++) {
-                    var children = this.children(arr[x]);
+                    var children = ds.children(arr[x]);
                     if(children) {
                         sort(children);
                     }
@@ -310,19 +314,24 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
 
         children: function(row) {
-            if (this.delegate && !row.children) {
-                var children = this.delegate.children.apply(this.delegate, arguments);
+            if (!this.childrenByIdMap[row.id]) {
+                var children = row.children || this.delegate && typeof this.delegate.children === 'function' && this.delegate.children.apply(this.delegate, arguments);
                 console.debug("children initialized", children);
-                row.children = children;
+                this.childrenByIdMap[row.id] = children;
+                if(children !== undefined) {
+                    for(var x=0,l=children.length;x<l;x++) {
+                        this.parentByIdMap[children[x].id] = row.id;
+                    }
+                }
             }
-            return row.children;
+            return this.childrenByIdMap[row.id];
         },
 
         parent: function(row) {
             if (this.delegate && this.delegate.parent) {
                 return this.delegate.parent.apply(this.delegate, arguments);
             }
-            return row.parent;
+            return row.parent || this.parentByIdMap[row.id];
         }
 
     };
