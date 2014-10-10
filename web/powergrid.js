@@ -135,7 +135,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
 
                 container = this.container = $("<div class='powergrid'>"),
-                columnheadercontainer = this.columnheadercontainer = $("<div class='pg-rowgroup pg-columnheaders'>"),
+                columnheadercontainer = this.columnheadercontainer = $("<div class='pg-columnheaders'>"),
                 headercontainer = this.headercontainer = $("<div class='pg-rowgroup pg-header'>"),
                 scrollingcontainer = this.scrollingcontainer = $("<div class='pg-rowgroup pg-scrolling'>"),
                 footercontainer = this.footercontainer = $("<div class='pg-rowgroup pg-footer'>"),
@@ -199,17 +199,6 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             });
 
             this.initScrollEvents();
-            this.initRowHighlighting();
-        },
-
-        initRowHighlighting: function() {
-            this.target.on("mouseenter", ".pg-row", function(evt) {
-                var idx = $(evt.currentTarget).data('row-idx');
-                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').addClass('pg-hover');
-            }).on("mouseleave", ".pg-row", function(evt) {
-                var idx = $(evt.currentTarget).data('row-idx');
-                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').removeClass('pg-hover');
-            });
         },
 
         initScrollEvents: function initScrollEvents() {
@@ -642,6 +631,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             var trailingWidth = this.columnWidth(this.options.columns.length - this.options.frozenColumnsRight, this.options.columns.length);
             this.fixedLeft.css("width", leadingWidth + "px");
             this.fixedRight.css("width", trailingWidth + "px");
+            this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
             this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px"});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
         },
@@ -652,10 +642,12 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             var headerHeight = this.rowHeight(0, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
+            this.columnheadergroup.all.css("height", (columnHeaderHeight) + "px");
             this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer.css("height", (footerHeight) + "px");
             this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
             
+            this.scroller.css("top", columnHeaderHeight + "px");
             this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
         },
         
@@ -759,7 +751,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             // tested CSS class injection, but was slower than direct manipulation in this case
 
             $(this.target).children('.powergrid').children('.pg-scrolling').scrollTop(source.scrollTop);
-            $(this.target).children('.powergrid').children('.pg-rowgroup').children('.pg-scrolling').css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
+            this.middleScrollers.css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
             this.afterscroll();
         },
 
