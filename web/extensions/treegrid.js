@@ -315,9 +315,6 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 console.debug("children initialized", children);
                 row.children = children;
             }
-//            if (this.delegate && this.delegate.children) {
-//                return this.delegate.children.apply(this.delegate, arguments);
-//            }
             return row.children;
         },
 
