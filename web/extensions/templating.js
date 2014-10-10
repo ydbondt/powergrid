@@ -34,7 +34,7 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                         var data = {}
                         data[column.key] = value;
                         var rendered = column.compiledTemplate.render(data, {record: record, column: column});
-                        return $super.renderCellContent.apply(this, [record, rowIdx, column, rendered]
+                        return $super.renderCellContent.apply(this, [record, rowIdx, column, rendered]);
                     } else {
                         return $super.renderCellContent.apply(this, arguments);
                     }
