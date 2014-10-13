@@ -5,6 +5,14 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
     
     function GroupingDataSource(delegate) {
         this.delegate = delegate;
+        var proto = Object.getPrototypeOf(this.delegate);
+        var selfProto = Object.getPrototypeOf(this);
+        Object.keys(proto).forEach(function (member) {
+            if (!selfProto[member] && (typeof proto[member] === "function")) {
+                selfProto[member] = function() {return proto[member].apply(delegate, arguments) }
+            }
+        });
+
         if(delegate.isReady()) {
             this.load();
         }
@@ -15,10 +23,12 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
     
     GroupingDataSource.prototype = {
         load: function() {
+            this.parentByIdMap = {};
             this.updateView();
         },
         
         updateView: function() {
+            var ds = this;
             var groupRows = this.groupRows = {};
             var rowToGroupMap = {};
             function group(nodes, groupings, parentGroupId, level) {
@@ -38,12 +48,14 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
                                 description: g,
                                 children: [],
                                 _groupColumn: col,
-                                _groupLevel: level
+                                _groupLevel: level,
+                                parent: parentGroupId
                             });
                             
                             r[col.key] = g;
                         }
                         r.children.push(nodes[x]);
+                        ds.parentByIdMap[nodes[x].id] = r;
                         groupRows[r.id] = r;
                     }
                     
@@ -95,6 +107,23 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
             if(!this.isReady()) {
                 throw "Datasource not ready yet";
             }
+        },
+
+        parent: function(row) {
+            return row.parent || this.parentByIdMap[row.id].id;
+        },
+
+        hasChildren: function(row) {
+            var groupRow = this.groupRows[row.id];
+            if (groupRow) {
+                return groupRow.children && groupRow.children.length > 0;
+            } else {
+                return this.delegate.hasChildren(row);
+            }
+        },
+
+        buildTree: function() {
+            return this.getData();
         }
     };
     
@@ -187,10 +216,11 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
                                     return grid.getColumnForKey( $(e).attr("data-group-key") );
                                 }).toArray();
                             }).on("customdragend", ".pg-group-indicator", function(event) {
-                                console.log(newOrder.map(function(e) { return e.key; }));
-                                grid.grouping.groups = newOrder;
-                                grid.grouping.updateGroups();
-                                newOrder = undefined;
+                                if (newOrder){
+                                    grid.grouping.groups = newOrder;
+                                    grid.grouping.updateGroups();
+                                    newOrder = undefined;
+                                }
                             });
                         },
                         

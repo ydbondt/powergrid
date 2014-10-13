@@ -13,11 +13,12 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         
         if(!$.isArray(delegate)) {
             this.delegate = delegate;
-            
+
             var proto = Object.getPrototypeOf(this.delegate);
+            var selfProto = Object.getPrototypeOf(this);
             Object.keys(proto).forEach(function (member) {
-                if (!self[member] && (typeof proto[member] === "function")) {
-                    self[member] = function() {return proto[member].apply(delegate, arguments) }
+                if (!selfProto[member] && (typeof proto[member] === "function")) {
+                    selfProto[member] = function() {return proto[member].apply(this.delegate, arguments) }
                 }
             });
 
@@ -316,7 +317,6 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         children: function(row) {
             if (!this.childrenByIdMap[row.id]) {
                 var children = row.children || this.delegate && typeof this.delegate.children === 'function' && this.delegate.children.apply(this.delegate, arguments);
-                console.debug("children initialized", children);
                 this.childrenByIdMap[row.id] = children;
                 if(children !== undefined) {
                     for(var x=0,l=children.length;x<l;x++) {

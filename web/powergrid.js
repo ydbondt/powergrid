@@ -130,6 +130,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             return sorted;
         },
 
+        initLoadingIndicator: function () {
+            var grid = this;
+            $(this.target).addClass('pg-loading');
+            $(this.dataSource).on("dataloaded", function(event) {
+                $(grid.target).removeClass('pg-loading');
+            })
+        },
+
         init: function init() {
             var grid = this;
             var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
@@ -204,11 +212,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         initRowHighlighting: function() {
             this.target.on("mouseenter", ".pg-row", function(evt) {
-                var idx = $(evt.currentTarget).data('row-idx');
-                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').addClass('pg-hover');
+                var id = $(evt.currentTarget).data('row-id');
+                $(evt.currentTarget).parents('.pg-rowgroup').find("[data-row-id='"+ id +"']").addClass('pg-hover');
             }).on("mouseleave", ".pg-row", function(evt) {
-                var idx = $(evt.currentTarget).data('row-idx');
-                $(evt.currentTarget).parents('.pg-rowgroup').find('[data-row-idx='+ idx +']').removeClass('pg-hover');
+                var id = $(evt.currentTarget).data('row-id');
+                $(evt.currentTarget).parents('.pg-rowgroup').find("[data-row-id='"+ id +"']").removeClass('pg-hover');
             });
         },
 
