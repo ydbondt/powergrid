@@ -56,6 +56,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
     PowerGrid.prototype = {
         beginInit: function() {
             var grid = this;
+            this.initLoadingIndicator();
 
             this.loadExtensions(function(pluginList, plugins) {
                 pluginList = grid.sortByLoadOrder(pluginList, plugins);
@@ -140,7 +141,6 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         init: function init() {
             var grid = this;
-            this.initLoadingIndicator();
             var baseSelector = this.baseSelector = "#" + this.target.attr('id'),
 
                 container = this.container = $("<div class='powergrid'>"),
