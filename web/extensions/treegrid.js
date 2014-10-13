@@ -78,19 +78,17 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                     this.tree = this.buildTree(this.delegate.getData());
                 }
             }
-            this.view = this.initView(this.tree, this.options && this.options.initialTreeDepth || 0);
+            this.initView(this.options && this.options.initialTreeDepth || 0);
             $(this).trigger("dataloaded");
         },
         
-        initView: function(data, initialTreeDepth) {
-            var view = [];
+        initView: function(initialTreeDepth) {
             var self = this;
             
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
                     self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
                     if(depth <= (initialTreeDepth || 0)) {
-                        view.push(x);
                         if (depth + 1 <= (initialTreeDepth || 0)) {
                             var children = self.children(x);
                             if(children && children.length) {
@@ -101,13 +99,13 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 });
             }
             
-            calcDepth(data, 0);
+            calcDepth(this.tree, 0);
             
-            return view;
+            this.rebuildView();
         },
         
-        rebuildView: function(data) {
-            return this.flattenSubTree(data);
+        rebuildView: function() {
+            this.view = this.flattenSubTree(this.tree);
         },
         
         buildTree: function(data) {
@@ -184,7 +182,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 $(this).trigger('rowsadded',{start: start+1, end: start+1 + rows.length});
             }
                         
-            $(this).trigger('treetoggled', rowId, start, this.isExpanded(row));
+            $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
         },
         
         collapse: function(row) {
@@ -215,7 +213,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 $(this).trigger('rowsremoved',{start: start+1, end: end});
             }
                         
-            $(this).trigger('treetoggled', rowId, start, this.isExpanded(row));
+            $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
         },
         
         isExpanded: function(row) {
@@ -296,15 +294,15 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
             
             sort(this.tree);
-            this.view = this.rebuildView(this.tree);
+            this.rebuildView();
         },
         
         applyFilter: function(columnSettings, filterFunction) {
             this.filter = filterFunction;
-            var oldView = this.view,
-                view = this.view = this.rebuildView(this.tree);
+            var oldView = this.view;
+            this.rebuildView();
             
-            $(this).trigger('datachanged', { data: view, oldData: oldView });
+            $(this).trigger('datachanged', { data: this.view, oldData: oldView });
         },
 
         hasChildren: function(row) {
@@ -365,9 +363,14 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                             event.preventDefault();
                         });
 
-                        $(treeDS).on("treetoggled", function(event, rowId, rowIndex, newState) {
-                            grid.target.find(".pg-row[data-row-id='" + rowId + "']").toggleClass("pg-tree-expanded", newState);
+                        $(treeDS).on("treetoggled", function(event, ui) {
+                            grid.target.find(".pg-row[data-row-id='" + ui.id + "']").toggleClass("pg-tree-expanded", ui.state);
                         });
+                    },
+                    
+                    afterRenderRow: function(record, idx, rowparts) {
+                        $super.afterRenderRow(record, idx, rowparts);
+                        rowparts.toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
                     },
 
                     renderCellContent: function(record, rowIdx, column, value) {
@@ -375,8 +378,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         if(column.treeColumn) {
                             return $('<div>')
                                 .addClass((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf")
-                                .addClass('pg-tree-level-' + this.dataSource.treeSettings(record).depth)
-                                .toggleClass("pg-tree-expanded", this.dataSource.treeSettings(record).expanded)
+                                .addClass('pg-tree-level-' + treeDS.treeSettings(record).depth)
                                 .add(content);
                         } else {
                             return content;

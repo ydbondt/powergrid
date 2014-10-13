@@ -1,6 +1,6 @@
-define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dragndrop', 'text!../templates/grouper.html',
+define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dragndrop', 'text!../templates/grouper.html',
         'text!../templates/grouprow.html', 'text!../templates/groupindicator.html'],
-       function(override, $, jsrender, Promise, treegrid, DragNDrop, grouperTemplate, grouprow, groupindicator) {
+       function(override, utils, $, jsrender, Promise, treegrid, DragNDrop, grouperTemplate, grouprow, groupindicator) {
     "use strict";
     
     function GroupingDataSource(delegate) {
@@ -151,7 +151,22 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
                     init: function() {
                         $super.init();
                         
+                        this.target.on("click", ".pg-grouping-grouptoggle", function(event) {
+                            var toggle = this,
+                                groupId = $(toggle).attr("data-id");
+                            
+                            treeds.toggle(groupId);
+                        });
+                        
                         var grouper = $(grouperTemplate);
+                        this.columnheadercontainer.addClass("pg-grouping-enabled").prepend(grouper);
+                        
+                        grouper.on("click", ".pg-group-delete", function(event) {
+                            grid.grouping.removeGroupBy(grid.getColumnForKey($(this).attr("data-group-key")));
+                            event.stopPropagation();
+                            event.stopImmediatePropagation();
+                            event.preventDefault();
+                        }).on("mousedown", ".pg-group-delete", utils.cancelEvent);
                         
                         this.grouping.initReordering(grouper);
                         
@@ -164,17 +179,6 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
                                 event.preventDefault();
                             }
                         });
-                        
-                        this.target.on("click", ".pg-grouping-grouptoggle", function(event) {
-                            var toggle = this,
-                                groupId = $(toggle).attr("data-id");
-                            
-                            treeds.toggle(groupId);
-                        }).on("click", ".pg-group-delete", function(event) {
-                            grid.grouping.removeGroupBy(grid.getColumnForKey($(this).attr("data-group-key")));
-                        });
-                        
-                        this.columnheadercontainer.addClass("pg-grouping-enabled").prepend(grouper);
                     },
                     
                     headerHeight: function() {
@@ -216,7 +220,7 @@ define(['override', 'jquery', 'jsrender', 'promise', 'extensions/treegrid', 'dra
                                     return grid.getColumnForKey( $(e).attr("data-group-key") );
                                 }).toArray();
                             }).on("customdragend", ".pg-group-indicator", function(event) {
-                                if (newOrder){
+                                if(newOrder !== undefined) {
                                     grid.grouping.groups = newOrder;
                                     grid.grouping.updateGroups();
                                     newOrder = undefined;

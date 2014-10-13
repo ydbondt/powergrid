@@ -32,6 +32,12 @@
                 var r = callback.apply(this, args);
                 console.log(args.map(function(e) { return e }).join(",") + " -> " + r);
                 return r;
+            },
+            
+            cancelEvent: function(event) {
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                event.preventDefault();
             }
         }
     });
