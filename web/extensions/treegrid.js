@@ -14,13 +14,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         if(!$.isArray(delegate)) {
             this.delegate = delegate;
 
-            var proto = Object.getPrototypeOf(this.delegate);
-            var selfProto = Object.getPrototypeOf(this);
-            Object.keys(proto).forEach(function (member) {
-                if (!selfProto[member] && (typeof proto[member] === "function")) {
-                    selfProto[member] = function() {return proto[member].apply(this.delegate, arguments) }
+            for (var x in this.delegate) {
+                if (!this[x] && (typeof this.delegate[x] === "function")) {
+                    this[x] = this.delegate[x].bind(this.delegate);
                 }
-            });
+            }
 
             if(delegate.isReady()) {
                 this.load();
