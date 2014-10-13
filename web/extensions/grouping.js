@@ -60,6 +60,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
                     }
                     
                     for(var x=0,l=groups.length;x<l;x++) {
+                        groups[x].recordCount = groups[x].children.length;
                         groups[x].children = group(groups[x].children, nextGroupings, groups[x].id, level + 1);
                     }
                     

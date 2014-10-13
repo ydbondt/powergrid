@@ -175,7 +175,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             $(this.target).append(container);
 
-            $(".powergrid > .pg-scroller").on('scroll', function(evt) {
+            scroller.on('scroll', function(evt) {
                 grid.syncScroll(this, evt);
             });
 
@@ -750,8 +750,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         getScrollAreaSize: function() {
             return {
-                width: this.target.children('.powergrid').children('.pg-rowgroup.pg-scrolling').children('.pg-container.pg-scrolling')[0].offsetWidth,
-                height: this.target.children('.powergrid').children('.pg-rowgroup.pg-scrolling')[0].offsetHeight
+                width: this.container.children('.pg-rowgroup.pg-scrolling').children('.pg-container.pg-scrolling')[0].offsetWidth,
+                height: this.container.children('.pg-rowgroup.pg-scrolling')[0].offsetHeight
             };
         },
 
@@ -759,7 +759,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             // Sync the scrolling between the scrolling divs
             // tested CSS class injection, but was slower than direct manipulation in this case
 
-            $(this.target).children('.powergrid').children('.pg-scrolling').scrollTop(source.scrollTop);
+            this.container.children('.pg-scrolling').scrollTop(source.scrollTop);
             this.middleScrollers.css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
             this.afterscroll();
         },

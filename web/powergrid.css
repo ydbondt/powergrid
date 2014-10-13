@@ -244,6 +244,19 @@
     content: ':';
 }
 
+.pg-group-recordcount {
+    font-style: italic;
+}
+
+.pg-group-recordcount:before {
+    content: '(';
+}
+
+.pg-group-recordcount:after {
+    content: ')';
+}
+
+
 .pg-group-delete {
     position: relative;
     width: 13px;
@@ -453,6 +466,21 @@ ul.pg-menu > li {
 
 ul.pg-menu > li:hover {
     background-color: #b1abab;
+}
+
+.pg-statistics-wrapper {
+    height: 100%;
+    box-sizing: border-box;
+    padding-bottom: 20px;
+}
+
+.pg-statistics-wrapper > .pg-statistics {
+    height: 20px;
+    box-sizing: border-box;
+    text-align: right;
+    font-size: 90%;
+    font-style: italic;
+    padding: 2px 5px;
 }
 
 .pg-tree-level-0  { margin-left: 0; }

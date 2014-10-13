@@ -105,7 +105,11 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
         },
         
         rebuildView: function() {
-            this.view = this.flattenSubTree(this.tree);
+            var statistics = this.buildStatistics();
+            statistics.filteredRecordCount = this.filter ? 0 : undefined;
+            this.view = this.flattenSubTree(this.tree, undefined, statistics);
+            this._statistics = statistics;
+            $(this).trigger("statisticschanged", statistics);
         },
         
         buildTree: function(data) {
@@ -237,14 +241,18 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             }
         },
 
-        flattenSubTree: function(nodes, parentMatches) {
+        flattenSubTree: function(nodes, parentMatches, statistics) {
             var view = [],
                 stack = [],
                 self = this;
             
-            function build(nodes, depth, parentExpanded, parentMatches) {
+            function build(nodes, depth, parentExpanded, parentMatches, statistics) {
                 for(var x=0,l=nodes.length;x<l;x++) {
                     var r = nodes[x], f = self.filter && self.filter(r), match = f == 0 ? parentMatches : f != -1;
+                    
+                    if(statistics && statistics.filteredRecordCount !== undefined && (f === 1)) {
+                        statistics.filteredRecordCount++;
+                    }
                     
                     if(parentExpanded) {
                         while(stack.length > depth) stack.pop();
@@ -258,9 +266,9 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                         }
                     }
 
-                    if(f != -1 && self.hasChildren(r) && (self.treeSettings(r).expanded || (self.filter && !match))) {
+                    if(f != -1 && self.hasChildren(r) && (self.treeSettings(r).expanded || (self.filter && !match) || (statistics && statistics.filteredRecordCount !== undefined))) {
                         var children = self.children(r);
-                        build(children, depth + 1, self.treeSettings(r).expanded, match);
+                        build(children, depth + 1, self.treeSettings(r).expanded, match, statistics);
                     }
                 }
             }
@@ -273,7 +281,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 nodes = children;
             }
             
-            if(nodes) build(nodes, 0, true, parentMatches);
+            if(nodes) build(nodes, 0, true, parentMatches, statistics);
             return view;
         },
         
@@ -330,6 +338,24 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
                 return this.delegate.parent.apply(this.delegate, arguments);
             }
             return row.parent || this.parentByIdMap[row.id];
+        },
+        
+        buildStatistics: function() {
+            var stats = this.delegate &&
+                this.delegate.statistics &&
+                this.delegate.statistics();
+            
+            if(!stats) {
+                return {
+                    actualRecordCount: this.delegate && this.delegate.recordCount()
+                };
+            } else {
+                return stats;
+            }
+        },
+        
+        statistics: function() {
+            return this._statistics;
         }
 
     };
