@@ -15,6 +15,14 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                     },
 
                     init: function() {
+                        for (var x = 0, l = this.options.columns.length; x < l; x++) {
+                            var column = this.options.columns[x];
+                            var width = this.loadSetting(column.key + "_width");
+                            if (width !== undefined && width !== null && width !== "") {
+                                column.width = width;
+                            }
+                        }
+
                         $super.init();
                         var header, key, idx, col, oX, w, offset, resizing=0;
 
@@ -50,6 +58,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                         function endResize(event) {
                             if(resizing !== 0) {
                                 resizing = 0;
+                                grid.saveSetting(col.key + "_width", col.width);
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
                             }

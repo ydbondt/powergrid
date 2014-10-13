@@ -121,6 +121,10 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
             return override(grid,function($super) {
                 return {
                     init: function() {
+                        var groupSettings = grid.loadSetting("grouping");
+                        if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
+                            this.grouping.groups = groupSettings;
+                        }
                         $super.init();
                         
                         this.target.on("click", ".pg-grouping-grouptoggle", function(event) {
@@ -149,6 +153,17 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
                         }).on("columndragenter", function(event) {
                             if(grid.grouping.groups.indexOf(event.column) > -1) {
                                 event.preventDefault();
+                            }
+                        });
+
+                        $(this.dataSource).one("dataloaded", function(event) {
+                            var groupSettings = grid.loadSetting("grouping");
+                            if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
+                                grid.grouping.groups = groupSettings;
+                                groupSettings.forEach(function(group) {
+                                    self.grouping.grouper.append(grid.grouping.renderGroupIndicator(group));
+                                });
+                                grid.grouping.updateGroups();
                             }
                         });
                     },
@@ -218,6 +233,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
                             grid.trigger("groupingchanged", this.groups);
                             grid.target.attr("data-group-leaf-level", this.groups.length);
                             grid.renderData();
+                            grid.saveSetting("grouping", this.groups);
                         },
                         
                         updateGrouper: function() {

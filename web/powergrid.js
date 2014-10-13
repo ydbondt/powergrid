@@ -871,6 +871,16 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             }
             
             return diff;
+        },
+        saveSetting: function (id, value) {
+            localStorage[this.options.settingsId + "_" + id] = JSON.stringify(value);
+        },
+
+        loadSetting: function(id) {
+            var s = localStorage[this.options.settingsId + "_" + id];
+            if (s) {
+                return JSON.parse(s);
+            }
         }
     };
 
