@@ -1,14 +1,19 @@
 define(['override', 'jquery','promise'], function(override, $, Promise) {
     "use strict";
-    
     return {
         loadFirst: ['dragging', 'columnsizing'],
         init: function(grid, pluginOptions) {
             override(grid, function($super) {
                 var sortColumns=[];
-                
+                function loadSettings() {
+                    var sortSettings = grid.loadSetting("sorting");
+                    if (sortSettings !== undefined && sortSettings !== null && sortSettings !== "") {
+                        sortColumns = sortSettings;
+                    }
+                }
                 return {
                     init: function() {
+                        loadSettings();
                         $super.init();
                         this.target.on("click", ".pg-columnheader", function(event) {
                             var key = $(this).attr('data-column-key'),
@@ -31,8 +36,8 @@ define(['override', 'jquery','promise'], function(override, $, Promise) {
                             sortColumns = [{ key: key, direction: direction, column: grid.getColumnForKey(key) }].concat(sortColumns.filter(function(e) {
                                 return e.key !== key;
                             }));
-                            
                             grid.sorting.sort(sortColumns);
+                            grid.saveSetting("sorting", sortColumns);
                         });
                     },
 
