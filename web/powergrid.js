@@ -56,6 +56,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
     PowerGrid.prototype = {
         beginInit: function() {
             var grid = this;
+            this.initLoadingIndicator();
 
             this.loadExtensions(function(pluginList, plugins) {
                 pluginList = grid.sortByLoadOrder(pluginList, plugins);
@@ -128,6 +129,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             pluginList.forEach(add);
             
             return sorted;
+        },
+
+        initLoadingIndicator: function () {
+            var grid = this;
+            $(this.target).addClass('pg-loading');
+            $(this.dataSource).on("dataloaded", function(event) {
+                $(grid.target).removeClass('pg-loading');
+            })
         },
 
         init: function init() {

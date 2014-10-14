@@ -5,6 +5,11 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
     
     function GroupingDataSource(delegate) {
         this.delegate = delegate;
+        for (var x in this.delegate) {
+            if (!this[x] && (typeof this.delegate[x] === "function")) {
+                this[x] = this.delegate[x].bind(this.delegate);
+            }
+        }
         if(delegate.isReady()) {
             this.load();
         }
@@ -15,10 +20,12 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
     
     GroupingDataSource.prototype = {
         load: function() {
+            this.parentByIdMap = {};
             this.updateView();
         },
         
         updateView: function() {
+            var ds = this;
             var groupRows = this.groupRows = {};
             var rowToGroupMap = {};
             function group(nodes, groupings, parentGroupId, level) {
@@ -38,12 +45,14 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
                                 description: g,
                                 children: [],
                                 _groupColumn: col,
-                                _groupLevel: level
+                                _groupLevel: level,
+                                parent: parentGroupId
                             });
                             
                             r[col.key] = g;
                         }
                         r.children.push(nodes[x]);
+                        ds.parentByIdMap[nodes[x].id] = r;
                         groupRows[r.id] = r;
                     }
                     
@@ -96,6 +105,23 @@ define(['override', 'utils', 'jquery', 'jsrender', 'promise', 'extensions/treegr
             if(!this.isReady()) {
                 throw "Datasource not ready yet";
             }
+        },
+
+        parent: function(row) {
+            return row.parent || this.parentByIdMap[row.id].id;
+        },
+
+        hasChildren: function(row) {
+            var groupRow = this.groupRows[row.id];
+            if (groupRow) {
+                return groupRow.children && groupRow.children.length > 0;
+            } else {
+                return this.delegate.hasChildren(row);
+            }
+        },
+
+        buildTree: function() {
+            return this.getData();
         }
     };
     
