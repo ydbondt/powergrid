@@ -27,7 +27,7 @@ Goals:
 - low footprint
 - portability
 - flexibility
-- concurrency support (through use of Promises throughout the API)
+- support for asynchronous operators like sorting, filtering, etc through use of events
 - touch support throughout
 
 Getting started:

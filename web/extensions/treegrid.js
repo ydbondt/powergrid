@@ -1,4 +1,4 @@
-define(['override', 'jquery', 'promise'], function(override, $, Promise) {
+define(['override', 'jquery'], function(override, $) {
     
     "use strict";
     
@@ -301,6 +301,7 @@ define(['override', 'jquery', 'promise'], function(override, $, Promise) {
             
             sort(this.tree);
             this.rebuildView();
+            $(this).trigger("dataloaded");
         },
         
         applyFilter: function(columnSettings, filterFunction) {

@@ -1,4 +1,4 @@
-define(['override', 'jquery','promise'], function(override, $, Promise) {
+define(['override', 'jquery'], function(override, $) {
     "use strict";
     return {
         loadFirst: ['dragging', 'columnsizing'],
@@ -57,14 +57,7 @@ define(['override', 'jquery','promise'], function(override, $, Promise) {
                     
                     sorting: {
                         sort: function (columnSettings) {
-                            var p = grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
-                            Promise.resolve(p).then(function() {
-                                grid.sorting.afterSort(columnSettings);
-                            });
-                        },
-                        
-                        afterSort: function(columnSettings) {
-                            grid.renderData();
+                            grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
                         },
                         
                         compareRow: function(columnSettings, a, b) {

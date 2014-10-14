@@ -371,6 +371,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
             this.updateViewport();
             this.adjustHeights();
+            this.syncScroll();
             this.trigger("datarendered");
         },
         
@@ -571,7 +572,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
             function overlap(a,b) {
                 if(a.begin <= b.begin && a.end >= b.begin) return true;
-                if(a.begin <= a.end && a.end >= b.end) return true;
+                if(a.begin <= b.end && a.end >= b.end) return true;
                 if(a.begin >= b.begin && a.end <= b.end) return true;
                 if(a.begin <= b.begin && a.end >= b.end) return true;
             }
@@ -758,7 +759,7 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         syncScroll: function syncScroll(source, event) {
             // Sync the scrolling between the scrolling divs
             // tested CSS class injection, but was slower than direct manipulation in this case
-
+            if(!source) source = this.scroller[0];
             this.container.children('.pg-scrolling').scrollTop(source.scrollTop);
             this.middleScrollers.css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
             this.afterscroll();

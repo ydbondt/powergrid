@@ -1,4 +1,4 @@
-define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'text!../templates/filterBox.html'], function(override, $, Promise, filterPane, filterBox) {
+define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../templates/filterBox.html'], function(override, $, filterPane, filterBox) {
     "use strict";
     
     return {
@@ -74,7 +74,7 @@ define(['override', 'jquery','promise', 'text!../templates/filterPane.html', 'te
                         },
                         
                         filter: function(settings) {
-                            grid.dataSource.applyFilter(settings, this.rowMatches.bind(this, settings));
+                            grid.dataSource.applyFilter(settings, settings && this.rowMatches.bind(this, settings));
                         },
                         
                         rowMatches: function(settings, row) {
