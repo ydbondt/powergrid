@@ -147,6 +147,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
             return override(grid,function($super) {
                 return {
                     init: function() {
+                        var self = this;
                         var groupSettings = grid.loadSetting("grouping");
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
