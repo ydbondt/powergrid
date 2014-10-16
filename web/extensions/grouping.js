@@ -116,7 +116,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
             if (groupRow) {
                 return groupRow.children && groupRow.children.length > 0;
             } else {
-                return this.delegate.hasChildren(row);
+                return false;
             }
         },
 
@@ -147,7 +147,8 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
             return override(grid,function($super) {
                 return {
                     init: function() {
-                        var groupSettings = grid.loadSetting("grouping");
+                        var groupKeys = grid.loadSetting("grouping"),
+                            groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
                         }
@@ -187,7 +188,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                                 grid.grouping.groups = groupSettings;
                                 groupSettings.forEach(function(group) {
-                                    self.grouping.grouper.append(grid.grouping.renderGroupIndicator(group));
+                                    grid.grouping.grouper.append(grid.grouping.renderGroupIndicator(group));
                                 });
                                 grid.grouping.updateGroups();
                             }
@@ -259,7 +260,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             grid.trigger("groupingchanged", this.groups);
                             grid.target.attr("data-group-leaf-level", this.groups.length);
                             grid.renderData();
-                            grid.saveSetting("grouping", this.groups);
+                            grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
                         },
                         
                         updateGrouper: function() {

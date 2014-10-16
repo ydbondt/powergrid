@@ -15,7 +15,6 @@
          promise: "promise",
          jsrender: "../bower_components/jsrender/jsrender",
          qunit: "../bower_components/qunit/qunit/qunit",
-         "es5-shim": "../bower_components/es5-shim/es5-shim",
          text: "../bower_components/requirejs-text/text",
          "requirejs-text": "../bower_components/requirejs-text/text"
       },

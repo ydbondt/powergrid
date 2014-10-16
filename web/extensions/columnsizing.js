@@ -27,6 +27,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                         var header, key, idx, col, oX, w, offset, resizing=0;
 
                         function startResize(event) {
+                            if($(this).parents('.powergrid')[0] !== grid.container[0]) return;
                             header = event.target.parentNode;
                             key = $(header).attr("data-column-key");
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; });

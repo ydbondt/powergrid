@@ -12,6 +12,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         var cells, oX, oY, dragstarted, tracking, col, startX, idx, offset, header, key, dragTarget, offsetX, offsetY;
 
                         function startDrag(event) {
+                            if($(this).parents(".powergrid")[0] !== grid.container[0]) return;
                             header = this;
                             key = $(header).attr("data-column-key");
                             if(!key) return;
@@ -30,7 +31,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             offset = event.offsetX || event.originalEvent.layerX || 0;
 
                             if(offset <= header.offsetWidth - 8 && offset >= 8) {
-                                cells = $(grid.target).find(".pg-column" + key);
+                                cells = $(grid.target).find("> .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-column" + key + ", > .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-inner-row > .pg-column" + key + ", > .powergrid > .pg-columnheaders > .pg-container > .pg-row > .pg-column" + key + ""); //$(grid.target).find(".pg-column" + key);
 
                                 tracking = true;
                                 dragstarted = false;
@@ -101,11 +102,11 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 if(!tracking) return;
                                 if(outOfViewPort) {
                                     if(resetCellStyles) {
-                                        $(grid.baseSelector + " .pg-column" + col.key).css({ "transform": "" });
+                                        cells.css({ "transform": "" });
                                     }
                                     $(header).css({ "transform": "translate(" + (newX - col.offsetLeft) + "px, " + newY + "px)" });
                                 } else {
-                                    $(grid.baseSelector + " .pg-column" + col.key).css({ "transform": "translate(" + (newX - col.offsetLeft) + "px)" });
+                                    cells.css({ "transform": "translate(" + (newX - col.offsetLeft) + "px)" });
                                 }
                             });
                         }
