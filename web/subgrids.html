@@ -19,15 +19,17 @@
                     { title: "Description", key: "description", width: 300 }
                 ];
                 
+                var subgridcolumns = [
+                    { title: "Id", key: "id", width: 200, subViewToggle: true, subViewToggleClass: "pg-info" },
+                    { title: "Description", key: "description", width: 260 }
+                ];
+                
                 var data = [];
-                var content = "";
                 
                 for(var x=0;x<500;x++) {
-                    content += x + "<br/>";
                     data.push({
                         id: x,
                         description: "Row " + x,
-                        content: content
                     });
                 }
                 
@@ -40,16 +42,25 @@
                         'columnsizing': {},
                         'columnmoving': {},
                         'editing': true,
-                        'subview': {
-                            hasSubView: function(grid, record) {
+                        'subgrids': {
+                            hasSubGrid: function(record) {
                                 return true;
                             },
                             
-                            renderSubView: function(grid, record, target) {
+                            subGridSettings: function(record) {
                                 return new Promise(function(resolve, reject) {
                                     setTimeout(function() {
-                                        target.html(record.content); 
-                                        resolve();
+                                        var data = new Array(record.id);
+                                        for(var x = 0;x<data.length;x++) data[x]={id:x, description: 'Subrow ' + x};
+                                        resolve({
+                                            columns: subgridcolumns,
+                                            dataSource: new ArrayDataSource(data),
+                                            autoResize: true,
+                                            fullWidth: false,
+                                            extensions: {
+                                                'columnsizing': true
+                                            }
+                                        });
                                     }, 100);
                                 });
                             }

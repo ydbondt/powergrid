@@ -1,4 +1,4 @@
-define(['jquery', 'vein', 'utils'], function($, vein, utils) {
+define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise) {
     "use strict";
 
     var defaultOptions = {
@@ -6,7 +6,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         frozenRowsTop: 0,
         frozenRowsBottom: 0,
         frozenColumnsLeft: 0,
-        frozenColumnsRight: 0
+        frozenColumnsRight: 0,
+        fullWidth: true
     };
 
     function determineScrollBarSize() {
@@ -50,29 +51,45 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
         this.dataSource = options.dataSource;
 
         if(target === false) return;
-        this.beginInit();
+        
+        this.promise = new Promise(function(resolve, reject) {
+            grid.beginInit(resolve);
+        });
     }
 
     PowerGrid.prototype = {
-        beginInit: function() {
+        then: function(cb) {
+            return this.promise.then(cb);
+        },
+        
+        beginInit: function(callback) {
             var grid = this;
-            this.initLoadingIndicator();
+            
+            if(!this.dataSource.isReady()) {
+                this.initLoadingIndicator();
+            }
 
-            this.loadExtensions(function(pluginList, plugins) {
-                pluginList = grid.sortByLoadOrder(pluginList, plugins);
+            if(this.options.extensions) {
+                this.loadExtensions(function(pluginList, plugins) {
+                    pluginList = grid.sortByLoadOrder(pluginList, plugins);
 
-                pluginList.forEach(function(key) {
-                    console.info("Initing extension " + key);
-                    var p = plugins[key];
-                    if(p.init) {
-                        p.init(grid, grid.options.extensions[key]);
-                    } else {
-                        p(grid, grid.options.extensions[key]);
-                    }
+                    pluginList.forEach(function(key) {
+                        console.info("Initing extension " + key);
+                        var p = plugins[key];
+                        if(p.init) {
+                            p.init(grid, grid.options.extensions[key]);
+                        } else {
+                            p(grid, grid.options.extensions[key]);
+                        }
+                    });
+
+                    grid.init();
+                    callback();
                 });
-
+            } else {
                 grid.init();
-            });
+                callback();
+            }
         },
         
         loadExtensions: function(callback, keys, plugins, pluginList) {
@@ -133,9 +150,9 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
         initLoadingIndicator: function () {
             var grid = this;
-            $(this.target).addClass('pg-loading');
+            $(this.container).addClass('pg-loading');
             $(this.dataSource).on("dataloaded", function(event) {
-                $(grid.target).removeClass('pg-loading');
+                $(grid.container).removeClass('pg-loading');
             })
         },
 
@@ -153,6 +170,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
                 scrollContainers = this.scrollContainers = ($().add(scrollingcontainer).add(headercontainer).add(footercontainer));
 
+            if(this.options.fullWidth) {
+                container.addClass("pg-full-width");
+            }
+            
+            if(this.options.autoResize) {
+                container.addClass("pg-autoresize");
+            }
+            
             this.options.columns.forEach(function(column, index) {
                 if(column.key === undefined) {
                     column.key = index;
@@ -633,7 +658,11 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             for(var x = 0, l=columns.length; x < l; x++) {
                 var column = columns[x];
                 var w = this.columnWidth(x);
-                vein.inject(this.baseSelector + " .pg-column" + column.key, {width: w + "px"});
+                if(this.options.fullWidth  && (x == this.options.columns.length - this.options.frozenColumnsRight  - 1)) {
+                    vein.inject(this.baseSelector + " .pg-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
+                } else {
+                    vein.inject(this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
+                }
             }
 
             var leadingWidth = this.columnWidth(0, this.options.frozenColumnsLeft);
@@ -644,6 +673,10 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             this.columnheadergroup.right && this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
             this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px"});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
+            
+            if(this.options.autoResize) {
+                this.container.css({"width": (this.columnWidth(0, this.options.columns.length)) + "px" });
+            }
         },
 
         adjustHeights: function adjustHeights() {
@@ -655,10 +688,14 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
             this.columnheadergroup.all.css("height", (columnHeaderHeight) + "px");
             this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer.css("height", (footerHeight) + "px");
-            this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + scrollBarSize.height) + "px");
+            this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + (this.options.autoResize ? 0 : scrollBarSize.height)) + "px");
             
             this.scroller.css("top", columnHeaderHeight + "px");
             this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
+
+            if(this.options.autoResize) {
+                this.container.css({"height": (this.rowHeight(0, this.dataSource.recordCount()) + columnHeaderHeight) + "px"});
+            }
         },
         
         headerHeight: function headerHeight() {
@@ -681,6 +718,8 @@ define(['jquery', 'vein', 'utils'], function($, vein, utils) {
 
                 pos += column.width;
             }
+            
+            this.adjustWidths();
 
             return positions;
         },
