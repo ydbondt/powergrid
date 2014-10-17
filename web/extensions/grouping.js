@@ -14,6 +14,10 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
             this.load();
         }
         
+        $(delegate).on("datachanged", function(event, data) {
+            $(self).trigger(event.type, [data]);
+        });
+        
         $(delegate).on("dataloaded", this.load.bind(this));
         this.groups = [];
     }

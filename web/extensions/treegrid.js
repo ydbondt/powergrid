@@ -25,26 +25,17 @@ define(['override', 'jquery'], function(override, $) {
             }
 
             $(delegate).on("dataloaded", this.load.bind(this));
+            
+            $(delegate).on("datachanged", function(event, data) {
+                $(self).trigger(event.type, [data]);
+            });
         } else {
             this.tree = delegate;
             this.load();
         }
-
-        $(this).on("dataloaded", function() {
-            self.updateRecordByIdMap(this.getData());
-        }).on("rowsadded", function(event, data) {
-            self.updateRecordByIdMap(this.getData(data.start, data.end));
-        });
     }
 
     TreeGridDataSource.prototype = {
-        updateRecordByIdMap: function(data) {
-            var self = this;
-            data.forEach(function(row) {
-                self.recordByIdMap[row.id] = row;
-            })
-        },
-
         treeSettings: function(row) {
             if (!this._treeSettings[row.id]) {
                 var depth = this.parent(row) ? this._treeSettings[this.parent(row)].depth + 1 : 0;
@@ -65,7 +56,6 @@ define(['override', 'jquery'], function(override, $) {
         
         load: function() {
             this._treeSettings = {};
-            this.recordByIdMap = {};
             this.parentByIdMap = {};
             this.childrenByIdMap = {};
 
@@ -114,13 +104,12 @@ define(['override', 'jquery'], function(override, $) {
             var rootNodes = [];
             for(var x=0,l=data.length;x<l;x++) {
                 var r = data[x];
-                this.recordByIdMap[r.id] = r;
             }
 
             for(var x=0,l=data.length;x<l;x++) {
                 var r = data[x];
                 if(r.parent !== undefined) {
-                    var parent = this.recordByIdMap[r.parent];
+                    var parent = this.getRecordById(r.parent);
                     if(!parent.children) {
                         parent.children = [];   
                     }
@@ -134,7 +123,7 @@ define(['override', 'jquery'], function(override, $) {
         },
         
         getRecordById: function(id) {
-            return this.recordByIdMap[id];
+            return this.delegate.getRecordById(id);
         },
         
         getData: function(start, end) {
@@ -398,7 +387,7 @@ define(['override', 'jquery'], function(override, $) {
                         rowparts.toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
                     },
 
-                    renderCellContent: function(record, rowIdx, column, value) {
+                    renderCellContent: function(record, column, value) {
                         var content = $super.renderCellContent.apply(this, arguments);
                         if(column.treeColumn) {
                             return $('<div>')

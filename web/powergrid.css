@@ -26,12 +26,14 @@
 .pg-cell {
     position: absolute;
     display: inline-block;
-	border-top: 1px solid rgba(0,0,0,0.2);
+	
+    /* border-top: 1px solid rgba(0,0,0,0.2); */
 	padding: 5px 8px;
     box-sizing: border-box;
     cursor: default;
     height: 100%;
     overflow: hidden;
+    border: 1px solid rgba(200,200,200,0.1);
 }
 
 .powergrid > .pg-columnheaders {
@@ -62,12 +64,14 @@
     cursor: default;
     display: inline-block;
     overflow: hidden;
+    border-right: 1px solid #757575;
+    box-sizing: border-box;
 }
 
 .pg-columnheader > .pg-resizehandle {
     position: absolute;
     display: block;
-    border-right: 2px dotted #AAA;
+    /* border-right: 2px dotted #AAA; */
     box-sizing: border-box;
     width: 5px;
     height: 100%;
@@ -218,14 +222,14 @@
 }
 
 .pg-group-indicator:before {
-    border-left-color: transparent;   
+    border-left-color: transparent !important;   
     left: -10px;
 }
 
 .pg-group-indicator:after {
-    border-right-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
+    border-right-color: transparent !important;
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
     right: -20px;
 }
 
@@ -333,8 +337,14 @@
     cursor: text;
 }
 
-.pg-hover .pg-cell {
+.pg-hover > .pg-cell,
+.pg-hover > .pg-inner-row > .pg-cell {
     background-color: #DED1D1;
+}
+
+.pg-selected > .pg-cell,
+.pg-selected > .pg-inner-row > .pg-cell {
+    background-color: #b2b2b2;
 }
 
 .pg-fixed.pg-left .pg-columnheader > .pg-resizehandle,

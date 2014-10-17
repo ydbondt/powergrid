@@ -7,7 +7,7 @@
         
 		<link href="powergrid.css" rel="stylesheet" />
 		<script>
-			require(['jquery', 'powergrid', 'arraydatasource', 'promise'], function($, powergrid, ArrayDataSource, Promise) {
+			require(['jquery', 'powergrid', 'arraydatasource', 'promise', 'override'], function($, powergrid, ArrayDataSource, Promise, override) {
                 if(window.requestAnimationFrame === undefined) {
                     requestAnimationFrame = function(f) {
                         setTimeout(f, 0);
@@ -15,7 +15,7 @@
                 }
                 
                 var columns = [
-                    { title: "Id", key: "id", width: 200, subViewToggle: true, subViewToggleClass: "pg-info" },
+                    { title: "Number", key: "x", width: 200, subViewToggle: true, subViewToggleClass: "pg-info", editable: true },
                     { title: "Description", key: "description", width: 300 }
                 ];
                 
@@ -27,14 +27,27 @@
                     data.push({
                         id: x,
                         description: "Row " + x,
+                        x: x,
                         content: content
                     });
                 }
                 
+                var ds = new ArrayDataSource(data);
+                override(ds, function($super) {
+                    return {
+                        setValue: function(rowIdx, key, value) {
+                            $super.setValue(rowIdx, key, value);
+                            if(key === 'x') {
+                                this.setValue(rowIdx, 'description', "Row " + value);
+                            }
+                        }
+                    }
+                });
+                
                 $("#test").PowerGrid({
                     columns: columns,
                     
-                    dataSource: new ArrayDataSource(data),
+                    dataSource: ds,
                     
                     extensions: {
                         'columnsizing': {},

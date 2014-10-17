@@ -29,12 +29,12 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     });
                 },
 
-                renderCellContent: function renderCellContent (record, rowIdx, column, value) {
+                renderCellContent: function renderCellContent (record, column, value) {
                     if (column.template) {
                         var data = {}
                         data[column.key] = value;
                         var rendered = column.compiledTemplate.render(data, {record: record, column: column});
-                        return $super.renderCellContent.apply(this, [record, rowIdx, column, rendered]);
+                        return $super.renderCellContent.apply(this, [record, column, rendered]);
                     } else {
                         return $super.renderCellContent.apply(this, arguments);
                     }

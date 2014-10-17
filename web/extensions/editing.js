@@ -84,7 +84,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                     },
                     
                     endEdit: function(target, record, rowIdx, column, value) {
-                        $(target).empty().append(grid.renderCellContent(record, rowIdx, column, value)).removeClass('pg-editing');
+                        $(target).empty().append(grid.renderCellContent(record, column, value)).removeClass('pg-editing');
                     },
 
                     createEditor: function(column, value) {

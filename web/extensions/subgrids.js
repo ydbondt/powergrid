@@ -24,9 +24,13 @@ define(['override', 'vein', 'utils', 'promise'], function(override, vein, utils,
                         
                         renderSubGrid: function(record, target) {
                             return Promise.resolve(pluginOptions.subGridSettings(record))
-                                    .then(function(options) {
-                                        return target.PowerGrid(options).promise;
-                                    });
+                            .then(function(options) {
+                                var grid = target.PowerGrid(options);
+                                grid.on("datarendered", function() {
+                                    target.trigger("resize");
+                                });
+                                return grid.promise;
+                            });
                         }
                     }
                 }

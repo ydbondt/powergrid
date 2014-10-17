@@ -162,9 +162,9 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
                 container = this.container = $("<div class='powergrid'>"),
                 columnheadercontainer = this.columnheadercontainer = $("<div class='pg-columnheaders'>"),
-                headercontainer = this.headercontainer = $("<div class='pg-rowgroup pg-header'>"),
+                headercontainer = this.headercontainer = this.options.frozenRowsTop && $("<div class='pg-rowgroup pg-header'>") || undefined,
                 scrollingcontainer = this.scrollingcontainer = $("<div class='pg-rowgroup pg-scrolling'>"),
-                footercontainer = this.footercontainer = $("<div class='pg-rowgroup pg-footer'>"),
+                footercontainer = this.footercontainer = this.options.frozenRowsBottom && $("<div class='pg-rowgroup pg-footer'>") || undefined,
                 scroller = this.scroller = $("<div class='pg-scroller'>"),
                 scrollFiller = this.scrollFiller = $("<div class='pg-scroller-filler'>"),
 
@@ -187,9 +187,9 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
             this.columnheadergroup = this.createRowGroup(columnheadercontainer);
-            this.headergroup = this.createRowGroup(headercontainer);
+            this.headergroup = headercontainer && this.createRowGroup(headercontainer);
             this.scrollinggroup = this.createRowGroup(scrollingcontainer, false);
-            this.footergroup = this.createRowGroup(footercontainer);
+            this.footergroup = footercontainer && this.createRowGroup(footercontainer);
             
             this.renderColumnHeaderContents(this.columnheadergroup);
 
@@ -227,7 +227,12 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 });
             }).on("datachanged", function(event, data) {
                 requestAnimationFrame(function() {
-                    grid._dataChanged(data.data, data.oldData);
+                    if(data.data) {
+                        grid._dataChanged(data.data, data.oldData);
+                    }
+                    if(data.values) {
+                        grid.updateCellValues(data.values);
+                    }
                     grid.trigger('datachanged', data);
                 });
             });
@@ -383,8 +388,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
 
         renderData: function() {
-            this.headergroup.all.empty();
-            this.footergroup.all.empty();
+            this.headergroup && this.headergroup.all.empty();
+            this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
 
             this.viewport = {
@@ -392,8 +397,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 end: 0
             };
 
-            this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
-            this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
+            this.headergroup && this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
+            this.footergroup && this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
             this.updateViewport();
             this.adjustHeights();
             this.syncScroll();
@@ -686,8 +691,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
             this.columnheadergroup.all.css("height", (columnHeaderHeight) + "px");
-            this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
-            this.footercontainer.css("height", (footerHeight) + "px");
+            
+            this.headercontainer && this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
+            this.footercontainer && this.footercontainer.css("height", (footerHeight) + "px");
+            
             this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + (this.options.autoResize ? 0 : scrollBarSize.height)) + "px");
             
             this.scroller.css("top", columnHeaderHeight + "px");
@@ -822,10 +829,28 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         renderCell: function renderCell(record, column, rowIdx, columnIdx) {
             // Render the cell container
-            return $("<div class='pg-cell'>").append(this.renderCellContent(record, rowIdx, column, this.getCellTextValue(record[column.key], record, column)));
+            return $("<div class='pg-cell'>").append(this.renderActualCellContent(record, column));
+        },
+        
+        renderActualCellContent: function(record, column) {
+            return this.renderCellContent(record, column, this.getCellTextValue(record[column.key], record, column))
+        },
+        
+        updateCellValues: function(list) {
+            for(var x=0,l=list.length;x<l;x++) {
+                this.updateCellValue(list[x].id, list[x].key);
+            }
+        },
+        
+        updateCellValue: function(rowId, key) {
+            var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
+            var cell = row.children(".pg-cell[data-column-key='" + key + "']");
+            if(cell.length) {
+                cell.empty().append(this.renderActualCellContent(this.dataSource.getRecordById(rowId), this.getColumnForKey(key)));
+            }
         },
 
-        renderCellContent: function renderCellContent(record, rowIdx, column, value) {
+        renderCellContent: function renderCellContent(record, column, value) {
             // Render the cell content
             return value != null ? $("<span>").text(value) : $("<span>");
         },
