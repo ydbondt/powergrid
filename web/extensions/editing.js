@@ -41,6 +41,12 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                 
                 editing: {
                     grid: grid,
+                    editors: {},
+
+                    addEditor: function(column, editor) {
+                        this.editors[column.key] = editor;
+                    },
+
                     startEdit: function(target, key, record, rowIdx) {
                         var column = grid.getColumnForKey(key);
                         var oldValue = record[key];
@@ -88,22 +94,27 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                     },
 
                     createEditor: function(column, value) {
-                        var editor = $("<input>").val(value);
+                        var editor;
+                        if (this.editors[column.key]) {
+                            editor = this.editors[column.key]();
+                        } else {
+                            editor = $("<input>").val(value);
+                        }
                         var grid = this;
                         editor.on("keydown", function(event) {
                             switch(event.keyCode) {
                             case 13:
-                                $(this).trigger('commit', [this.value, 1]); break;
+                                $(this).trigger('commit', [editor.value(), 1]); break;
                             case 27:
                                 $(this).trigger('abort'); break;
                             case 9:
-                                $(this).trigger('commit', [this.value, 2]); break;
+                                $(this).trigger('commit', [editor.value(), 2]); break;
                             }
                         });
 
                         editor.on("blur", function(event) {
                             if(pluginOptions.commitOnBlur !== false) {
-                                $(this).trigger('commit', [this.value]);
+                                $(this).trigger('commit', [editor.value()]);
                             } else if(pluginOptions.abortOnBlur === true) {
                                 $(this).trigger('abort');
                             }

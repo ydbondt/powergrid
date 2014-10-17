@@ -16,7 +16,8 @@
          jsrender: "../bower_components/jsrender/jsrender",
          qunit: "../bower_components/qunit/qunit/qunit",
          text: "../bower_components/requirejs-text/text",
-         "requirejs-text": "../bower_components/requirejs-text/text"
+         "requirejs-text": "../bower_components/requirejs-text/text",
+         w2ui: "../bower_components/w2ui/w2ui-1.4.2.min"
       },
       packages: [
    
