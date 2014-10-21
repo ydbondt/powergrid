@@ -293,7 +293,7 @@
     overflow: inherit;
 }
 
-.cell.pg-editing > input {
+.pg-cell.pg-editing > input {
     width: 100%;
     box-sizing: border-box;
     border: none;

@@ -29,14 +29,14 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     });
                 },
 
-                renderCellContent: function renderCellContent (record, column, value) {
+                renderCellValue: function renderCellValue (record, column, value) {
                     if (column.template) {
-                        var data = {}
-                        data[column.key] = value;
-                        var rendered = column.compiledTemplate.render(data, {record: record, column: column});
-                        return $super.renderCellContent.apply(this, [record, column, rendered]);
+//                        var data = {}
+//                        data[column.key] = value;
+                        var rendered = column.compiledTemplate.render(record, {record: record, column: column});
+                        return $super.renderCellValue.apply(this, [record, column, rendered]);
                     } else {
-                        return $super.renderCellContent.apply(this, arguments);
+                        return $super.renderCellValue.apply(this, arguments);
                     }
                 }
             }

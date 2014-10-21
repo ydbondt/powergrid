@@ -43,7 +43,7 @@ define(["jquery"], function($) {
 
         setValue: function(rowId, key, value) {
             this.assertReady();
-            this.data[rowId][key] = value;
+            this.getRecordById(rowId)[key] = value;
             $(this).trigger("datachanged", { values: [ { id: rowId, key: key } ] });
         },
 

@@ -387,7 +387,7 @@ define(['override', 'jquery'], function(override, $) {
                         rowparts.toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
                     },
 
-                    renderCellContent: function(record, column, value) {
+                    renderCellContent: function(record, column) {
                         var content = $super.renderCellContent.apply(this, arguments);
                         if(column.treeColumn) {
                             return $('<div>')

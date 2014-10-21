@@ -76,10 +76,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     pluginList.forEach(function(key) {
                         console.info("Initing extension " + key);
                         var p = plugins[key];
-                        if(p.init) {
-                            p.init(grid, grid.options.extensions[key]);
-                        } else {
+                        if(typeof p === 'function') {
                             p(grid, grid.options.extensions[key]);
+                        } else if(typeof p.init === 'function') {
+                            p.init(grid, grid.options.extensions[key]);
                         }
                     });
 
@@ -829,11 +829,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         renderCell: function renderCell(record, column, rowIdx, columnIdx) {
             // Render the cell container
-            return $("<div class='pg-cell'>").append(this.renderActualCellContent(record, column));
+            return $("<div class='pg-cell'>").append(this.renderCellContent(record, column));
         },
         
-        renderActualCellContent: function(record, column) {
-            return this.renderCellContent(record, column, this.getCellTextValue(record[column.key], record, column))
+        renderCellContent: function(record, column) {
+            return this.renderCellValue(record, column, this.getCellTextValue(record[column.key], record, column))
         },
         
         updateCellValues: function(list) {
@@ -846,11 +846,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
             if(cell.length) {
-                cell.empty().append(this.renderActualCellContent(this.dataSource.getRecordById(rowId), this.getColumnForKey(key)));
+                cell.empty().append(this.renderCellContent(this.dataSource.getRecordById(rowId), this.getColumnForKey(key)));
             }
         },
 
-        renderCellContent: function renderCellContent(record, column, value) {
+        renderCellValue: function renderCellValue(record, column, value) {
             // Render the cell content
             return value != null ? $("<span>").text(value) : $("<span>");
         },
@@ -869,7 +869,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
 
         trigger: function(eventName, data) {
-            return $(this).trigger(eventName, data);
+            $(this).trigger(eventName, data);
+            $(this.target).trigger(eventName, data);
         },
 
         on: function(eventName, handler) {

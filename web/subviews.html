@@ -15,8 +15,10 @@
                 }
                 
                 var columns = [
-                    { title: "Number", key: "x", width: 200, subViewToggle: true, subViewToggleClass: "pg-info", editable: true },
-                    { title: "Description", key: "description", width: 300 }
+                    { title: "Number", key: "x", width: 200, subViewToggle: true, subViewToggleClass: "pg-info", editable: true, type: "number" },
+                    { title: "Description", key: "description", width: 300 },
+                    { title: "Selected", key: "selected", width: 30, type: "checkbox", editable: true },
+                    { title: "Selected as string", key: "selectedAsString", width: 60 }
                 ];
                 
                 var data = [];
@@ -28,7 +30,9 @@
                         id: x,
                         description: "Row " + x,
                         x: x,
-                        content: content
+                        content: content,
+                        selected: x%3 == 0 ? null : x%2 == 0,
+                        selectedAsString: ""
                     });
                 }
                 
@@ -39,6 +43,8 @@
                             $super.setValue(rowIdx, key, value);
                             if(key === 'x') {
                                 this.setValue(rowIdx, 'description', "Row " + value);
+                            } else if(key === 'selected') {
+                                this.setValue(rowIdx, 'selectedAsString', value ? "Selected" : "Deselected");
                             }
                         }
                     }
@@ -50,9 +56,16 @@
                     dataSource: ds,
                     
                     extensions: {
+                        'directinput': true,
                         'columnsizing': {},
                         'columnmoving': {},
-                        'editing': true,
+                        'editing': {
+                            isEditable: function(record, column) {
+                                if(column.key === 'selected')
+                                    return record.id % 5 != 0;
+                                return true;
+                            }
+                        },
                         'subview': {
                             hasSubView: function(grid, record) {
                                 return true;
