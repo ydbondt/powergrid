@@ -31,10 +31,9 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
 
                 renderCellValue: function renderCellValue (record, column, value) {
                     if (column.template) {
-//                        var data = {}
-//                        data[column.key] = value;
-                        var rendered = column.compiledTemplate.render(record, {record: record, column: column});
-                        return $super.renderCellValue.apply(this, [record, column, rendered]);
+                        var data = $.extend({}, record);
+                        data[column.key] = value;
+                        return column.compiledTemplate.render(data, {record: record, column: column});
                     } else {
                         return $super.renderCellValue.apply(this, arguments);
                     }
