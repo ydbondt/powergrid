@@ -75,13 +75,14 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 if (newIdx != idx) {
                                     var c = grid.options.columns.splice(idx, 1);
                                     grid.options.columns.splice(newIdx, 0, c[0]);
-                                    grid.adjustColumnPositions();
+                                    grid.adjustColumnPositions(true);
                                     idx = newIdx;
                                     storeColumnOrder(grid);
                                 }
                             }
                         }).on("columndragend", function (event, ui) {
                             startconfig = null;
+                            grid.adjustColumnPositions(false);
                         });
                     }
                 }

@@ -52,8 +52,9 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                             } else {
                                 return;
                             }
-                            grid.adjustWidths();
-                            grid.adjustColumnPositions();
+                            requestAnimationFrame(function() {
+	                            grid.adjustColumnPositions(true);
+                            });
                         }
 
                         function endResize(event) {
@@ -62,6 +63,9 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                                 grid.saveSetting(col.key + "_width", col.width);
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
+                                requestAnimationFrame(function() {
+                                	grid.adjustColumnPositions(false); // final redraw
+                                })
                             }
                         }
 

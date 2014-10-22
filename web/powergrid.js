@@ -664,20 +664,34 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
             this.viewport = range;
         },
+        
+        _updateStyle: function(temporary, selector, style) {
+        	if(temporary === true) {
+        		$(selector).css(style);
+        	} else {
+        		if(temporary === false) {
+        			// means we explicitely invoke this after temporary changes, so reset the temporary changes first
+        			var reset = {};
+        			Object.keys(style).forEach(function(key) { reset[key] = ""; });
+        			$(selector).css(reset);
+        		}
+        		vein.inject(selector, style);
+        	}
+        },
 
-        adjustWidths: function adjustWidths() {
+        adjustWidths: function adjustWidths(temporary) {
             // Adjusts the widths of onscreen parts. Triggered during init, or when changing column specifications
             var columns = this.options.columns;
             for(var x = 0, l=columns.length; x < l; x++) {
                 var column = columns[x];
                 var w = this.columnWidth(x);
                 if(this.options.fullWidth  && (x == this.options.columns.length - this.options.frozenColumnsRight  - 1)) {
-                    vein.inject(this.baseSelector + " .pg-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
+                    this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
                 } else {
-                    vein.inject(this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
+                	this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
                 }
             }
-
+            
             var leadingWidth = this.columnWidth(0, this.options.frozenColumnsLeft);
             var middleWidth = this.columnWidth(this.options.frozenColumnsLeft, this.options.columns.length - this.options.frozenColumnsRight);
             var trailingWidth = this.columnWidth(this.options.columns.length - this.options.frozenColumnsRight, this.options.columns.length);
@@ -717,7 +731,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             return this.target.find(".pg-columnheader").height();
         },
 
-        adjustColumnPositions: function adjustColumnPositions() {
+        adjustColumnPositions: function adjustColumnPositions(temporary) {
             // Repositions all columns horizontal positions
             var columns = this.options.columns;
             var pos = 0;
@@ -728,13 +742,13 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     pos = 0;
                 }
                 positions[x] = pos;
-                vein.inject(this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
+                this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
                 column.offsetLeft = pos;
 
                 pos += column.width;
             }
             
-            this.adjustWidths();
+            this.adjustWidths(temporary);
 
             return positions;
         },

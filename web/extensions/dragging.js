@@ -61,7 +61,6 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 if(dX * dX + dY * dY > 400) {
                                     cells.addClass("pg-columndragging");
                                     dragstarted = true;
-                                    oX = event.pageX;
                                 } else {
                                     return;
                                 }
@@ -122,7 +121,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                     dragTarget = null;
                                 }
                                 
-                                if(event.type === 'mouseup' && ($(event.target).hasClass('pg-columnheader') || $(event.target).parents(".pg-columnheader").length)) return;
+                                //if(event.type === 'mouseup' && ($(event.target).hasClass('pg-columnheader') || $(event.target).parents(".pg-columnheader").length)) return;
                                 
                                 grid.trigger(new $.Event("columndragend"));
                                 
