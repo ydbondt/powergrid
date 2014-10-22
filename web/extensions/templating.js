@@ -23,14 +23,14 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                 init: function init() {
                     $super.init.apply(this, arguments);
                     this.options.columns.forEach(function(column) {
-                        if(column.template) {
+                        if(column.template !== undefined && column.template !== null) {
                             column.compiledTemplate = $.templates(column.template);
                         }
                     });
                 },
 
                 renderCellValue: function renderCellValue (record, column, value) {
-                    if (column.template) {
+                    if (column.template !== undefined && column.template !== null) {
                         var data = $.extend({}, record);
                         data[column.key] = value;
                         return column.compiledTemplate.render(data, {record: record, column: column});

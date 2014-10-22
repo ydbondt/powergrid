@@ -214,16 +214,19 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 grid.trigger('dataloaded', event.data);
                 requestAnimationFrame(function() {
                     grid.renderData();
+                    grid.trigger('viewchanged');
                 });
             }).on("rowsremoved", function(event, data) {
                 requestAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
                     grid.trigger('rowsremoved', data);
+                    grid.trigger('viewchanged');
                 });
             }).on("rowsadded", function(event, data) {
                 requestAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
                     grid.trigger('rowsadded', data);
+                    grid.trigger('viewchanged');
                 });
             }).on("datachanged", function(event, data) {
                 requestAnimationFrame(function() {
@@ -232,8 +235,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     }
                     if(data.values) {
                         grid.updateCellValues(data.values);
+                        grid.trigger('change');
                     }
                     grid.trigger('datachanged', data);
+                    grid.trigger('viewchanged');
                 });
             });
 
