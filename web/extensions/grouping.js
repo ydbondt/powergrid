@@ -15,6 +15,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
         }
         
         $(delegate).on("datachanged", function(event, data) {
+        	self.load();
             $(self).trigger(event.type, [data]);
         });
         
@@ -80,7 +81,9 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
         
         group: function(groupings) {
             this.groups = groupings;
-            this.updateView();
+            if(this.isReady()) {
+            	this.updateView();
+            }
         },
         
         getRecordById: function(id) {
@@ -155,6 +158,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
+                            this.grouping.updateGroups();
                         }
                         $super.init();
                         
@@ -167,6 +171,12 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                         
                         var grouper = $(grouperTemplate);
                         this.columnheadercontainer.addClass("pg-grouping-enabled").prepend(grouper);
+                        
+                        if(this.grouping.groups) {
+                            this.grouping.groups.forEach(function(group) {
+                                grouper.append(grid.grouping.renderGroupIndicator(group));
+                            });
+                        }
                         
                         grouper.on("click", ".pg-group-delete", function(event) {
                             grid.grouping.removeGroupBy(grid.getColumnForKey($(this).attr("data-group-key")));
@@ -184,17 +194,6 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                         }).on("columndragenter", function(event) {
                             if(grid.grouping.groups.indexOf(event.column) > -1) {
                                 event.preventDefault();
-                            }
-                        });
-
-                        $(this.dataSource).one("dataloaded", function(event) {
-                            var groupSettings = grid.loadSetting("grouping");
-                            if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
-                                grid.grouping.groups = groupSettings;
-                                groupSettings.forEach(function(group) {
-                                    grid.grouping.grouper.append(grid.grouping.renderGroupIndicator(group));
-                                });
-                                grid.grouping.updateGroups();
                             }
                         });
                     },
@@ -263,7 +262,9 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             groupingds.group(this.groups);
                             grid.trigger("groupingchanged", this.groups);
                             grid.target.attr("data-group-leaf-level", this.groups.length);
-                            grid.renderData();
+                            if(groupingds.isReady()) {
+                            	grid.renderData();
+                            }
                             grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
                         },
                         
