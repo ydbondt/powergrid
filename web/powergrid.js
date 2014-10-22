@@ -495,7 +495,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             for(var y = 0; y < this.options.columns.length; y++) {
                 var cell, column = this.options.columns[y];
                 cell = this.renderCell(record, column, rowIdx, y);
-
+                this.afterCellRendered(record, column, cell);
+                
                 cell.addClass("pg-column" + column.key);
                 cell.attr("data-column-key", column.key);
 
@@ -847,11 +848,18 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }
         },
         
+        afterCellRendered: function(record, column, cell) {
+        	
+        },
+        
         updateCellValue: function(rowId, key) {
             var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
             if(cell.length) {
-                cell.empty().append(this.renderCellContent(this.dataSource.getRecordById(rowId), this.getColumnForKey(key)));
+            	var record = this.dataSource.getRecordById(rowId),
+            		column = this.getColumnForKey(key);
+                cell.empty().append(this.renderCellContent(record, column));
+                this.afterCellRendered(record, column, cell);
             }
         },
 
