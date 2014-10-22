@@ -154,13 +154,14 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
             return override(grid,function($super) {
                 return {
                     init: function() {
+                        $super.init();
+                        
                         var groupKeys = grid.loadSetting("grouping"),
                             groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
                             this.grouping.updateGroups();
                         }
-                        $super.init();
                         
                         this.target.on("click", ".pg-grouping-grouptoggle", function(event) {
                             var toggle = this,
