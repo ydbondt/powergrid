@@ -205,8 +205,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             if(this.dataSource.isReady()) {
+                grid.trigger('dataloaded');
                 requestAnimationFrame(function() {
                     grid.renderData();
+                    grid.trigger('viewchanged');
                 });
             }
 
