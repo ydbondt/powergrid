@@ -8,6 +8,7 @@ define(['override', 'jquery'], function(override, $) {
     
     function TreeGridDataSource(delegate, options) {
         var self = this;
+        this._treeSettings = {};
         
         this.options = options;
         
@@ -55,7 +56,6 @@ define(['override', 'jquery'], function(override, $) {
         },
         
         load: function() {
-            this._treeSettings = {};
             this.parentByIdMap = {};
             this.childrenByIdMap = {};
 

@@ -40,6 +40,10 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             subviewsExpanded[record.id] = false;
                             group.all.children("[data-row-id='" + record.id + "']").css("height", grid.rowHeight(rowIdx) + "px");
                         }
+                    },
+                    
+                    subview: function(id) {
+                        return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview");
                     }
                 },
                 

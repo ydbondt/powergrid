@@ -9,10 +9,10 @@ define(['override', 'jquery',], function(override, $) {
                     $super.init.apply(this, arguments);
                     this.target.on("mouseenter", ".pg-row", function(evt) {
                         var id = $(evt.currentTarget).data('row-id');
-                        $(evt.currentTarget).parents('.pg-rowgroup').find("[data-row-id='"+ id +"']").addClass('pg-hover');
+                        $(evt.currentTarget).parents('.pg-rowgroup').first().find("> .pg-container > .pg-row[data-row-id='"+ id +"']").addClass('pg-hover');
                     }).on("mouseleave", ".pg-row", function(evt) {
                         var id = $(evt.currentTarget).data('row-id');
-                        $(evt.currentTarget).parents('.pg-rowgroup').find("[data-row-id='"+ id +"']").removeClass('pg-hover');
+                        $(evt.currentTarget).parents('.pg-rowgroup').first().find("> .pg-container > .pg-row[data-row-id='"+ id +"']").removeClass('pg-hover');
                     });
                 }
             }

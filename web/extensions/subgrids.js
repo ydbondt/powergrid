@@ -31,6 +31,11 @@ define(['override', 'vein', 'utils', 'promise'], function(override, vein, utils,
                                 });
                                 return grid.promise;
                             });
+                        },
+                        
+                        subgrid: function(id) {
+                            var subview = grid.subviews.subview(id);
+                            if(subview.length) return subview.PowerGrid();
                         }
                     }
                 }

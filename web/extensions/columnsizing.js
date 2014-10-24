@@ -53,7 +53,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                                 return;
                             }
                             requestAnimationFrame(function() {
-	                            grid.adjustColumnPositions(true);
+                                grid.adjustColumnPositions(true);
                             });
                         }
 
