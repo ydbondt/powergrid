@@ -28,8 +28,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         }
                         
                         var key = $(targetCell).attr('data-column-key');
-                        var rowId = $(targetCell).parents(".pg-row:eq(0)").attr('data-row-id');
-                        var rowIdx = $(targetCell).parents(".pg-row:eq(0)").attr('data-row-idx');
+                        var rowId = $(targetCell).parents(".pg-row:eq(0)").data('row-id');
+                        var rowIdx = $(targetCell).parents(".pg-row:eq(0)").data('row-idx');
                         var record = grid.dataSource.getRecordById(rowId);
                         
                         grid.editing.startEdit(targetCell, key, record, rowIdx);
@@ -58,6 +58,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         var editor = this.createEditor(record, column, oldValue);
                         var editing = this;
                         
+                        grid.scrollToCell(rowIdx, key);
+                        
                         if($(target).is('.pg-editing')) return;
                         
                         if(!column.editable) return;
@@ -76,7 +78,6 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                             return;
                         }
                         
-                        
                         $(editor).on('commit', function(event, value, move) {
                             editing.commit(target, record, rowIdx, column, value, oldValue, move);
                         }).on('abort', function(event) {
@@ -88,6 +89,37 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                     commit: function(target, record, rowIdx, column, value, oldValue, move) {
                         grid.dataSource.setValue(record.id, column.key, value);
                         this.endEdit(target, record, rowIdx, column, grid.dataSource.getRecordById(record.id)[column.key]);
+                        
+                        var nextRowIdx = rowIdx, nextColumn = column, nextRecord = record;
+                        
+                        if(move) {
+                            switch(move) {
+                                case 1:
+                                case -1:
+                                    do {
+                                        nextRowIdx = rowIdx + move;
+                                        nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                    } while(!this.isEditable(nextRecord, nextColumn));
+                                    break;
+                                case 2:
+                                case -2:
+                                    var i = grid.getColumnIndexForKey(column.key);
+                                    do {
+                                        i += move / 2;
+                                        if(i >= grid.columnCount() || i < 0) {
+                                            nextRowIdx += move / 2;
+                                            nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                            i = move < 0 ? grid.columnCount() - 1 : 0;
+                                        }
+                                        nextColumn = grid.getColumnForIndex(i);
+                                    } while(!this.isEditable(nextRecord, nextColumn));
+                                    break;
+                            }
+                            
+                            var targetCell = grid.getCellFor(nextRecord.id, nextColumn.key);
+                            
+                            this.startEdit(targetCell, nextColumn.key, nextRecord, nextRowIdx);
+                        }
                     },
                     
                     abort: function(target, record, rowIdx, column, oldValue) {
@@ -111,13 +143,13 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                             switch(event.keyCode) {
                             case 13:
                                 event.preventDefault();
-                                $(this).trigger('commit', [editor.val(), 1]); break;
+                                $(this).trigger('commit', [editor.val(), event.shiftKey ? -1 : 1]); break;
                             case 27:
                                 event.preventDefault();
                                 $(this).trigger('abort'); break;
                             case 9:
                                 event.preventDefault();
-                                $(this).trigger('commit', [editor.val(), 2]); break;
+                                $(this).trigger('commit', [editor.val(), event.shiftKey ? -2 : 2]); break;
                             }
                         });
 

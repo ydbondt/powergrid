@@ -553,6 +553,29 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             
             return range;
         },
+        
+        scrollToCell: function(rowIdx, columnKey) {
+            var self = this,
+                start = this.options.frozenRowsTop,
+                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                sPos = this.getScrollPosition(),
+                sArea = this.getScrollAreaSize(),
+                range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
+                newScrollTop = sPos.top,
+                newScrollLeft = sPos.left;
+                                               
+            if( (!this.options.frozenRowsTop || rowIdx >= this.options.frozenRowsTop) &&
+                (!this.options.frozenRowsBottom || rowIdx < this.dataSource.recordCount() - this.options.frozenRowsBottom)) {
+             
+                // row is in scrolling part
+                if(rowIdx <= range.begin || rowIdx >= range.end) {
+                    // row is outside viewport. we gotta scroll.
+                    newScrollTop = Math.max(0, this.rowHeight(start, rowIdx) - sArea.height / 2);
+                }
+            }
+            
+            this.scrollTo(newScrollLeft, newScrollTop);
+        },
 
         _addRows: function(start, end) {
             var range = this.viewRange();
@@ -666,17 +689,17 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
         
         _updateStyle: function(temporary, selector, style) {
-        	if(temporary === true) {
-        		$(selector).css(style);
-        	} else {
-        		if(temporary === false) {
-        			// means we explicitely invoke this after temporary changes, so reset the temporary changes first
-        			var reset = {};
-        			Object.keys(style).forEach(function(key) { reset[key] = ""; });
-        			$(selector).css(reset);
-        		}
-        		vein.inject(selector, style);
-        	}
+            if(temporary === true) {
+                $(selector).css(style);
+            } else {
+                if(temporary === false) {
+                    // means we explicitely invoke this after temporary changes, so reset the temporary changes first
+                    var reset = {};
+                    Object.keys(style).forEach(function(key) { reset[key] = ""; });
+                    $(selector).css(reset);
+                }
+                vein.inject(selector, style);
+            }
         },
 
         adjustWidths: function adjustWidths(temporary) {
@@ -688,7 +711,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 if(this.options.fullWidth  && (x == this.options.columns.length - this.options.frozenColumnsRight  - 1)) {
                     this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
                 } else {
-                	this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
+                    this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
                 }
             }
             
@@ -865,15 +888,15 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
         
         afterCellRendered: function(record, column, cell) {
-        	
+            
         },
         
         updateCellValue: function(rowId, key) {
             var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
             if(cell.length) {
-            	var record = this.dataSource.getRecordById(rowId),
-            		column = this.getColumnForKey(key);
+                var record = this.dataSource.getRecordById(rowId),
+                    column = this.getColumnForKey(key);
                 cell.empty().append(this.renderCellContent(record, column));
                 this.afterCellRendered(record, column, cell);
             }
@@ -889,12 +912,28 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
 
         getColumnForKey: function(key) {
+            return this.getColumnForIndex(this.getColumnIndexForKey(key));
+        },
+
+        getColumnForIndex: function(index) {
+            return this.options.columns[index];
+        },
+        
+        columnCount: function() {
+            return this.options.columns.length;
+        },
+        
+        getColumnIndexForKey: function(key) {
             // Returns the column for the given key
             for(var x=0,l=this.options.columns.length; x<l; x++) {
                 if(this.options.columns[x].key == key) {
-                    return this.options.columns[x];
+                    return x;
                 }
             }
+        },
+        
+        getCellFor: function(rowId, key) {
+            return this.container.find(".pg-row[data-row-id='" + rowId + "'] > .pg-cell[data-column-key='" + key + "']");
         },
 
         trigger: function(eventName, data) {
