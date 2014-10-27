@@ -64,7 +64,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
                                 requestAnimationFrame(function() {
-                                	grid.adjustColumnPositions(false); // final redraw
+                                    grid.adjustColumnPositions(false); // final redraw
                                 })
                             }
                         }

@@ -38,7 +38,7 @@ define(['jquery','override'], function($, override) {
                     },
                     
                     renderCellContent: function(record, column) {
-                    	var value = record[column.key];
+                        var value = record[column.key];
                         if(this.directinput.isDirectInput(column)) {
                             var input;
                             if((value === null || value === undefined) && column.hideOnNull !== false) {

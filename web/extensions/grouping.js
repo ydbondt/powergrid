@@ -15,7 +15,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
         }
         
         $(delegate).on("datachanged", function(event, data) {
-        	self.load();
+            self.load();
             $(self).trigger(event.type, [data]);
         });
         
@@ -82,7 +82,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
         group: function(groupings) {
             this.groups = groupings;
             if(this.isReady()) {
-            	this.updateView();
+                this.updateView();
             }
         },
         
@@ -264,7 +264,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             grid.trigger("groupingchanged", this.groups);
                             grid.target.attr("data-group-leaf-level", this.groups.length);
                             if(groupingds.isReady()) {
-                            	grid.renderData();
+                                grid.renderData();
                             }
                             grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
                         },
