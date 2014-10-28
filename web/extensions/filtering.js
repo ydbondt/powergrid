@@ -34,7 +34,7 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                             }
                         });
                         
-                        this.target.on("click mousedown", ".pg-filter-box", function(event) {
+                        this.container.on("click mousedown", ".pg-filter-box", function(event) {
                             event.stopPropagation();
                         });
                         

@@ -163,7 +163,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                             this.grouping.updateGroups();
                         }
                         
-                        this.target.on("click", ".pg-grouping-grouptoggle", function(event) {
+                        this.container.on("click", ".pg-grouping-grouptoggle", function(event) {
                             var toggle = this,
                                 groupId = $(toggle).attr("data-id");
                             

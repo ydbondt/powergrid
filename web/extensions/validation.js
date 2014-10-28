@@ -6,9 +6,6 @@ define(['jquery','override'], function($, override) {
                 return {
                     init: function() {
                         $super.init();
-                        $(this.dataSource).on("validationchanged", function(event) {
-                            
-                        });
                     },
                     
                     afterCellRendered: function renderCell(record, column, cell) {

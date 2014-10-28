@@ -15,7 +15,7 @@ define(['override', 'jquery'], function(override, $) {
                     init: function() {
                         loadSettings();
                         $super.init();
-                        this.target.on("click", ".pg-columnheader", function(event) {
+                        this.container.on("click", ".pg-columnheader", function(event) {
                             var key = $(this).attr('data-column-key'),
                                 col = grid.getColumnForKey(key),
                                 direction;

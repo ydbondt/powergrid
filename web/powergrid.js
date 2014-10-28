@@ -55,6 +55,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         this.promise = new Promise(function(resolve, reject) {
             grid.beginInit(resolve);
         });
+        
+        this.id = target.attr('id');
     }
 
     PowerGrid.prototype = {
@@ -245,6 +247,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             this.initScrollEvents();
+        },
+        
+        destroy: function() {
+            this.target.empty();
         },
 
         initScrollEvents: function initScrollEvents() {
@@ -1029,13 +1035,14 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
     $.fn.extend({ PowerGrid: function(options) {
         var d = this.data("powergrid");
-        if(!d) {
+        
+        if(options) {
+            if(d) d.destroy();
             d = new PowerGrid(this, options);
             this.data("powergrid", d);
-            return d;
-        } else {
-            return d;
         }
+
+        return d;
     }});
 
     return PowerGrid;

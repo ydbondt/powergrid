@@ -69,7 +69,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                             }
                         }
 
-                        this.target
+                        this.container
                             .on("mousedown", ".pg-resizehandle", startResize)
                             .on("mousemove", doResize)
                             .on("mouseup", ":not(.pg-resizehandle)", endResize)

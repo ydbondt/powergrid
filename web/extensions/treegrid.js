@@ -367,7 +367,7 @@ define(['override', 'jquery'], function(override, $) {
                     init: function() {
                         $super.init();
 
-                        this.target.on("click", ".pg-treetoggle", function(event) {
+                        this.container.on("click", ".pg-treetoggle", function(event) {
                             var row = $(this).parents(".pg-row").first(),
                                 rowId = row.attr("data-row-id");
 

@@ -27,7 +27,7 @@ define(['jquery','override'], function($, override) {
                     init: function() {
                         $super.init();
                         
-                        this.target.on("change", ".pg-directinput", function(evt) {
+                        this.container.on("change", ".pg-directinput", function(evt) {
                             var cell = $(this).parents(".pg-cell:eq(0)"),
                                 row = cell.parents(".pg-row:eq(0)"),
                                 key = cell.attr("data-column-key"),

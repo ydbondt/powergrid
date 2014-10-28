@@ -141,13 +141,18 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                             key = null;
                         }
                         
-                        this.target
+                        this.container
                             .on("mousedown", ".pg-columnheader", startDrag)
                             .on("click", ".pg-columnheader", endDrag);
                         
                         $(window)
-                            .on("mousemove", doDrag)
-                            .on("mouseup", endDrag);
+                            .on("mousemove." + this.id, doDrag)
+                            .on("mouseup." + this.id, endDrag);
+                    },
+                    
+                    destroy: function() {
+                        $(window).off("mousemove." + this.id).off("mouseup." + this.id);
+                        $super.destroy();
                     }
                 }
             });
