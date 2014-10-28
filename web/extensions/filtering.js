@@ -10,7 +10,9 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                 
                 return {
                     init: function() {
-                        this.target.on("click", ".pg-filter", function(event) {
+                        $super.init();
+                        
+                        this.container.on("click", ".pg-filter", function(event) {
                             var $this = $(this),
                                 key = $this.parents('.pg-columnheader').attr('data-column-key'),
                                 column = grid.getColumnForKey(key);
@@ -28,7 +30,7 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                             event.stopPropagation();
                         });
                         
-                        $("body").on("click", function(event) {
+                        $("body").on("click." + this.id, function(event) {
                             if(currentFilterPane && $(this).parents(".pg-filter-pane").empty()) {
                                 grid.filtering.closeFilterPane();
                             }
@@ -37,8 +39,11 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                         this.container.on("click mousedown", ".pg-filter-box", function(event) {
                             event.stopPropagation();
                         });
-                        
-                        $super.init();
+                    },
+                    
+                    destroy: function() {
+                        $super.destroy();
+                        $("body").off("click." + this.id);
                     },
 
                     renderHeaderCell: function(column, columnIdx) {
