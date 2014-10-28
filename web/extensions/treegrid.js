@@ -76,13 +76,9 @@ define(['override', 'jquery'], function(override, $) {
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
                     self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
-                    if(depth <= (initialTreeDepth || 0)) {
-                        if (depth + 1 <= (initialTreeDepth || 0)) {
-                            var children = self.children(x);
-                            if(children && children.length) {
-                                calcDepth(children, depth+1);
-                            }
-                        }
+                    var children = self.children(x);
+                    if(children && children.length) {
+                        calcDepth(children, depth+1);
                     }
                 });
             }
@@ -180,7 +176,7 @@ define(['override', 'jquery'], function(override, $) {
             var rowId = row.id,x,l,start,end,startDepth;
             
             if(!this.isExpanded(row)) {
-                // already expanded, don't do anything
+                // already collapsed, don't do anything
                 return;
             }
             
@@ -225,6 +221,23 @@ define(['override', 'jquery'], function(override, $) {
                 this.tree.forEach(expandall);
             } else {
                 expandall(this.getRecordById(rowId));
+            }
+        },
+        
+        collapseAll: function(rowId) {
+            var ds = this;
+            function collapseall(row) {
+                ds.collapse(row);
+                var children = ds.children(row);
+                if(children) {
+                    children.forEach(collapseall);
+                }
+            }
+            
+            if(rowId === undefined) {
+                this.tree.forEach(collapseall);
+            } else {
+                collapseall(this.getRecordById(rowId));
             }
         },
 
@@ -399,7 +412,17 @@ define(['override', 'jquery'], function(override, $) {
                         }
                     },
 
-                    dataSource: treeDS
+                    dataSource: treeDS,
+                    
+                    treegrid: {
+                        expandAll: function() {
+                            treeDS.expandAll();
+                        },
+                        
+                        collapseAll: function() {
+                            treeDS.collapseAll();
+                        }
+                    }
                 }
             });
         },
