@@ -97,9 +97,9 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                                 case 1:
                                 case -1:
                                     do {
-                                        nextRowIdx = rowIdx + move;
+                                        nextRowIdx += move;
                                         nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
-                                    } while(!this.isEditable(nextRecord, nextColumn));
+                                    } while(nextRecord && !this.isEditable(nextRecord, nextColumn));
                                     break;
                                 case 2:
                                 case -2:
@@ -112,13 +112,15 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                                             i = move < 0 ? grid.columnCount() - 1 : 0;
                                         }
                                         nextColumn = grid.getColumnForIndex(i);
-                                    } while(!this.isEditable(nextRecord, nextColumn));
+                                    } while(nextRecord && !this.isEditable(nextRecord, nextColumn));
                                     break;
                             }
                             
-                            var targetCell = grid.getCellFor(nextRecord.id, nextColumn.key);
-                            
-                            this.startEdit(targetCell, nextColumn.key, nextRecord, nextRowIdx);
+                            if(nextRecord) {
+                                var targetCell = grid.getCellFor(nextRecord.id, nextColumn.key);
+                                
+                                this.startEdit(targetCell, nextColumn.key, nextRecord, nextRowIdx);
+                            }
                         }
                     },
                     
