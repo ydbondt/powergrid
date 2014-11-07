@@ -57,6 +57,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         });
         
         this.id = target.attr('id');
+        
+        $(target).on('remove', function() {
+            grid.destroy();
+        });
     }
 
     PowerGrid.prototype = {
