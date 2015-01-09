@@ -1,5 +1,6 @@
-Proof of concept of a HTML5 grid component with fixed columns
+h1. PowerGrid
 
+Powerful HTML5 grid component.
 Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE9+
 
 In scope:
