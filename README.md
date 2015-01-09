@@ -1,4 +1,5 @@
-h1. PowerGrid
+PowerGrid
+=========
 
 Powerful HTML5 grid component.
 Browser Targets: Chrome 37+, Safari iOS 7+, FireFox 32+, IE9+
