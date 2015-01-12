@@ -7,7 +7,7 @@ url: "https://pearlchain.github.io/powergrid" # the base hostname & protocol for
 #favicon
 favicon: /favicon.png
 
-github_username:  pearlchain
+github_username:  PearlChain
 
 #permalink /blog/2014/11/11/this-is-a-sample-post
 permalink: /blog/:year/:month/:day/:title
