@@ -1,0 +1,22 @@
+# Site settings
+title: PowerGrid
+description: A powerful HTML5 table replacement
+email: christoph.cantillon@pearlchain.net
+baseurl:
+url: "https://pearlchain.github.io/powergrid" # the base hostname & protocol for your site
+#favicon
+favicon: /favicon.png
+
+github_username:  pearlchain
+
+#permalink /blog/2014/11/11/this-is-a-sample-post
+permalink: /blog/:year/:month/:day/:title
+# Build settings
+markdown: kramdown
+
+#Can be used for multiple author blogs ! Add name to post For more visit the sample
+authors:
+  ccantill:
+    display_name: Christoph Cantillon
+    email: christoph.cantillon@pearlchain.net
+    github: ccantill

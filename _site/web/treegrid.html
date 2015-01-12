@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>PowerGrid proof of concept</title>
+        <script src="../bower_components/requirejs/require.js" type="text/javascript"></script>
+        <script src="config.js" type="text/javascript"></script>
+        
+		<link href="powergrid.css" rel="stylesheet" />
+		<script>
+			require(['jquery', 'powergrid', 'jsondatasource'], function($, powergrid, JSONDataSource) {
+                if(window.requestAnimationFrame === undefined) {
+                    requestAnimationFrame = function(f) {
+                        setTimeout(f, 0);
+                    };
+                }
+                
+                var columns = [
+                {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": true,
+                    "width": 429,
+                    "allowMoving": true,
+                    "key": "description",
+                    "headerText": "Description"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "width": 200,
+                    "allowMoving": true,
+                    "key": "type",
+                    "headerText": "Type"
+                }, {
+                    "dataType": "string",
+                    "readOnly": false,
+                    "width": 100,
+                    "allowMoving": true,
+                    "key": "SerialNumber",
+                    "headerText": "Serial Number"
+                }, {
+                    "dataType": "date",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.startDate",
+                    "width": 100,
+                    "allowMoving": true,
+                    "type": "DATE",
+                    "key": "startDate",
+                    "headerText": "Start date",
+                    "align": "left",
+                    "format": "dd-MM-yyyy"
+                }, {
+                    "dataType": "date",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.endDate",
+                    "width": 100,
+                    "allowMoving": true,
+                    "type": "DATE",
+                    "key": "endDate",
+                    "headerText": "End date",
+                    "align": "left",
+                    "format": "dd-MM-yyyy"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.contract",
+                    "width": 288,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "contract",
+                    "headerText": "Contract",
+                    "align": "left",
+                    "template": "${contract}"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.configurationNo",
+                    "width": 100,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "ConfigurationNo",
+                    "headerText": "Configuration No",
+                    "align": "left",
+                    "template": "${ConfigurationNo}"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.saleAmount",
+                    "width": 93,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "saleAmount",
+                    "headerText": "Sale Amount",
+                    "align": "right"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.totalMonthlyAmount",
+                    "width": 95,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "totalMonthlyAmount",
+                    "headerText": "Total Monthly Amount",
+                    "align": "right"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.productMonthlyAmount",
+                    "width": 104,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "productMonthlyAmount",
+                    "headerText": "Product Monthly Amount",
+                    "align": "right"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.serviceMonthlyAmount",
+                    "width": 90,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "serviceMonthlyAmount",
+                    "headerText": "Service Monthly Amount",
+                    "align": "right"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.avgMonthlyExcessAmount",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "avgMonthlyExcessAmount",
+                    "headerText": "Avg. Monthly Excess Amount",
+                    "align": "right"
+                }, {
+                    "dataType": "number",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.committedVolume",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "NUMBER",
+                    "key": "committedVolume",
+                    "headerText": "Committed Volume",
+                    "align": "left"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.monthlyCommittedCharge",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "monthlyCommittedCharge",
+                    "headerText": "Monthly committed charge",
+                    "align": "right"
+                }, {
+                    "dataType": "currency",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.monthlyOtherFixedCharges",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "CURRENCY",
+                    "key": "monthlyOtherFixedCharges",
+                    "headerText": "Monthtly other fixed charges",
+                    "align": "right"
+                }, {
+                    "dataType": "number",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.avgActualMonthlyVolume",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "NUMBER",
+                    "key": "avgActualMonthlyVolume",
+                    "headerText": "Average Actual Monthly Volume",
+                    "align": "left"
+                }, {
+                    "dataType": "number",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.monthlyExcessVolume",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "NUMBER",
+                    "key": "monthlyExcessVolume",
+                    "headerText": "Monthly Excess Volume",
+                    "align": "left"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.excessClickPrice",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "excessClickPrice",
+                    "headerText": "Excess Click Price",
+                    "align": "left",
+                    "template": "${excessClickPrice}"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.contractNumber",
+                    "width": 100,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "contractNumber",
+                    "headerText": "Contract Number",
+                    "align": "left",
+                    "template": "${contractNumber}"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.poolContractNumber",
+                    "width": 100,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "poolContractNumber",
+                    "headerText": "Cluster Contract Number",
+                    "align": "left",
+                    "template": "${poolContractNumber}"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.soldToPartnerNumber",
+                    "width": 70,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "soldToPartnerNumber",
+                    "headerText": "Sold To Partner no",
+                    "align": "left",
+                    "template": "${soldToPartnerNumber}"
+                }, {
+                    "dataType": "string",
+                    "readOnly": true,
+                    "treeColumn": false,
+                    "hidden": false,
+                    "name": "IBase.UI.InstallationAddressGrid.soldToPartnerName",
+                    "width": 200,
+                    "allowMoving": true,
+                    "type": "STRING",
+                    "key": "soldToPartnerName",
+                    "headerText": "Sold To Parter",
+                    "align": "left",
+                    "template": "${soldToPartnerName}"
+                }].map(function(col) {
+                    return {
+                        type: col.dataType,
+                        editable: !col.readOnly,
+                        title: col.headerText,
+                        template: col.template,
+                        format: col.format,
+                        width: col.width || 200,
+                        key: col.key,
+                        treeColumn: col.treeColumn
+                    }
+                });
+                
+                $("#test").PowerGrid({
+                    columns: columns,
+                    
+                    frozenColumnsLeft: 1,
+                    frozenColumnsRight: 2,
+                    
+                    dataSource: new JSONDataSource({
+                        url: './treedata.json'
+                    }),
+                    
+                    extensions: {
+                        'columnsizing': {},
+                        'columnmoving': {},
+                        'editing': true,
+                        'treegrid': {},
+                        'sorting': true,
+                        'filtering': {},
+                        'statistics': {},
+                        'selection': true
+                    }
+                });
+            });
+		</script>
+        
+        <style>
+            * {
+                font-family: sans-serif;
+                font-size: 11pt;
+            }
+
+            body {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            #test {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+	</head>
+	<body>
+		<div id="test"></div>
+	</body>
+</html>
