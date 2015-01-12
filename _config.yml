@@ -2,7 +2,7 @@
 title: PowerGrid
 description: A powerful HTML5 table replacement
 email: christoph.cantillon@pearlchain.net
-baseurl:
+baseurl: /powergrid
 url: "https://pearlchain.github.io/powergrid" # the base hostname & protocol for your site
 #favicon
 favicon: /favicon.png

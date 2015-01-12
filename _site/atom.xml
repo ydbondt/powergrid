@@ -3,10 +3,10 @@
   <channel>
     <title>PowerGrid</title>
     <description>A powerful HTML5 table replacement</description>
-    <link>https://pearlchain.github.io/powergrid/</link>
-    <atom:link href="https://pearlchain.github.io/powergrid/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 12 Jan 2015 14:14:42 +0100</pubDate>
-    <lastBuildDate>Mon, 12 Jan 2015 14:14:42 +0100</lastBuildDate>
+    <link>https://pearlchain.github.io/powergrid/powergrid/</link>
+    <atom:link href="https://pearlchain.github.io/powergrid/powergrid/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 12 Jan 2015 14:19:30 +0100</pubDate>
+    <lastBuildDate>Mon, 12 Jan 2015 14:19:30 +0100</lastBuildDate>
     <generator>Jekyll v2.5.3</generator>
     
       <item>
@@ -52,8 +52,8 @@
 &lt;p&gt;&lt;img src=&quot;http://media.vector4free.com/normal/flat-banner-vectors.jpg&quot; alt=&quot;ThisIsADemoPhoto&quot; /&gt;&lt;/p&gt;
 </description>
         <pubDate>Tue, 09 Sep 2014 19:07:00 +0200</pubDate>
-        <link>https://pearlchain.github.io/powergrid/blog/2014/09/09/example</link>
-        <guid isPermaLink="true">https://pearlchain.github.io/powergrid/blog/2014/09/09/example</guid>
+        <link>https://pearlchain.github.io/powergrid/powergrid/blog/2014/09/09/example</link>
+        <guid isPermaLink="true">https://pearlchain.github.io/powergrid/powergrid/blog/2014/09/09/example</guid>
         
         
         <category>example</category>
