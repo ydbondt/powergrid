@@ -1,4 +1,4 @@
-define(['override', 'jquery', 'utils'], function(override, $) {
+define(['override', 'jquery', 'utils'], function(override, $, utils) {
     
     "use strict";
     
@@ -34,6 +34,10 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         
                         grid.editing.startEdit(targetCell, key, record, rowIdx);
                     });
+                    
+                    $(this.dataSource).on('editabilitychanged', function(event, attr) {
+                        grid.editing.updateEditability(attr.values);
+                    });
                 },
                 
                 editing: {
@@ -68,7 +72,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                             cell: target,
                             key: key,
                             record: record,
-                            rowIdx: rowIdx
+                            rowIdx: rowIdx,
+                            column: column
                         };
                         
                         var beforeEditEvent = new $.Event('beforeedit', opts);
@@ -79,9 +84,13 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         }
                         
                         $(editor).on('commit', function(event, value, move) {
-                            editing.commit(target, record, rowIdx, column, value, oldValue, move);
+                            utils.inAnimationFrame(function() {
+                                editing.commit(target, record, rowIdx, column, value, oldValue, move);
+                            });
                         }).on('abort', function(event) {
-                            editing.abort(target, record, rowIdx, column, oldValue);
+                            utils.inAnimationFrame(function() {
+                                editing.abort(target, record, rowIdx, column, oldValue);
+                            });
                         });
                         $(target).addClass('pg-editing').empty().append(editor);
                     },
@@ -140,7 +149,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         } else {
                             editor = $("<input>").attr("type", column.type).val(value);
                         }
-                        var grid = this;
+                        var grid = this, hasChanged = false;
                         editor.on("keydown", function(event) {
                             switch(event.keyCode) {
                             case 13:
@@ -156,15 +165,37 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         });
 
                         editor.on("blur", function(event) {
-                            if(pluginOptions.commitOnBlur !== false) {
+                            if(pluginOptions.commitOnBlur !== false && hasChanged) {
                                 $(this).trigger('commit', [editor.val()]);
-                            } else if(pluginOptions.abortOnBlur === true) {
+                            } else if(pluginOptions.abortOnBlur === true || !hasChanged) {
                                 $(this).trigger('abort');
                             }
+                        }).on("change", function(event) {
+                            hasChanged = true;
                         });
 
-                        setTimeout(editor[0].select.bind(editor[0]), 10);
+                        if (editor[0].select) {
+                            setTimeout(editor[0].select.bind(editor[0]), 10);
+                        } else if (editor[0].focus) {
+                            setTimeout(editor[0].focus.bind(editor[0]), 10);
+                        }
                         return editor;
+                    },
+                    
+                    updateEditability: function(cells) {
+                        for(var x=0,l=cells.length;x<l;x++) {
+                            var cell = cells[x],
+                                column = grid.getColumnForKey(cell.key),
+                                row = grid.getRecordById(cell.id),
+                                cellElement = column && row && grid.getCellFor(cell.id, cell.key);
+                            if(cellElement) {
+                                this.updateCellEditability(row, column, cellElement);
+                            }
+                        }
+                    },
+                    
+                    updateCellEditability: function(row, column, cellElement) {
+                        $(cellElement).toggleClass("pg-editable", this.isEditable(row, column));
                     }
                 }
             }

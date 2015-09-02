@@ -1,4 +1,4 @@
-define(['override', 'jquery'], function(override, $) {
+define(['override', 'jquery', 'utils'], function(override, $, utils) {
     
     "use strict";
     
@@ -27,7 +27,7 @@ define(['override', 'jquery'], function(override, $) {
 
             $(delegate).on("dataloaded", this.load.bind(this));
             
-            $(delegate).on("datachanged", function(event, data) {
+            $(delegate).on("datachanged editabilitychanged", function(event, data) {
                 $(self).trigger(event.type, [data]);
             });
         } else {
@@ -209,38 +209,42 @@ define(['override', 'jquery'], function(override, $) {
         
         expandAll: function(rowId) {
             var ds = this;
-            function expandall(row) {
-                var children = ds.children(row);
-                if(children) {
-                    children.forEach(expandall);
+            utils.inAnimationFrame(function() {
+                function expandall(row) {
+                    var children = ds.children(row);
+                    if(children) {
+                        children.forEach(expandall);
+                    }
+                    ds.expand(row);
                 }
-                ds.expand(row);
-            }
-            
-            if(rowId === undefined) {
-                this.tree.forEach(expandall);
-            } else {
-                expandall(this.getRecordById(rowId));
-            }
+                
+                if(rowId === undefined) {
+                    ds.tree.forEach(expandall);
+                } else {
+                    expandall(ds.getRecordById(rowId));
+                }
+            });
         },
         
         collapseAll: function(rowId) {
             var ds = this;
-            function collapseall(row) {
-                ds.collapse(row);
-                var children = ds.children(row);
-                if(children) {
-                    children.forEach(collapseall);
+            utils.inAnimationFrame(function() {
+                function collapseall(row) {
+                    ds.collapse(row);
+                    var children = ds.children(row);
+                    if(children) {
+                        children.forEach(collapseall);
+                    }
                 }
-            }
-            
-            if(rowId === undefined) {
-                this.tree.forEach(collapseall);
-            } else {
-                collapseall(this.getRecordById(rowId));
-            }
+                
+                if(rowId === undefined) {
+                    ds.tree.forEach(collapseall);
+                } else {
+                    collapseall(ds.getRecordById(rowId));
+                }
+            });
         },
-
+        
         flattenSubTree: function(nodes, parentMatches, statistics) {
             var view = [],
                 stack = [],

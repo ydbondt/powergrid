@@ -39,6 +39,10 @@ define(['override', 'jquery'], function(override, $) {
                             grid.sorting.sort(sortColumns);
                             grid.saveSetting("sorting", sortColumns);
                         });
+
+                        $(grid.dataSource).one("dataloaded", function(e) {
+                            grid.sorting.sort(sortColumns);
+                        });
                     },
 
                     renderHeaderCell: function(column, columnIdx) {
@@ -57,7 +61,11 @@ define(['override', 'jquery'], function(override, $) {
                     
                     sorting: {
                         sort: function (columnSettings) {
-                            grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
+                            if(typeof grid.dataSource.sort !== 'function') {
+                                console.warn && console.warn("Trying to sort unsortable datasource");
+                            } else {
+                                grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
+                            }
                         },
                         
                         compareRow: function(columnSettings, a, b) {

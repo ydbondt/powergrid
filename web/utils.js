@@ -1,8 +1,32 @@
 (function(define) {
     "use strict";
     
+    var animFrameQueue = [], inAnimFrame = false, animFrameRequested = false;
+    
     define(['jquery'], function($) {
         return {
+            inAnimationFrame: function(f) {
+                if(inAnimFrame) {
+                    f();
+                } else {
+                    animFrameQueue.push(f);
+                    if(!animFrameRequested) {
+                        animFrameRequested = true;
+                        requestAnimationFrame(function() {
+                            inAnimFrame = true;
+                            try {
+                                while(animFrameQueue.length) {
+                                    animFrameQueue.pop()();
+                                }
+                            } finally {
+                                inAnimFrame = false;
+                                animFrameRequested = false;
+                            }
+                        });
+                    }
+                }
+            },
+            
             handleEventInAnimationFrame: function (event) {
                 var self = this, args = arguments;
                 requestAnimationFrame(function() {

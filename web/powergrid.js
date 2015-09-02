@@ -120,7 +120,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                             }
 
                             if(grid.options.extensions[req]) {
-                                $.extend(grid.options.extensions[req], reqs[req]);
+                                $.extend(true, grid.options.extensions[req], reqs[req]);
                             } else {
                                 grid.options.extensions[req] = reqs[req];
                             }
@@ -211,33 +211,51 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             if(this.dataSource.isReady()) {
+            	if(!grid.isInited) {
+                    grid.isInited = true;
+                    grid.trigger('inited', grid);
+                }
+            	
                 grid.trigger('dataloaded');
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid.renderData();
                     grid.trigger('viewchanged');
                 });
             }
 
             $(this.dataSource).on("dataloaded", function(event) {
+                if(!grid.isInited) {
+                    grid.isInited = true;
+                    grid.trigger('inited', grid);
+                }
+                
                 grid.trigger('dataloaded', event.data);
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid.renderData();
                     grid.trigger('viewchanged');
                 });
             }).on("rowsremoved", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
+
+                    grid.updateViewport();
+                    grid.adjustHeights();
+                    
                     grid.trigger('rowsremoved', data);
                     grid.trigger('viewchanged');
                 });
             }).on("rowsadded", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
+
+                    grid.updateViewport();
+                    grid.adjustHeights();
+                    
                     grid.trigger('rowsadded', data);
                     grid.trigger('viewchanged');
                 });
             }).on("datachanged", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     if(data.data) {
                         grid._dataChanged(data.data, data.oldData);
                     }
@@ -251,6 +269,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             this.initScrollEvents();
+        },
+        
+        ready: function(callback) {
+            if(this.isInited) callback.apply(this, [this]);
+            else this.on('inited', callback.bind(this, this));
         },
         
         destroy: function() {
@@ -268,6 +291,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 }
 
                 self.scrollBy(dX * ddX, dY * ddY);
+                evt.preventDefault();
             });
 
             this.initTouchScrollEvents();
@@ -317,11 +341,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                         self.scrollTo(Math.round(scrollPosition.left), Math.round(scrollPosition.top));
 
                         // request next frame.
-                        requestAnimationFrame(draw);
+                        utils.inAnimationFrame(draw);
                     }
                 };
 
-                requestAnimationFrame(draw);   
+                utils.inAnimationFrame(draw);   
             }
 
             this.target.on("touchstart", function(startevent) {
@@ -545,9 +569,6 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 start = Math.min(scrollEnd, end);
                 this.viewport.end -= count;
             }
-
-            this.updateViewport();
-            this.adjustHeights();
         },
         
         viewRange: function() {
@@ -600,9 +621,6 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);
             }
-
-            this.updateViewport();
-            this.adjustHeights();
         },
         
         _applyDiff: function(diff) {
@@ -614,6 +632,9 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     this._removeRows(d.remove[0], d.remove[1]);
                 }
             }
+
+            this.updateViewport();
+            this.adjustHeights();
         },
         
         _dataChanged: function(data, oldData) {
@@ -731,7 +752,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.fixedLeft.css("width", leadingWidth + "px");
             this.fixedRight.css("width", trailingWidth + "px");
             this.columnheadergroup.right && this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
-            this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px"});
+            var minWidth = 'calc(100% - ' + leadingWidth +'px - ' + trailingWidth + 'px)';
+            this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px", "min-width":  minWidth});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
             
             if(this.options.autoResize) {
@@ -741,11 +763,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
-            var columnHeaderHeight = this.headerHeight();
+            var columnHeaderHeight = this.headerContainerHeight();
             var headerHeight = this.rowHeight(0, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
-            this.columnheadergroup.all.css("height", (columnHeaderHeight) + "px");
+            this.columnheadergroup.all.css("height", (this.headerHeight()) + "px");
             
             this.headercontainer && this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer && this.footercontainer.css("height", (footerHeight) + "px");
@@ -760,8 +782,14 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }
         },
         
+        headerContainerHeight: function() {
+            return this.headerHeight();
+        },
+        
         headerHeight: function headerHeight() {
-            return this.target.find(".pg-columnheader").height();
+            return Math.max.apply(undefined, this.target.find(".pg-columnheader span").map(function(i, e) {
+                return $(e).outerHeight();
+            }));
         },
 
         adjustColumnPositions: function adjustColumnPositions(temporary) {
@@ -778,7 +806,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
                 column.offsetLeft = pos;
 
-                pos += column.width;
+                pos += this.columnWidth(x);
             }
             
             this.adjustWidths(temporary);
@@ -870,7 +898,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var self = this;
             if(!this.updateViewportTimer) {
                 this.updateViewportTimer = setTimeout(function() {
-                    requestAnimationFrame(self.updateViewport.bind(self));
+                    utils.inAnimationFrame(self.updateViewport.bind(self));
                     self.updateViewportTimer = null;
                 }, 100);
             }
@@ -902,7 +930,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
         
         updateCellValue: function(rowId, key) {
-            var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
+            var row = this.findRow(rowId);
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
             if(cell.length) {
                 var record = this.dataSource.getRecordById(rowId),
@@ -910,6 +938,14 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 cell.empty().append(this.renderCellContent(record, column));
                 this.afterCellRendered(record, column, cell);
             }
+        },
+        
+        getRecordById: function(rowId) {
+            return this.dataSource.getRecordById(rowId);
+        },
+
+        findRow: function(rowId) {
+            return this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
         },
 
         renderCellValue: function renderCellValue(record, column, value) {

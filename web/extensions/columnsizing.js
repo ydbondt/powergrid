@@ -32,6 +32,11 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                             key = $(header).attr("data-column-key");
                             idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; });
                             col = grid.options.columns[idx];
+                            
+                            if(col.resizable === false) {
+                                return;
+                            }
+                            
                             oX = event.pageX;
                             w = col.width;
 
@@ -54,6 +59,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                             }
                             requestAnimationFrame(function() {
                                 grid.adjustColumnPositions(true);
+                                grid.adjustHeights();
                             });
                         }
 
