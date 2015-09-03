@@ -1,10 +1,30 @@
 {
   "name": "powergrid",
   "version": "0.0.1",
+  "main": "web/main.js",
   "devDependencies": {
     "bower": "^1.3.10",
     "grunt": "^0.4.5",
     "grunt-bower": "^0.14.0",
     "grunt-bower-requirejs": "^1.1.0"
+  },
+  "jspm": {
+    "directories": {
+      "baseURL": "web"
+    },
+    "configFile": "web/jspmconfig.js",
+    "dependencies": {
+      "BorisMoore/jsrender": "github:BorisMoore/jsrender@^1.0.0-rc.68",
+      "babel": "npm:babel-core@^5.8.23",
+      "components/es6-promise": "github:components/es6-promise@^3.0.2",
+      "israelidanny/veinjs": "github:israelidanny/veinjs@master",
+      "jquery": "github:components/jquery@^2.1.4",
+      "systemjs/plugin-text": "github:systemjs/plugin-text@^0.0.2",
+      "vitmalina/w2ui": "github:vitmalina/w2ui@1.4.3"
+    },
+    "devDependencies": {
+      "babel-runtime": "npm:babel-runtime@^5.8.20",
+      "core-js": "npm:core-js@^1.0.0"
+    }
   }
 }
