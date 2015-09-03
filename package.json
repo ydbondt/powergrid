@@ -14,13 +14,12 @@
     },
     "configFile": "web/jspmconfig.js",
     "dependencies": {
-      "BorisMoore/jsrender": "github:BorisMoore/jsrender@^1.0.0-rc.68",
-      "babel": "npm:babel-core@^5.8.23",
-      "components/es6-promise": "github:components/es6-promise@^3.0.2",
-      "israelidanny/veinjs": "github:israelidanny/veinjs@master",
+      "jsrender": "github:BorisMoore/jsrender@^1.0.0-rc.68",
+      "es6-promise": "github:components/es6-promise@^3.0.2",
+      "vein": "github:israelidanny/veinjs@master",
       "jquery": "github:components/jquery@^2.1.4",
       "systemjs/plugin-text": "github:systemjs/plugin-text@^0.0.2",
-      "vitmalina/w2ui": "github:vitmalina/w2ui@1.4.3"
+      "w2ui": "github:vitmalina/w2ui@1.4.3"
     },
     "devDependencies": {
       "babel-runtime": "npm:babel-runtime@^5.8.20",
