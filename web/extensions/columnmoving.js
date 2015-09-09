@@ -1,4 +1,4 @@
-define(['override', 'vein', 'utils'], function(override, vein, utils) {
+define(['../override', 'vein', '../utils'], function(override, vein, utils) {
     "use strict";
     
     function updateStyle(selector, style) {

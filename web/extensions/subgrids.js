@@ -1,4 +1,4 @@
-define(['override', 'vein', 'utils', 'promise'], function(override, vein, utils, Promise) {
+define(['../override', 'vein', '../utils', '../promise'], function(override, vein, utils, Promise) {
     "use strict";
     
     return {

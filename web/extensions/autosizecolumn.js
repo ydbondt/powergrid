@@ -1,4 +1,4 @@
-define(['override', 'utils', 'jquery'],
+define(['../override', '../utils', 'jquery'],
        function(override, utils, $) {
     "use strict";
     

@@ -1,4 +1,4 @@
-define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise) {
+define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, utils, Promise, require) {
     "use strict";
 
     var defaultOptions = {
@@ -105,7 +105,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 plugins = {};
                 pluginList = [];
             }
-            var files = keys.map(function(e) { return "extensions/" + e; });
+            var files = keys.map(function(e) { return "./extensions/" + e; });
             require(files, function() {
                 var newkeys = [];
                 for(var x = 0; x < arguments.length; x++) {
