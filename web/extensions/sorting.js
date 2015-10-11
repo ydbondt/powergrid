@@ -1,4 +1,4 @@
-define(['override', 'jquery'], function(override, $) {
+define(['../override', 'jquery'], function(override, $) {
     "use strict";
     return {
         loadFirst: ['dragging', 'columnsizing'],
@@ -33,7 +33,7 @@ define(['override', 'jquery'], function(override, $) {
                             grid.target.find('.pg-sort-ascending, .pg-sort-descending').removeClass('pg-sort-ascending pg-sort-descending');
                             $(this).addClass('pg-sort-' + direction);
                             
-                            sortColumns = [{ key: key, direction: direction, column: grid.getColumnForKey(key) }].concat(sortColumns.filter(function(e) {
+                            sortColumns = [{ key: key, direction: direction }].concat(sortColumns.filter(function(e) {
                                 return e.key !== key;
                             }));
                             grid.sorting.sort(sortColumns);
@@ -71,7 +71,7 @@ define(['override', 'jquery'], function(override, $) {
                         compareRow: function(columnSettings, a, b) {
                             for(var x=0,l=columnSettings.length;x<l;x++) {
                                 var setting = columnSettings[x],
-                                    column = setting.column,
+                                    column = grid.getColumnForKey(setting.key),
                                     result;
                                 
                                 if(typeof column.compare === 'function') {
