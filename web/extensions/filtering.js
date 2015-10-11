@@ -1,4 +1,6 @@
-define(['../override', 'jquery', 'text!../templates/filterPane.html', 'text!../templates/filterBox.html'], function(override, $, filterPane, filterBox) {
+define(['../override', 'jquery',
+    '../templates/filterPane.html!text',
+    '../templates/filterBox.html!text'], function(override, $, filterPane, filterBox) {
     "use strict";
     
     function FilteringDataSource(delegate) {
@@ -15,6 +17,10 @@ define(['../override', 'jquery', 'text!../templates/filterPane.html', 'text!../t
         
         if(delegate.isReady()) {
             this.reload();
+        }
+
+        if(typeof delegate.sort === 'function') {
+            this.sort = delegate.sort.bind(delegate);
         }
     }
     

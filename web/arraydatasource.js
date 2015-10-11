@@ -14,6 +14,11 @@ define(["jquery"], function($) {
         load: function() {
             this.ready = true;
             $(this).trigger("dataloaded");
+            for(var x = 0, l = this.data.length;x<l;x++) {
+                if(this.data[x].id === undefined) {
+                    this.data[x].id = x;
+                }
+            }
         },
         
         recordCount: function() {
@@ -53,6 +58,12 @@ define(["jquery"], function($) {
         
         isReady: function() {
             return this.ready;
+        },
+
+        sort: function(comparator) {
+            this.assertReady();
+            this.data.sort(comparator);
+            $(this).trigger("dataloaded");
         }
     };
     
