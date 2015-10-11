@@ -1,5 +1,7 @@
-define(['../override', '../utils', 'jquery', 'jsrender', '../extensions/treegrid', '../dragndrop', 'text!../templates/grouper.html',
-        'text!../templates/grouprow.html', 'text!../templates/groupindicator.html'],
+define(['../override', '../utils', 'jquery', 'jsrender/jsrender', '../extensions/treegrid', '../dragndrop',
+        '../templates/grouper.html!text',
+        '../templates/grouprow.html!text',
+        '../templates/groupindicator.html!text'],
        function(override, utils, $, jsrender, treegrid, DragNDrop, grouperTemplate, grouprow, groupindicator) {
     "use strict";
     

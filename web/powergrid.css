@@ -215,6 +215,7 @@
     cursor: default;
     font-size: 85%;
     height: 16px;
+    box-sizing: content-box;
 }
 
 .pg-grouper-placeholder + .pg-group-indicator:before {
