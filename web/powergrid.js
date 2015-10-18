@@ -7,7 +7,8 @@ define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, 
         frozenRowsBottom: 0,
         frozenColumnsLeft: 0,
         frozenColumnsRight: 0,
-        fullWidth: true
+        fullWidth: true,
+        rowHeight: 31
     };
 
     function determineScrollBarSize() {
@@ -830,9 +831,9 @@ define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, 
         rowHeight: function rowHeight(start, end) {
             // if end argument is passed, calculates the accumulative heights of rows start until end (exclusive)
             if(end == undefined) {
-                return 31;
+                return this.options.rowHeight;
             } else {
-                return (end - start) * 31;
+                return (end - start) * this.options.rowHeight;
             }
         },
 
