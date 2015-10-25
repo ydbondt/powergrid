@@ -156,7 +156,11 @@ define(['../override', 'jquery'], function(override, $) {
                                 var setting = columnSettings[x],
                                     column = grid.getColumnForKey(setting.key),
                                     result;
-                                
+
+                                if(column === undefined) {
+                                    continue;
+                                }
+
                                 if(typeof column.compare === 'function') {
                                     result = column.compare(a[column.key],b[column.key]);
                                 } else {

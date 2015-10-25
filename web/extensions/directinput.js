@@ -39,7 +39,7 @@ define(['jquery','../override'], function($, override) {
                     },
                     
                     renderCellContent: function(record, column) {
-                        var value = record[column.key];
+                        var value = this.getValue(record, column.key);
                         if(this.directinput.isDirectInput(column)) {
                             var input = document.createDocumentFragment();
                             if((value !== null && value !== undefined) || column.hideOnNull == false) {
