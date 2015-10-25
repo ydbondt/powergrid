@@ -11,14 +11,19 @@ define(["jquery"], function($) {
     }
     
     ArrayDataSource.prototype = {
-        load: function() {
-            this.ready = true;
+        load: function(data) {
+            if(data !== undefined) {
+              this.data = data;
+            }
+
             $(this).trigger("dataloaded");
             for(var x = 0, l = this.data.length;x<l;x++) {
                 if(this.data[x].id === undefined) {
                     this.data[x].id = x;
                 }
             }
+
+            this.ready = true;
         },
         
         recordCount: function() {
