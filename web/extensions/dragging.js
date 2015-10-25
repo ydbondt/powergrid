@@ -31,7 +31,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             offset = event.offsetX || event.originalEvent.layerX || 0;
 
                             if(offset <= header.offsetWidth - 8 && offset >= 8) {
-                                cells = $(grid.target).find("> .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-column" + key + ", > .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-inner-row > .pg-column" + key + ", > .powergrid > .pg-columnheaders > .pg-container > .pg-row > .pg-column" + key + ""); //$(grid.target).find(".pg-column" + key);
+                                cells = $(grid.target).find("> .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-column" + grid.normalizeCssClass(key) + ", > .powergrid > .pg-rowgroup > .pg-container > .pg-row > .pg-inner-row > .pg-column" + grid.normalizeCssClass(key) + ", > .powergrid > .pg-columnheaders > .pg-container > .pg-row > .pg-column" + key + "");
 
                                 tracking = true;
                                 dragstarted = false;
@@ -127,7 +127,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 
                                 dragstarted = false;
                                 
-                                $(grid.baseSelector + " .pg-column" + col.key).css({ "transform": "" });
+                                $(grid.baseSelector + " .pg-column" + grid.normalizeCssClass(col.key)).css({ "transform": "" });
                                 cells.removeClass("pg-columndragging");
                                 
                                 event.preventDefault();
