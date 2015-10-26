@@ -1,4 +1,4 @@
-define(['../override', 'jquery'], function(override, $) {
+define(['../override', 'jquery', '../utils'], function(override, $, utils) {
     "use strict";
     return {
         loadFirst: ['dragging', 'columnsizing'],
@@ -79,9 +79,9 @@ define(['../override', 'jquery'], function(override, $) {
                                 }
 
                                 if(typeof column.compare === 'function') {
-                                    result = column.compare(a[column.key],b[column.key]);
+                                    result = column.compare(utils.getValue(a, column.key), utils.getValue(b, column.key));
                                 } else {
-                                    result = this.compareValue(a[column.key],b[column.key]);
+                                    result = this.compareValue(utils.getValue(a, column.key), utils.getValue(b, column.key));
                                 }
                                 
                                 if(result !== 0) {

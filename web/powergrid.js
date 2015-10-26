@@ -917,7 +917,7 @@ define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, 
         },
 
         renderCellContent: function(record, column) {
-            return this.renderCellValue(record, column, this.getCellTextValue(this.getValue(record, column.key), record, column));
+            return this.renderCellValue(record, column, this.getCellTextValue(utils.getValue(record, column.key), record, column));
         },
 
         updateCellValues: function(list) {
@@ -1073,18 +1073,10 @@ define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, 
             }
         },
 
-        getValue: function(object, key) {
-            return object[key];
-        },
-
-        setValue: function(object, key, value) {
-            object[key] = value;
-        },
-
         normalizeCssClass: function(c) {
             return c.replace(/[.\[\]]/g, '_');
         }
-};
+    };
 
     $.fn.extend({ PowerGrid: function(options) {
         var d = this.data("powergrid");
