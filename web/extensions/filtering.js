@@ -1,6 +1,6 @@
-define(['../override', 'jquery',
+define(['../override', 'jquery', '../utils',
     '../templates/filterPane.html!text',
-    '../templates/filterBox.html!text'], function(override, $, filterPane, filterBox) {
+    '../templates/filterBox.html!text'], function(override, $, utils, filterPane, filterBox) {
     "use strict";
     
     function FilteringDataSource(delegate) {
@@ -180,7 +180,7 @@ define(['../override', 'jquery',
                         
                         rowMatches: function(settings, row) {
                             for(var x in settings) {
-                                if(!this.valueMatches(settings[x], row[x])) {
+                                if(!this.valueMatches(settings[x], utils.getValue(row, x))) {
                                     if(settings[x].type == 'inclusive') {
                                         return 0;
                                     }

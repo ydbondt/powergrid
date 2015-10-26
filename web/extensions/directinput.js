@@ -1,7 +1,7 @@
 /**
  * Will display columns with type "checkbox" or "radio" as respective inputs
  */
-define(['jquery','../override'], function($, override) {
+define(['jquery','../override', '../utils'], function($, override, utils) {
     "use strict";
     
     return {
@@ -39,7 +39,7 @@ define(['jquery','../override'], function($, override) {
                     },
                     
                     renderCellContent: function(record, column) {
-                        var value = this.getValue(record, column.key);
+                        var value = utils.getValue(record, column.key);
                         if(this.directinput.isDirectInput(column)) {
                             var input = document.createDocumentFragment();
                             if((value !== null && value !== undefined) || column.hideOnNull == false) {

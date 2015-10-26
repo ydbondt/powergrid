@@ -44,7 +44,7 @@ define(['../override', '../utils', 'jquery', 'jsrender/jsrender', '../extensions
                         f = col.groupProjection && col.groupProjection(nodes) || function(v) { return v; },
                         nextGroupings = groupings.slice(1);
                     for(var x=0,l=nodes.length;x<l;x++) {
-                        var g = f(nodes[x][col.key]);
+                        var g = f(utils.getValue(nodes[x], col.key));
                         var r = groupMap[g];
                         if(!r) {
                             groups.push(groupMap[g] = r = {

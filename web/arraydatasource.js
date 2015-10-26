@@ -1,4 +1,4 @@
-define(["jquery"], function($) {
+define(["jquery", "utils"], function($, utils) {
     "use strict";
     
     function ArrayDataSource(data, delay) {
@@ -53,7 +53,7 @@ define(["jquery"], function($) {
 
         setValue: function(rowId, key, value) {
             this.assertReady();
-            this.getRecordById(rowId)[key] = value;
+            utils.setValue(this.getRecordById(rowId), key, value);
             $(this).trigger("datachanged", { values: [ { id: rowId, key: key } ] });
         },
 
