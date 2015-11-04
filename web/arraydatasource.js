@@ -16,13 +16,13 @@ define(["jquery", "./utils"], function($, utils) {
               this.data = data;
             }
 
-            $(this).trigger("dataloaded");
             for(var x = 0, l = this.data.length;x<l;x++) {
                 if(this.data[x].id === undefined) {
                     this.data[x].id = x;
                 }
             }
 
+            $(this).trigger("dataloaded");
             this.ready = true;
         },
         
