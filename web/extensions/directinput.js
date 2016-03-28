@@ -1,7 +1,7 @@
 /**
  * Will display columns with type "checkbox" or "radio" as respective inputs
  */
-define(['jquery','../override', '../utils'], function($, override, utils) {
+define(['../jquery','../override', '../utils'], function($, override, utils) {
     "use strict";
     
     return {

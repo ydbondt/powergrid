@@ -3,7 +3,7 @@
  * @author Christoph Cantillon
  * Custom implementation of html5 drag and drop events which looks nicer because objects don't get a rectangular background.
  */
-define(['jquery'], function($) {
+define(['./jquery'], function($) {
     "use strict";
     
     function DragNDrop(container, selector, targetselector) {

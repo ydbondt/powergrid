@@ -1,4 +1,4 @@
-define(['jquery','../override'], function($, override) {
+define(['../jquery','../override'], function($, override) {
     
     return {
         init: function(grid, pluginOptions) {
