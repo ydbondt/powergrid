@@ -1,4 +1,4 @@
-define(['../override', '../utils', 'jquery', 'jsrender/jsrender', '../extensions/treegrid', '../dragndrop',
+define(['../override', '../utils', '../jquery', 'jsrender/jsrender', '../extensions/treegrid', '../dragndrop',
         '../templates/grouper.html!text',
         '../templates/grouprow.html!text',
         '../templates/groupindicator.html!text'],

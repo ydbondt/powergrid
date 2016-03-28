@@ -1,4 +1,4 @@
-define(['jquery', 'vein', './utils', './promise', 'require'], function($, vein, utils, Promise, require) {
+define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein, utils, Promise, require) {
     "use strict";
 
     var defaultOptions = {

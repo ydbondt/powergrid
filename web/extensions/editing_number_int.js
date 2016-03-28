@@ -7,7 +7,7 @@
  *  - currencyPrecision
  */
 
-define(['../override', 'jquery', '../utils', 'w2ui'], function(override, $) {
+define(['../override', '../jquery', '../utils', 'w2ui'], function(override, $) {
 
     "use strict";
 

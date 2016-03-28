@@ -37,7 +37,7 @@
         o[p[x]] = value;
     }
     
-    define(['jquery'], function($) {
+    define(['./jquery'], function($) {
         return {
             inAnimationFrame: function(f) {
                 if(inAnimFrame) {

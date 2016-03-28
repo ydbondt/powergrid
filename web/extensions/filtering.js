@@ -1,4 +1,4 @@
-define(['../override', 'jquery', '../utils',
+define(['../override', '../jquery', '../utils',
     '../templates/filterPane.html!text',
     '../templates/filterBox.html!text'], function(override, $, utils, filterPane, filterBox) {
     "use strict";
