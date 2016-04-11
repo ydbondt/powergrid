@@ -33,6 +33,8 @@ define(['override', 'jquery'], function(override, $) {
             this.delegate.assertReady();
             if(this.comparator) {
                 this.view = this.delegate.getData().sort(this.comparator);
+            } else {
+                this.view = this.delegate.getData()
             }
         },
 
