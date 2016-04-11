@@ -6,7 +6,7 @@ define(['override', 'jquery',], function(override, $) {
             return {
                 init: function init() {
                     $super.init.apply(this, arguments);
-                    this.container.on("mousedown", ".pg-row", function(evt) {
+                    this.container.on("mousedown", ".pg-rowgroup .pg-row", function(evt) {
                         var id = $(evt.currentTarget).data('row-id');
                         grid.selection.selectSingleRow(id);
                     });
