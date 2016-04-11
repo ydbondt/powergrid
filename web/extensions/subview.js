@@ -24,7 +24,10 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         event.preventDefault();
                     });
                 },
-                
+                findRow: function(rowId) {
+                    return $super.findRow(rowId).find('.pg-inner-row');
+                },
+
                 subviews: {
                     autoExpand: function(filter) {
                         for (var i = 0, j=grid.dataSource.data.length; i < j; i++) {

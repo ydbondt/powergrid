@@ -903,7 +903,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
         
         updateCellValue: function(rowId, key) {
-            var row = this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
+            var row = this.findRow(rowId);
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
             if(cell.length) {
                 var record = this.dataSource.getRecordById(rowId),
@@ -911,6 +911,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 cell.empty().append(this.renderCellContent(record, column));
                 this.afterCellRendered(record, column, cell);
             }
+        },
+
+        findRow: function(rowId) {
+            return this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
         },
 
         renderCellValue: function renderCellValue(record, column, value) {
