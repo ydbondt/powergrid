@@ -1,4 +1,4 @@
-define(['override', 'jquery'], function(override, $) {
+define(['override', 'jquery', 'utils'], function(override, $, utils) {
     
     "use strict";
     
@@ -209,19 +209,21 @@ define(['override', 'jquery'], function(override, $) {
         
         expandAll: function(rowId) {
             var ds = this;
-            function expandall(row) {
-                var children = ds.children(row);
-                if(children) {
-                    children.forEach(expandall);
+            utils.inAnimationFrame(function() {
+                function expandall(row) {
+                    var children = ds.children(row);
+                    if(children) {
+                        children.forEach(expandall);
+                    }
+                    ds.expand(row);
                 }
-                ds.expand(row);
-            }
-            
-            if(rowId === undefined) {
-                this.tree.forEach(expandall);
-            } else {
-                expandall(this.getRecordById(rowId));
-            }
+                
+                if(rowId === undefined) {
+                    ds.tree.forEach(expandall);
+                } else {
+                    expandall(ds.getRecordById(rowId));
+                }
+            });
         },
         
         collapseAll: function(rowId) {

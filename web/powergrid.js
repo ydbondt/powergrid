@@ -212,7 +212,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
             if(this.dataSource.isReady()) {
                 grid.trigger('dataloaded');
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid.renderData();
                     grid.trigger('viewchanged');
                 });
@@ -220,24 +220,24 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
             $(this.dataSource).on("dataloaded", function(event) {
                 grid.trigger('dataloaded', event.data);
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid.renderData();
                     grid.trigger('viewchanged');
                 });
             }).on("rowsremoved", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
                     grid.trigger('rowsremoved', data);
                     grid.trigger('viewchanged');
                 });
             }).on("rowsadded", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
                     grid.trigger('rowsadded', data);
                     grid.trigger('viewchanged');
                 });
             }).on("datachanged", function(event, data) {
-                requestAnimationFrame(function() {
+                utils.inAnimationFrame(function() {
                     if(data.data) {
                         grid._dataChanged(data.data, data.oldData);
                     }
@@ -324,11 +324,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                         self.scrollTo(Math.round(scrollPosition.left), Math.round(scrollPosition.top));
 
                         // request next frame.
-                        requestAnimationFrame(draw);
+                        utils.inAnimationFrame(draw);
                     }
                 };
 
-                requestAnimationFrame(draw);   
+                utils.inAnimationFrame(draw);   
             }
 
             this.target.on("touchstart", function(startevent) {
@@ -877,7 +877,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var self = this;
             if(!this.updateViewportTimer) {
                 this.updateViewportTimer = setTimeout(function() {
-                    requestAnimationFrame(self.updateViewport.bind(self));
+                    utils.inAnimationFrame(self.updateViewport.bind(self));
                     self.updateViewportTimer = null;
                 }, 100);
             }
