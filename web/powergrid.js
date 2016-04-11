@@ -805,7 +805,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
                 column.offsetLeft = pos;
 
-                pos += column.width;
+                pos += this.columnWidth(x);
             }
             
             this.adjustWidths(temporary);
