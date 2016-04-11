@@ -4,6 +4,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
     "use strict";
     
     function GroupingDataSource(delegate) {
+        var self = this;
         this.delegate = delegate;
         for (var x in this.delegate) {
             if (!this[x] && (typeof this.delegate[x] === "function")) {
