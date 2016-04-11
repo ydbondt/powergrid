@@ -25,7 +25,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                     });
                 },
                 findRow: function(rowId) {
-                    return $super.findRow(rowId).find('.pg-inner-row');
+                    var row = $super.findRow(rowId);
+                    var innerRow = row.find('.pg-inner-row');
+                    return innerRow.length == 0 ? row : innerRow;
                 },
 
                 subviews: {
