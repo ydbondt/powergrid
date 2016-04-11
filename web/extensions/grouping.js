@@ -200,8 +200,8 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                         });
                     },
                     
-                    headerHeight: function() {
-                        return $super.headerHeight() + this.target.find(".pg-grouper").outerHeight();
+                    headerContainerHeight: function() {
+                        return $super.headerContainerHeight() + this.target.find(".pg-grouper").outerHeight();
                     },
                     
                     renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {

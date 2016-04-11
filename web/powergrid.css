@@ -68,9 +68,9 @@
     position: absolute;
     cursor: default;
     display: inline-block;
-    overflow: hidden;
     border-right: 1px solid #757575;
     box-sizing: border-box;
+    min-height: 100%;
 }
 
 .pg-columnheader > .pg-resizehandle {
@@ -87,9 +87,10 @@
 
 .pg-columnheader > span {
     display: inline-block;
-    height: 31px;
     padding: 7px 8px;
     box-sizing: border-box;
+    white-space: normal;
+    width: 100%;
 }
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
@@ -114,9 +115,10 @@
 }
 
 .pg-filter-box {
-    position: relative;
+    position: absolute;
     left: 0px;
     right: 0px;
+    bottom: 0px;
 }
 
 .pg-filter-box > input.pg-filter-input {
@@ -285,7 +287,7 @@
 }
 
 .pg-row {
-    white-space: nowrap;
+    width: 100%;
     box-sizing: border-box;
     position: relative;
     transition: height 0.5s ease;
@@ -295,6 +297,7 @@
 
 .pg-columnheaders .pg-row {
     overflow: inherit;
+    height: 100%;
 }
 
 .pg-cell.pg-editing > input {

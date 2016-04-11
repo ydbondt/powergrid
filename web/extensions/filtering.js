@@ -116,8 +116,9 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
 
                     renderHeaderCell: function(column, columnIdx) {
                         var header = $super.renderHeaderCell(column, columnIdx);
-
+                        
                         if(column.filterable === undefined || column.filterable) {
+                            header.addClass("pg-filterable");
                             header.append(filterBox);
                             
                             header.on("keyup", ".pg-filter-input", function(event) {
@@ -126,6 +127,16 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                         }
 
                         return header;
+                    },
+                    
+                    filterHeight: function() {
+                        return Math.max.apply(undefined, this.target.find(".pg-columnheader .pg-filter-box").map(function(i, e) {
+                            return $(e).outerHeight();
+                        }));
+                    },
+                    
+                    headerHeight: function() {
+                        return $super.headerHeight() + this.filterHeight();
                     },
                     
                     filtering: {

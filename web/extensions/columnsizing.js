@@ -54,6 +54,7 @@ define(['override', 'utils', 'jquery'], function(override, utils, $) {
                             }
                             requestAnimationFrame(function() {
                                 grid.adjustColumnPositions(true);
+                                grid.adjustHeights();
                             });
                         }
 

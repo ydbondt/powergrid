@@ -752,11 +752,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         adjustHeights: function adjustHeights() {
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
-            var columnHeaderHeight = this.headerHeight();
+            var columnHeaderHeight = this.headerContainerHeight();
             var headerHeight = this.rowHeight(0, this.options.frozenRowsTop);
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
-            this.columnheadergroup.all.css("height", (columnHeaderHeight) + "px");
+            this.columnheadergroup.all.css("height", (this.headerHeight()) + "px");
             
             this.headercontainer && this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer && this.footercontainer.css("height", (footerHeight) + "px");
@@ -771,8 +771,14 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }
         },
         
+        headerContainerHeight: function() {
+            return this.headerHeight();
+        },
+        
         headerHeight: function headerHeight() {
-            return this.target.find(".pg-columnheader").height();
+            return Math.max.apply(undefined, this.target.find(".pg-columnheader span").map(function(i, e) {
+                return $(e).outerHeight();
+            }));
         },
 
         adjustColumnPositions: function adjustColumnPositions(temporary) {
