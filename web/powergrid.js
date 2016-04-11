@@ -70,10 +70,6 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         
         beginInit: function(callback) {
             var grid = this;
-            
-            if(!this.dataSource.isReady()) {
-                this.initLoadingIndicator();
-            }
 
             if(this.options.extensions) {
                 this.loadExtensions(function(pluginList, plugins) {
@@ -155,11 +151,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
 
         initLoadingIndicator: function () {
-            var grid = this;
-            $(this.container).addClass('pg-loading');
-            $(this.dataSource).on("dataloaded", function(event) {
-                $(grid.container).removeClass('pg-loading');
-            })
+            $(this.target).addClass('pg-loading');
         },
 
         init: function init() {
@@ -220,6 +212,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     grid.renderData();
                     grid.trigger('viewchanged');
                 });
+            } else {
+                this.initLoadingIndicator();
             }
 
             $(this.dataSource).on("dataloaded", function(event) {
@@ -234,6 +228,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
                     grid.queueAfterRender(function() {
                         grid.trigger('viewchanged');
+                        $(grid.target).removeClass('pg-loading');
                     });
                 });
             }).on("rowsremoved", function(event, data) {
