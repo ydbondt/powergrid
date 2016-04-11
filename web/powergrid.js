@@ -232,12 +232,20 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }).on("rowsremoved", function(event, data) {
                 utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
+
+                    grid.updateViewport();
+                    grid.adjustHeights();
+                    
                     grid.trigger('rowsremoved', data);
                     grid.trigger('viewchanged');
                 });
             }).on("rowsadded", function(event, data) {
                 utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
+
+                    grid.updateViewport();
+                    grid.adjustHeights();
+                    
                     grid.trigger('rowsadded', data);
                     grid.trigger('viewchanged');
                 });
@@ -556,9 +564,6 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 start = Math.min(scrollEnd, end);
                 this.viewport.end -= count;
             }
-
-            this.updateViewport();
-            this.adjustHeights();
         },
         
         viewRange: function() {
@@ -611,9 +616,6 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);
             }
-
-            this.updateViewport();
-            this.adjustHeights();
         },
         
         _applyDiff: function(diff) {
@@ -625,6 +627,9 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     this._removeRows(d.remove[0], d.remove[1]);
                 }
             }
+
+            this.updateViewport();
+            this.adjustHeights();
         },
         
         _dataChanged: function(data, oldData) {
