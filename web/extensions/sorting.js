@@ -61,7 +61,9 @@ define(['override', 'jquery'], function(override, $) {
                     
                     sorting: {
                         sort: function (columnSettings) {
-                            if (grid.dataSource.sort) {
+                            if(typeof grid.dataSource.sort !== 'function') {
+                                console.warn && console.warn("Trying to sort unsortable datasource");
+                            } else {
                                 grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
                             }
                         },
