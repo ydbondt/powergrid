@@ -14,8 +14,12 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                 editors: {
                     option: function(record, column, value) {
                         var select = $("<select>");
+                        var optionElement =  $('<option>');
+                        optionElement.text("");
+                        optionElement.value(null);
+                        select.append(optionElement);
                         for (var i = 0; i < column.options.length; i++) {
-                            var optionElement = $('<option>');
+                            optionElement = $('<option>');
                             var option = column.options[i];
                             optionElement.text(option.label);
                             optionElement.value(option.value);
