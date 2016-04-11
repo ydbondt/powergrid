@@ -49,6 +49,10 @@ define(['override', 'jquery'], function(override, $) {
             return this.view.slice(start, end);
         },
 
+        getValue: function(rowId, key) {
+            return this.delegate.getValue(rowId, key);
+        },
+
         setValue: function(rowId, key, value) {
             this.delegate.setValue(rowId, key, value);
         },
