@@ -465,6 +465,7 @@
     background-image: url('./expand.svg');
     background-size: 11px 11px;
     background-position: center center;
+    background-repeat: no-repeat;
 }
 
 .pg-tree-expanded .pg-treetoggle,
@@ -472,6 +473,9 @@
 .pg-tree-expanded .pg-grouping-grouptoggle
 {
     background-image: url('./collapse.svg');
+    background-size: 11px 11px;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
 .pg-subview-toggle.pg-info {
