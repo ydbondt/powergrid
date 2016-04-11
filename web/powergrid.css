@@ -575,3 +575,8 @@ ul.pg-menu > li:hover {
     text-align: center;
     background-color: #565655 !important;
 }
+.pg-groupheader span {
+    white-space:nowrap !important;
+    width: 100%;
+    overflow:hidden;
+}
