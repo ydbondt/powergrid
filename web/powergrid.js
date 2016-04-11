@@ -211,6 +211,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             if(this.dataSource.isReady()) {
+            	if(!grid.isInited) {
+                    grid.isInited = true;
+                    grid.trigger('inited', grid);
+                }
+            	
                 grid.trigger('dataloaded');
                 utils.inAnimationFrame(function() {
                     grid.renderData();
