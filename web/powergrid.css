@@ -567,3 +567,10 @@ ul.pg-menu > li:hover {
 .pg-columnheader-nested {
     position: absolute;
 }
+
+.pg-groupheader {
+    height: 34px;
+    margin: 0;
+    text-align: center;
+    background-color: #565655 !important;
+}
