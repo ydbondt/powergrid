@@ -589,7 +589,21 @@ ul.pg-menu > li:hover {
     top: 0;
     left: 0;
     z-index: 100;
-    opacity: 0.4;
-    background-color: #000;
+    background-color: rgba(0,0,0,0.5);
     position: absolute;
+}
+
+.columnsettings-popup {
+    background-color: #FFF;
+    color: #000;
+     margin: auto;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      width: 50%;
+      height: 300px;
+}
+
+.columnsettings-column {
+    overflow: hidden;
+
 }
