@@ -96,11 +96,15 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                     },
                     
                     commit: function(target, record, rowIdx, column, value, oldValue, move) {
-                        grid.dataSource.setValue(record.id, column.key, value);
+                        try {
+                            grid.dataSource.setValue(record.id, column.key, value);
+                        } catch(e) {
+                            console.error("Exception while committing value", record, column, value, e);
+                        }
                         this.endEdit(target, record, rowIdx, column, grid.dataSource.getRecordById(record.id)[column.key]);
-                        
+
                         var nextRowIdx = rowIdx, nextColumn = column, nextRecord = record;
-                        
+
                         if(move) {
                             switch(move) {
                                 case 1:
@@ -124,10 +128,10 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                                     } while(nextRecord && !this.isEditable(nextRecord, nextColumn));
                                     break;
                             }
-                            
+
                             if(nextRecord) {
                                 var targetCell = grid.getCellFor(nextRecord.id, nextColumn.key);
-                                
+
                                 this.startEdit(targetCell, nextColumn.key, nextRecord, nextRowIdx);
                             }
                         }
