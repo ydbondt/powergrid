@@ -5,8 +5,8 @@
     
     define(['jquery'], function($) {
         return {
-            inAnimationFrame: function(f) {
-                if(inAnimFrame) {
+            inAnimationFrame: function(f, queue) {
+                if(inAnimFrame && !queue) {
                     f();
                 } else {
                     animFrameQueue.push(f);

@@ -201,8 +201,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
             container.append(columnheadercontainer).append(headercontainer).append(scrollingcontainer).append(footercontainer).append(scroller.append(scrollFiller));
 
-            this.adjustWidths();
-            this.adjustColumnPositions();
+            this.queueAdjustColumnPositions();
 
             $(this.target).append(container);
 
@@ -232,27 +231,33 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 grid.trigger('dataloaded', event.data);
                 utils.inAnimationFrame(function() {
                     grid.renderData();
-                    grid.trigger('viewchanged');
+
+                    grid.queueAfterRender(function() {
+                        grid.trigger('viewchanged');
+                    });
                 });
             }).on("rowsremoved", function(event, data) {
                 utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
 
-                    grid.updateViewport();
-                    grid.adjustHeights();
-                    
-                    grid.trigger('rowsremoved', data);
-                    grid.trigger('viewchanged');
+                    grid.queueUpdateViewport();
+                    grid.queueAdjustHeights();
+                    grid.queueAfterRender(function() {
+                        grid.trigger('rowsremoved', data);
+                        grid.trigger('viewchanged');
+                    });
                 });
             }).on("rowsadded", function(event, data) {
                 utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
 
-                    grid.updateViewport();
-                    grid.adjustHeights();
-                    
-                    grid.trigger('rowsadded', data);
-                    grid.trigger('viewchanged');
+                    grid.queueUpdateViewport();
+                    grid.queueAdjustHeights();
+
+                    grid.queueAfterRender(function() {
+                        grid.trigger('rowsadded', data);
+                        grid.trigger('viewchanged');
+                    });
                 });
             }).on("datachanged", function(event, data) {
                 utils.inAnimationFrame(function() {
@@ -448,10 +453,12 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this._renderDataErrorMessage = '';
             }
             
-            this.updateViewport();
-            this.adjustHeights();
+            this.queueUpdateViewport();
+            this.queueAdjustHeights();
             this.syncScroll();
-            this.trigger("datarendered");
+            this.queueAfterRender(function() {
+                this.trigger("datarendered");
+            });
         },
         
         renderColumnHeaderContents: function(rowgroup) {
@@ -472,7 +479,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 var cell, column = this.options.columns[y];
                 cell = this.renderHeaderCell(column, y);
 
-                cell.addClass("pg-column" + column.key);
+                cell.addClass("pg-" + this.id + "-column" + column.key);
                 cell.attr("data-column-key", column.key);
 
                 if(y < this.options.frozenColumnsLeft) {
@@ -541,7 +548,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 cell = this.renderCell(record, column, rowIdx, y);
                 this.afterCellRendered(record, column, cell);
                 
-                cell.addClass("pg-column" + column.key);
+                cell.addClass("pg-" + this.id + "-column" + column.key);
                 cell.attr("data-column-key", column.key);
 
                 if(y < this.options.frozenColumnsLeft) {
@@ -641,8 +648,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 }
             }
 
-            this.updateViewport();
-            this.adjustHeights();
+            this.queueUpdateViewport();
+            this.queueAdjustHeights();
         },
         
         _dataChanged: function(data, oldData) {
@@ -748,9 +755,9 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 var column = columns[x];
                 var w = this.columnWidth(x);
                 if(this.options.fullWidth  && (x == this.options.columns.length - this.options.frozenColumnsRight  - 1)) {
-                    this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
+                    this._updateStyle(temporary, this.baseSelector + " .pg-" + this.id + "-column" + column.key, {"width": "auto", "min-width": w + "px", "right": "0"});
                 } else {
-                    this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {"width": w + "px", "right": "auto"});
+                    this._updateStyle(temporary, this.baseSelector + " .pg-" + this.id + "-column" + column.key, {"width": w + "px", "right": "auto"});
                 }
             }
             
@@ -811,7 +818,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     pos = 0;
                 }
                 positions[x] = pos;
-                this._updateStyle(temporary, this.baseSelector + " .pg-column" + column.key, {left: pos + "px"});
+                this._updateStyle(temporary, this.baseSelector + " .pg-" + this.id + "-column" + column.key, {left: pos + "px"});
                 column.offsetLeft = pos;
 
                 pos += this.columnWidth(x);
@@ -820,6 +827,60 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.adjustWidths(temporary);
 
             return positions;
+        },
+
+        queueRenderUpdate: function() {
+            var self = this;
+            if(this.renderQueue == undefined) {
+                this.renderQueue = {callbacks: []};
+                utils.inAnimationFrame(function() {
+                    self.processRenderQueue(self.renderQueue);
+
+                    self.renderQueue.callbacks.forEach(function(f) {
+                        f.apply(self);
+                    });
+
+                    self.renderQueue = undefined;
+                }, true);
+            }
+
+            return this.renderQueue;
+        },
+
+        processRenderQueue: function(queue) {
+            if(queue.updateViewport) {
+                this.updateViewport();
+            }
+
+            if(queue.adjustColumnPositions) {
+                this.adjustColumnPositions(queue.columnPositionsTemporary);
+            }
+
+            if(queue.adjustHeights) {
+                this.adjustHeights();
+            }
+        },
+
+        queueAdjustColumnPositions: function(temporary) {
+            var q = this.queueRenderUpdate();
+            if(!temporary) {
+                q.columnPositionsTemporary = false;
+            } else if(q.columnPositionsTemporary === undefined) {
+                q.columnPositionsTemporary = temporary;
+            }
+            q.adjustColumnPositions = true;
+        },
+
+        queueAdjustHeights: function() {
+            this.queueRenderUpdate().adjustHeights = true;
+        },
+
+        queueUpdateViewport: function() {
+            this.queueRenderUpdate().updateViewport = true;
+        },
+
+        queueAfterRender: function(f) {
+            this.queueRenderUpdate().callbacks.push(f);
         },
 
         columnWidth: function columnWidth(start, end) {

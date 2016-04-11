@@ -14,7 +14,6 @@ define(['override', 'jquery', 'extensions/currencyconversion'], function (overri
         override(grid, function ($super) {
             $.extend(true, grid.options.extensions.editing,
                 {
-                    grid: grid,
                     editors: {
                         currency: function (record, column, value) {
                             var input = $("<input>").w2field('money', {

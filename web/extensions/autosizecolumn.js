@@ -15,23 +15,14 @@ define(['override', 'utils', 'jquery'],
                 
                 if(shrink) {
                     col.width = 0;
-                    grid.adjustColumnPositions();
                 }
                 
-                var contentWidths = cells.map(function(i,e) { return e.scrollWidth });
-                var padding = 2;
+                var contentWidths = cells.map(function(i,e) { return e.scrollWidth }),
+                    padding = 2,
+                    oldWidth = col.width;
                 col.width = Math.max.apply(null, contentWidths) + padding;
-                grid.adjustColumnPositions();
+                return col.width != oldWidth;
             }
-            
-            grid.on("datarendered datachanged rowsadded", function(evt) {
-                for(var x=0,l=grid.options.columns.length;x<l;x++) {
-                    var col = grid.options.columns[x];
-                    if(col.autoSize) {
-                        autosize(col, true);
-                    }
-                }
-            });
             
             if(grid.options.extensions.columnsizing) {
                 return override(grid, function($super) {
@@ -46,10 +37,26 @@ define(['override', 'utils', 'jquery'],
                                     idx = utils.findInArray(grid.options.columns, function(col) { return col.key == key; }),
                                     col = grid.options.columns[idx];
                                 
-                                autosize(col, true);
+                                if(autosize(col, true)) {
+                                    grid.queueAdjustColumnPositions();
+                                }
                                 event.stopPropagation();
                                 event.preventDefault();
                             });
+                        },
+
+                        updateViewport: function() {
+                            $super.updateViewport();
+                            var resized = false;
+                            for(var x=0,l=grid.options.columns.length;x<l;x++) {
+                                var col = grid.options.columns[x];
+                                if(col.autoSize) {
+                                    resized |= autosize(col, true);
+                                }
+                            }
+                            if(resized) {
+                                this.queueAdjustColumnPositions();
+                            }
                         }
                     };
                 });

@@ -32,8 +32,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
 
                 subviews: {
                     autoExpand: function(filter) {
-                        for (var i = 0, j=grid.dataSource.data.length; i < j; i++) {
-                            var row = grid.dataSource.data[i];
+                        var data = grid.dataSource.getData();
+                        for (var i = 0, j=data.length; i < j; i++) {
+                            var row = data[i];
                             if (filter.apply(this, [row.id, grid.dataSource])) {
                                 this.expandView(row, i);
                             }
