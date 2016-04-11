@@ -31,15 +31,14 @@
 .pg-cell {
     position: absolute;
     display: inline-block;
-	
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    border-right: 1px solid rgba(0,0,0,0.1);
-	padding: 5px 8px;
+
+    /* border-top: 1px solid rgba(0,0,0,0.2); */
+    padding: 5px 8px;
     box-sizing: border-box;
     cursor: default;
     height: 100%;
     overflow: hidden;
-
+    border: 1px solid rgba(200,200,200,0.1);
     white-space: nowrap;
 }
 
@@ -126,7 +125,7 @@
 
 .pg-filter-box > input.pg-filter-input {
     width: 100%;
-
+    box-sizing: border-box;
     padding-left: 19px;
     margin: 0;
 }
@@ -371,7 +370,7 @@
 	position: absolute;
     overflow: hidden;
     z-index: 2;
-    /* border-top: 1px solid rgba(0, 0, 0, 0.27); */
+     border-top: 1px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
 
