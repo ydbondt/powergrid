@@ -39,6 +39,10 @@ define(['override', 'jquery'], function(override, $) {
                             grid.sorting.sort(sortColumns);
                             grid.saveSetting("sorting", sortColumns);
                         });
+
+                        $(grid.dataSource).one("dataloaded", function(e) {
+                            grid.sorting.sort(sortColumns);
+                        });
                     },
 
                     renderHeaderCell: function(column, columnIdx) {
