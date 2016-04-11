@@ -438,8 +438,16 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 end: 0
             };
 
+            this._renderDataErrorMessage = '';            
+            
             this.headergroup && this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
             this.footergroup && this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
+            
+            if ( typeof this._renderDataErrorMessage !== "undefined" && this._renderDataErrorMessage ) {
+                $.msgbox(i18n(this._renderDataErrorMessage), { type:'error', buttons : [{type: 'submit', value: i18n('close')}] });
+                this._renderDataErrorMessage = '';
+            }
+            
             this.updateViewport();
             this.adjustHeights();
             this.syncScroll();
@@ -1069,7 +1077,12 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             if (s) {
                 return JSON.parse(s);
             }
+        },
+        
+        setRenderDataErrorMessage: function (message) {
+        	this._renderDataErrorMessage = message
         }
+        
     };
 
     $.fn.extend({ PowerGrid: function(options) {
