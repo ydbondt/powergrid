@@ -562,3 +562,8 @@ ul.pg-menu > li:hover {
 .pg-editing select {
     width: auto;
 }
+
+/* NESTED HEADERS */
+.pg-columnheader-nested {
+    position: absolute;
+}
