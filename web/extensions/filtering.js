@@ -7,8 +7,10 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
         
         $(delegate).on("dataloaded", function(event) {
             self.reload();
+            $(self).trigger("dataloaded");
         }).on("datachanged", function(event) {
             self.reload();
+            $(self).trigger("datachanged");
         });
         
         if(delegate.isReady()) {
