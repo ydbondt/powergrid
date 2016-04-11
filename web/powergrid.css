@@ -600,14 +600,18 @@ ul.pg-menu > li:hover {
     position: absolute;
     top: 0; left: 0; bottom: 0; right: 0;
     width: 50%;
-    height: 300px;
-    padding: 30px;
+    height: 50%;
+    overflow: hidden;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 30px;
     border-radius: 3px;
 }
 
 .columnsettings-column {
     overflow: hidden;
-
+    width: 100%;
+    white-space: nowrap;
 }
 
 #columnsettings-close:after {
@@ -618,8 +622,8 @@ ul.pg-menu > li:hover {
 }
 #columnsettings-close {
     float: right;
-    margin-right: 10px;
-    margin-top: -10px;
+    margin-right: 0px;
+    margin-top: 10px;
     color: #CCC;
     cursor: pointer;
 }
