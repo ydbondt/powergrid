@@ -58,16 +58,7 @@ define(['override', 'jquery'], function(override, $) {
         },
 
         buildStatistics: function() {
-            return {
-                actualRecordCount: this.delegate && this.delegate.recordCount()
-            };
-        },
-
-        applyFilter: function(settings, filter) {
-            var oldview = this.view,
-                view = this.delegate.getData().filter(filter);
-            this.view = view;
-            $(this).trigger('datachanged', { data: view, oldData: oldview });
+            this.delegate.buildStatistics();
         },
 
         getRecordById: function(id) {
