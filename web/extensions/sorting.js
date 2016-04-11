@@ -58,7 +58,7 @@ define(['override', 'jquery'], function(override, $) {
         },
 
         buildStatistics: function() {
-            this.delegate.buildStatistics();
+            return this.delegate.buildStatistics();
         },
 
         getRecordById: function(id) {
