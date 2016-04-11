@@ -18,11 +18,22 @@ define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
                     currency: function(record, column, value) {
                         var input = $("<input>").w2field('money', {
                             autoFormat: true,
-                            currencyPrefix: '€',
+                            currencyPrefix: '',
                             currencyPrecision: column.precision,
-                            precision: column.precision
+                            precision: column.precision,
+                            groupSymbol: i18n('groupingSeparator'),
+                            decimalSymbol: i18n('decimalSeparator')
                         });
-                        input.value(value);
+                        input.val(value);
+                        
+                        var w2 = input.data('w2field');
+                        
+                        var v = input.val.bind(input);
+                        
+                        input.val = function(x) {
+                            return w2.clean(v());
+                        };
+                        
                         return input;
                     }
                 }
