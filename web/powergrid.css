@@ -596,14 +596,30 @@ ul.pg-menu > li:hover {
 .columnsettings-popup {
     background-color: #FFF;
     color: #000;
-     margin: auto;
-      position: absolute;
-      top: 0; left: 0; bottom: 0; right: 0;
-      width: 50%;
-      height: 300px;
+    margin: auto;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    width: 50%;
+    height: 300px;
+    padding: 30px;
+    border-radius: 3px;
 }
 
 .columnsettings-column {
     overflow: hidden;
 
+}
+
+#columnsettings-close:after {
+    position: absolute;
+    content: '\e014';
+    font-family: "Glyphicons Halflings";
+    font-size: 12pt;
+}
+#columnsettings-close {
+    float: right;
+    margin-right: 10px;
+    margin-top: -10px;
+    color: #CCC;
+    cursor: pointer;
 }
