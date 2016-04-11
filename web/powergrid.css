@@ -71,6 +71,7 @@
     border-right: 1px solid #757575;
     box-sizing: border-box;
     min-height: 100%;
+    overflow: hidden;
 }
 
 .pg-columnheader > .pg-resizehandle {
