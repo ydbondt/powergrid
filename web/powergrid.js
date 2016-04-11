@@ -760,7 +760,8 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.fixedLeft.css("width", leadingWidth + "px");
             this.fixedRight.css("width", trailingWidth + "px");
             this.columnheadergroup.right && this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
-            this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px"});
+            var minWidth = 'calc(100% - ' + leadingWidth +'px - ' + trailingWidth + 'px)';
+            this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px", "min-width":  minWidth});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
             
             if(this.options.autoResize) {
