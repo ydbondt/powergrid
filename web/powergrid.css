@@ -616,6 +616,7 @@ ul.pg-menu > li:hover {
     padding-right: 30px;
     padding-bottom: 30px;
     border-radius: 3px;
+    overflow: auto;
 }
 
 .columnsettings-column {
