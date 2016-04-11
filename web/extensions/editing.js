@@ -34,6 +34,10 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         
                         grid.editing.startEdit(targetCell, key, record, rowIdx);
                     });
+                    
+                    $(this.dataSource).on('editabilitychanged', function(event, attr) {
+                        grid.editing.updateEditability(attr.values);
+                    });
                 },
                 
                 editing: {
@@ -166,6 +170,22 @@ define(['override', 'jquery', 'utils'], function(override, $) {
 
                         setTimeout(editor[0].select.bind(editor[0]), 10);
                         return editor;
+                    },
+                    
+                    updateEditability: function(cells) {
+                        for(var x=0,l=cells.length;x<l;x++) {
+                            var cell = cells[x],
+                                column = grid.getColumnForKey(cell.key),
+                                row = grid.getRecordById(cell.id),
+                                cellElement = column && row && grid.getCellFor(cell.id, cell.key);
+                            if(cellElement) {
+                                this.updateCellEditability(row, column, cellElement);
+                            }
+                        }
+                    },
+                    
+                    updateCellEditability: function(row, column, cellElement) {
+                        $(cellElement).toggleClass("pg-editable", this.isEditable(row, column));
                     }
                 }
             }

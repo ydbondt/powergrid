@@ -27,7 +27,7 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
 
             $(delegate).on("dataloaded", this.load.bind(this));
             
-            $(delegate).on("datachanged", function(event, data) {
+            $(delegate).on("datachanged editabilitychanged", function(event, data) {
                 $(self).trigger(event.type, [data]);
             });
         } else {

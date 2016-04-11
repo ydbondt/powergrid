@@ -928,6 +928,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.afterCellRendered(record, column, cell);
             }
         },
+        
+        getRecordById: function(rowId) {
+            return this.dataSource.getRecordById(rowId);
+        },
 
         findRow: function(rowId) {
             return this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
