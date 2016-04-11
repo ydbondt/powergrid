@@ -149,7 +149,7 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                         } else {
                             editor = $("<input>").attr("type", column.type).val(value);
                         }
-                        var grid = this;
+                        var grid = this, hasChanged = false;
                         editor.on("keydown", function(event) {
                             switch(event.keyCode) {
                             case 13:
@@ -165,11 +165,13 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                         });
 
                         editor.on("blur", function(event) {
-                            if(pluginOptions.commitOnBlur !== false) {
+                            if(pluginOptions.commitOnBlur !== false && hasChanged) {
                                 $(this).trigger('commit', [editor.val()]);
                             } else if(pluginOptions.abortOnBlur === true) {
                                 $(this).trigger('abort');
                             }
+                        }).on("change", function(event) {
+                            hasChanged = true;
                         });
 
                         if (editor[0].select) {
