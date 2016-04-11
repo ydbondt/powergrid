@@ -251,6 +251,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             this.initScrollEvents();
+            grid.trigger('powerGridInitialized', grid);
         },
         
         destroy: function() {
