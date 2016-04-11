@@ -562,6 +562,17 @@ ul.pg-menu > li:hover {
     width: auto;
 }
 
+.pg-align-left {
+    text-align: left;
+}
+
+.pg-align-right {
+    text-align: right;
+}
+
+.pg-align-center {
+    text-align: center;
+}
 /* NESTED HEADERS */
 .pg-columnheader-nested {
     position: absolute;
