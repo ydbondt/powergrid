@@ -23,6 +23,13 @@ define(['override', 'jquery',], function(override, $) {
                         this.selectedElements.addClass("pg-selected");
                         
                         grid.trigger("rowselected", id);
+                    },
+
+                    selectedId: function() {
+                        if (!this.selectedElements) {
+                            return undefined;
+                        }
+                        return this.selectedElements.data('row-id');
                     }
                 }
             }
