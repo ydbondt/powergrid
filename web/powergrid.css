@@ -249,6 +249,7 @@
     background: #d0cdcd;
     width: 100vw;
     min-width: 100%;
+    white-space: nowrap;
 }
 
 .pg-group-column {
