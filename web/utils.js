@@ -12,18 +12,20 @@
                     animFrameQueue.push(f);
                     if(!animFrameRequested) {
                         animFrameRequested = true;
-                        requestAnimationFrame(function() {
-                            inAnimFrame = true;
-                            try {
-                                while(animFrameQueue.length) {
-                                    animFrameQueue.pop()();
-                                }
-                            } finally {
-                                inAnimFrame = false;
-                                animFrameRequested = false;
-                            }
-                        });
+                        requestAnimationFrame(this.handleAnimationFrames.bind(this));
                     }
+                }
+            },
+
+            handleAnimationFrames: function() {
+                inAnimFrame = true;
+                try {
+                    while(animFrameQueue.length) {
+                        animFrameQueue.pop()();
+                    }
+                } finally {
+                    inAnimFrame = false;
+                    animFrameRequested = false;
                 }
             },
             
