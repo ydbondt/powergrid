@@ -8,9 +8,9 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
         $(delegate).on("dataloaded", function(event) {
             self.reload();
             $(self).trigger("dataloaded");
-        }).on("datachanged", function(event) {
+        }).on("datachanged", function(event, data) {
             self.reload();
-            $(self).trigger("datachanged");
+            $(self).trigger("datachanged", [data]);
         });
         
         if(delegate.isReady()) {
@@ -62,6 +62,10 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                 view = this.delegate.getData().filter(filter);
             this.view = view;
             $(this).trigger('datachanged', { data: view, oldData: oldview });
+        },
+
+        getRecordById: function(id) {
+            return this.delegate.getRecordById(id);
         }
     };
     
