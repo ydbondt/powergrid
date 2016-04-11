@@ -7,11 +7,14 @@
  *  - currencyPrecision
  */
 
-define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
+define(['override', 'jquery', 'extensions/currencyconversion'], function(override, $, currencyconversion) {
 
     "use strict";
-
+    var currencyConverter;
     return {
+        init: function(grid, pluginOptions) {
+            currencyConverter = currencyconversion(grid.target);
+        },
         requires: {
             editing: {
                 editors: {
@@ -24,14 +27,16 @@ define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
                             groupSymbol: i18n('groupingSeparator'),
                             decimalSymbol: i18n('decimalSeparator')
                         });
-                        input.val(value);
+                        var offeringCurrency = currencyConverter.getCurrencyInformation().offeringCurrencyCode;
+                        var activeCurrencyCode = currencyConverter.getCurrencyInformation().activeCurrencyCode;
+                        input.val(currencyConverter.convert(offeringCurrency, activeCurrencyCode, value));
                         
                         var w2 = input.data('w2field');
-                        
+
                         var v = input.val.bind(input);
                         
                         input.val = function(x) {
-                            return w2.clean(v());
+                            return currencyConverter.convert(activeCurrencyCode, offeringCurrency, w2.clean(v()));
                         };
                         
                         return input;

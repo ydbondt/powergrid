@@ -167,7 +167,7 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                         editor.on("blur", function(event) {
                             if(pluginOptions.commitOnBlur !== false && hasChanged) {
                                 $(this).trigger('commit', [editor.val()]);
-                            } else if(pluginOptions.abortOnBlur === true) {
+                            } else if(pluginOptions.abortOnBlur === true || !hasChanged) {
                                 $(this).trigger('abort');
                             }
                         }).on("change", function(event) {
