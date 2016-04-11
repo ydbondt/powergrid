@@ -5,8 +5,7 @@
 
 .powergrid {
     position: relative;
-    top: 0;
-    bottom: 0;
+    height: 100%;
 }
 
 .powergrid,
