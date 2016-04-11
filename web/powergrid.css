@@ -149,7 +149,7 @@
 
 .pg-filter-pane {
     position: absolute;
-    z-index: 1000;
+    z-index: 1001;
     background: white;
     margin-top: 20px;
     margin-left: 7px;
