@@ -35,11 +35,6 @@ define(['jquery','override'], function($, override) {
                                 rowId = row.data("row-id");
                             
                             grid.dataSource.setValue(rowId, key, this.checked);
-                            if (grid.getColumnForKey(key).type === "radio") {
-                                cell.parent().siblings().each(function(index, el) {
-                                    grid.dataSource.setValue($(el).data("row-id"), key, !self.checked);
-                                });
-                            }
                         });
                     },
                     
