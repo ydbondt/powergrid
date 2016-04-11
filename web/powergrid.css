@@ -129,7 +129,7 @@
 .pg-filter {
     position: absolute;
     color: black;
-    font-family: "Glyphicons Halflings";
+    font-family: "Glyphicons Halflings" !important;
     left: 5px;
     top: 4px;
     cursor: default;
