@@ -127,7 +127,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 
                                 dragstarted = false;
                                 
-                                $(grid.baseSelector + " .pg-column" + col.key).css({ "transform": "" });
+                                $(".pg-" + grid.id + "-column" + col.key).css({ "transform": "" });
                                 cells.removeClass("pg-columndragging");
                                 
                                 event.preventDefault();
