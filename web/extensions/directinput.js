@@ -28,12 +28,18 @@ define(['jquery','override'], function($, override) {
                         $super.init();
                         
                         this.container.on("change", ".pg-directinput", function(evt) {
+                            var self = this;
                             var cell = $(this).parents(".pg-cell:eq(0)"),
                                 row = cell.parents(".pg-row:eq(0)"),
                                 key = cell.attr("data-column-key"),
                                 rowId = row.data("row-id");
                             
                             grid.dataSource.setValue(rowId, key, this.checked);
+                            if (grid.getColumnForKey(key).type === "radio") {
+                                cell.parent().siblings().each(function(index, el) {
+                                    grid.dataSource.setValue($(el).data("row-id"), key, !self.checked);
+                                });
+                            }
                         });
                     },
                     
