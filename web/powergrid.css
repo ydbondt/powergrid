@@ -426,7 +426,7 @@
     bottom: 0px;
 }
 
-.pg-loading > .powergrid:after {
+.pg-loading:after {
     content: '';
     display: block;
     position: absolute;

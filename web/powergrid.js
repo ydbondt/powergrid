@@ -211,6 +211,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 utils.inAnimationFrame(function() {
                     grid.renderData();
                     grid.trigger('viewchanged');
+                    $(grid.target).removeClass('pg-loading');
                 });
             } else {
                 this.initLoadingIndicator();
