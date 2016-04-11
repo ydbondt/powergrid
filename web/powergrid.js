@@ -341,11 +341,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                         self.scrollTo(Math.round(scrollPosition.left), Math.round(scrollPosition.top));
 
                         // request next frame.
-                        utils.inAnimationFrame(draw);
+                        requestAnimationFrame(draw);
                     }
                 };
 
-                utils.inAnimationFrame(draw);   
+                requestAnimationFrame(draw);
             }
 
             this.target.on("touchstart", function(startevent) {
