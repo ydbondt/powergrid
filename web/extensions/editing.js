@@ -1,4 +1,4 @@
-define(['override', 'jquery', 'utils'], function(override, $) {
+define(['override', 'jquery', 'utils'], function(override, $, utils) {
     
     "use strict";
     
@@ -84,9 +84,13 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                         }
                         
                         $(editor).on('commit', function(event, value, move) {
-                            editing.commit(target, record, rowIdx, column, value, oldValue, move);
+                            utils.inAnimationFrame(function() {
+                                editing.commit(target, record, rowIdx, column, value, oldValue, move);
+                            });
                         }).on('abort', function(event) {
-                            editing.abort(target, record, rowIdx, column, oldValue);
+                            utils.inAnimationFrame(function() {
+                                editing.abort(target, record, rowIdx, column, oldValue);
+                            });
                         });
                         $(target).addClass('pg-editing').empty().append(editor);
                     },
