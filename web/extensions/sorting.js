@@ -1,5 +1,86 @@
 define(['override', 'jquery'], function(override, $) {
     "use strict";
+
+    function SortingDataSource(delegate) {
+        var self = this;
+        this.delegate = delegate;
+
+        if(typeof delegate.applyFilter === 'function') {
+            this.applyFilter = delegate.applyFilter.bind(delegate);
+        }
+
+        $(delegate).on("dataloaded", function(event) {
+            self.reload();
+            $(self).trigger("dataloaded");
+        }).on("datachanged", function(event, data) {
+            self.reload();
+            $(self).trigger("datachanged", [data]);
+        });
+
+        if(delegate.isReady()) {
+            this.reload();
+        }
+    }
+
+    SortingDataSource.prototype = {
+        view: null,
+
+        isReady: function() {
+            return this.view != null;
+        },
+
+        reload: function() {
+            this.delegate.assertReady();
+            if(this.comparator) {
+                this.view = this.delegate.getData().sort(this.comparator);
+            }
+        },
+
+        recordCount: function() {
+            this.assertReady();
+            return this.view.length;
+        },
+
+        getData: function(start, end) {
+            this.assertReady();
+            if(!start && !end) return this.view;
+            if(!start) start = 0;
+            if(!end) end = this.recordCount();
+            return this.view.slice(start, end);
+        },
+
+        setValue: function(rowId, key, value) {
+            this.delegate.setValue(rowId, key, value);
+        },
+
+        assertReady: function() {
+            if(!this.isReady()) throw Error("Datasource not ready yet");
+        },
+
+        buildStatistics: function() {
+            return {
+                actualRecordCount: this.delegate && this.delegate.recordCount()
+            };
+        },
+
+        applyFilter: function(settings, filter) {
+            var oldview = this.view,
+                view = this.delegate.getData().filter(filter);
+            this.view = view;
+            $(this).trigger('datachanged', { data: view, oldData: oldview });
+        },
+
+        getRecordById: function(id) {
+            return this.delegate.getRecordById(id);
+        },
+
+        sort: function(comparator) {
+            this.comparator = comparator;
+            this.reload();
+            $(this).trigger("dataloaded");
+        }
+    };
+
     return {
         loadFirst: ['dragging', 'columnsizing'],
         init: function(grid, pluginOptions) {
@@ -14,6 +95,11 @@ define(['override', 'jquery'], function(override, $) {
                 return {
                     init: function() {
                         loadSettings();
+
+                        if(typeof this.dataSource.sort !== 'function') {
+                            this.dataSource = new SortingDataSource(this.dataSource);
+                        }
+
                         $super.init();
                         this.container.on("click", ".pg-columnheader", function(event) {
                             var key = $(this).attr('data-column-key'),
