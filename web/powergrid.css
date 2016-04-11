@@ -569,6 +569,7 @@ ul.pg-menu > li:hover {
 }
 
 .pg-groupheader {
+    position: absolute;
     height: 34px;
     margin: 0;
     text-align: center;
