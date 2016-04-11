@@ -11,6 +11,10 @@ define(['override', 'jquery', 'extensions/currencyconversion'], function (overri
 
     "use strict";
     return function (grid, pluginOptions) {
+        if(grid.currencyConverter === undefined) {
+            //skip plugin if currency is missing
+            return;
+        }
         override(grid, function ($super) {
             $.extend(true, grid.options.extensions.editing,
                 {
