@@ -278,6 +278,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 }
 
                 self.scrollBy(dX * ddX, dY * ddY);
+                evt.preventDefault();
             });
 
             this.initTouchScrollEvents();
