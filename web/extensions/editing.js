@@ -68,7 +68,8 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                             cell: target,
                             key: key,
                             record: record,
-                            rowIdx: rowIdx
+                            rowIdx: rowIdx,
+                            column: column
                         };
                         
                         var beforeEditEvent = new $.Event('beforeedit', opts);
