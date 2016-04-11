@@ -20,7 +20,7 @@ define(['jquery','override'], function($, override) {
                                 levels[validationresult[x].severity]=true;
                             }
                             var validationClasses = "pg-cell-invalid " + (Object.keys(levels).map(function(level) { return "pg-cell-validation-" + level }).join(" "));
-                            cell.addClass(validationClasses).attr("title", validationresult.message);
+                            cell.addClass(validationClasses).attr("title", i18n(validationresult[0].message));
                             cell.data("validationclasses", validationClasses); // store validationclasses separately so we can more easily remove them afterwards when needed
                         }
                         
