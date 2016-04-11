@@ -12,7 +12,7 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                 renderCell: function renderCell(record, column, rowIdx, columnIdx) {
                     var cell = $super.renderCell(record, column, rowIdx, columnIdx);
                     if(column.align) {
-                        cell.addClass("pg-align-" + column.align);
+                        cell.classList.add("pg-align-" + column.align);
                     }
                     return cell;
                 }

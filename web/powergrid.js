@@ -37,6 +37,18 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
     });
 
+    function elementWithClasses(tagname, classes) {
+        var el = document.createElement(tagname);
+        if(classes) {
+            el.className=classes;
+        }
+        return el;
+    };
+
+    function nonFalse(e) {
+        return e !== false;
+    };
+
     function PowerGrid(target, options) {
         var grid = this;
         this.options = options;
@@ -451,26 +463,26 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             
             this.queueUpdateViewport();
             this.queueAdjustHeights();
-            this.syncScroll();
+            //this.queueSyncScroll();
             this.queueAfterRender(function() {
                 this.trigger("datarendered");
             });
         },
-        
+
         renderColumnHeaderContents: function(rowgroup) {
             var rowFixedPartLeft = rowgroup.left && $("<div class='pg-row pg-fixed'>"),
                 rowScrollingPart = rowgroup.scrolling && $("<div class='pg-row pg-scrolling'>"),
                 rowFixedPartRight = rowgroup.right && $("<div class='pg-row pg-fixed'>"),
                 rowParts = $();
-            
+
             if(rowgroup.left) rowgroup.left.append(rowFixedPartLeft);
             if(rowgroup.scrolling) rowgroup.scrolling.append(rowScrollingPart);
             if(rowgroup.right) rowgroup.right.append(rowFixedPartRight);
-            
+
             if(rowFixedPartLeft) rowParts = rowParts.add(rowFixedPartLeft);
             if(rowScrollingPart) rowParts = rowParts.add(rowScrollingPart);
             if(rowFixedPartRight) rowParts = rowParts.add(rowFixedPartRight);
-            
+
             for(var y = 0; y < this.options.columns.length; y++) {
                 var cell, column = this.options.columns[y];
                 cell = this.renderHeaderCell(column, y);
@@ -488,13 +500,20 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }
         },
 
+        rowGroupTemplates: {
+            fixed: elementWithClasses("div", "pg-row pg-fixed"),
+            scrolling: elementWithClasses("div", "pg-row pg-scrolling")
+        },
+
         renderRowGroupContents: function(start, end, rowgroup, prepend, atIndex) {
+            var self = this;
+
             if(atIndex == -1 && !prepend) {
                 // we're inserting a row after -1, so basically prepend before anything else
                 atIndex = undefined;
                 prepend = true;
             }
-            
+
             var method = atIndex === undefined ? (prepend === true ? 'prepend' : 'append') : (prepend === true ? 'before' : 'after');
 
             var reverse = prepend ^ (atIndex !== undefined);
@@ -511,48 +530,56 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 targetRight = rowgroup.right && rowgroup.right.children(".pg-row:eq(" + atIndex + ")");
             }
 
+            var fragmentLeft = targetLeft && document.createDocumentFragment(),
+                fragmentMiddle = targetMiddle && document.createDocumentFragment(),
+                fragmentRight = targetRight && document.createDocumentFragment();
+
             var dataSubset = this.dataSource.getData(start<0?0:start, end);
 
-            for(var x = reverse ? end - 1 : start; reverse ? x >= start : x < end; reverse ? x-- : x++) {
-                var rowFixedPartLeft = targetLeft && $("<div class='pg-row pg-fixed'>");
-                var rowScrollingPart = targetMiddle && $("<div class='pg-row pg-scrolling'>");
-                var rowFixedPartRight = targetRight && $("<div class='pg-row pg-fixed'>");
-
-                var rowParts = $();
-                if(rowFixedPartLeft) rowParts = rowParts.add(rowFixedPartLeft);
-                if(rowScrollingPart) rowParts = rowParts.add(rowScrollingPart);
-                if(rowFixedPartRight) rowParts = rowParts.add(rowFixedPartRight);
-
+            for(var x = start; x < end; x++) {
                 var record = dataSubset[x-start];
-                rowParts.attr("data-row-idx", x).attr("data-row-id", record.id);
+
+                var rowFixedPartLeft = targetLeft && this.rowGroupTemplates.fixed.cloneNode();
+                var rowScrollingPart = targetMiddle && this.rowGroupTemplates.scrolling.cloneNode();
+                var rowFixedPartRight = targetRight && this.rowGroupTemplates.fixed.cloneNode();
+
+                var rowParts = [rowFixedPartLeft, rowScrollingPart, rowFixedPartRight].filter(nonFalse);
 
                 this.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
 
                 this.afterRenderRow(record, x, rowParts);
 
-                $(rowParts).css('height', this.rowHeight(x) + "px");
+                rowParts.forEach(function(e) {
+                    e.setAttribute("data-row-idx", x);
+                    e.setAttribute("data-row-id", record.id);
+                    e.style.height = self.rowHeight(x) + "px";
+                });
 
-                if(targetLeft) targetLeft[method](rowFixedPartLeft);
-                if(targetMiddle) targetMiddle[method](rowScrollingPart);
-                if(targetRight) targetRight[method](rowFixedPartRight);
+                if(fragmentLeft)   fragmentLeft.appendChild(rowFixedPartLeft);
+                if(fragmentMiddle) fragmentMiddle.appendChild(rowScrollingPart);
+                if(fragmentRight)  fragmentRight.appendChild(rowFixedPartRight);
             }
+
+            if(targetLeft) targetLeft[method](fragmentLeft);
+            if(targetMiddle) targetMiddle[method](fragmentMiddle);
+            if(targetRight) targetRight[method](fragmentRight);
         },
-        
+
         renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
             for(var y = 0; y < this.options.columns.length; y++) {
                 var cell, column = this.options.columns[y];
                 cell = this.renderCell(record, column, rowIdx, y);
                 this.afterCellRendered(record, column, cell);
-                
-                cell.addClass("pg-" + this.id + "-column" + column.key);
-                cell.attr("data-column-key", column.key);
+
+                cell.className += " pg-" + this.id + "-column" + column.key;
+                cell.setAttribute("data-column-key", column.key);
 
                 if(y < this.options.frozenColumnsLeft) {
-                    rowFixedPartLeft.append(cell);
+                    rowFixedPartLeft.appendChild(cell);
                 } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
-                    rowFixedPartRight.append(cell);
+                    rowFixedPartRight.appendChild(cell);
                 } else {
-                    rowScrollingPart.append(cell);
+                    rowScrollingPart.appendChild(cell);
                 }
             }
         },
@@ -581,7 +608,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.viewport.end -= count;
             }
         },
-        
+
         viewRange: function() {
             var self = this,
                 start = this.options.frozenRowsTop,
@@ -589,13 +616,13 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end);
-            
+
             range.begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
             range.end = Math.min(end, range.end + this.options.virtualScrollingExcess);
-            
+
             return range;
         },
-        
+
         scrollToCell: function(rowIdx, columnKey) {
             var self = this,
                 start = this.options.frozenRowsTop,
@@ -605,23 +632,23 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
                 newScrollTop = sPos.top,
                 newScrollLeft = sPos.left;
-                                               
+
             if( (!this.options.frozenRowsTop || rowIdx >= this.options.frozenRowsTop) &&
                 (!this.options.frozenRowsBottom || rowIdx < this.dataSource.recordCount() - this.options.frozenRowsBottom)) {
-             
+
                 // row is in scrolling part
                 if(rowIdx <= range.begin || rowIdx >= range.end) {
                     // row is outside viewport. we gotta scroll.
                     newScrollTop = Math.max(0, this.rowHeight(start, rowIdx) - sArea.height / 2);
                 }
             }
-            
+
             this.scrollTo(newScrollLeft, newScrollTop);
         },
 
         _addRows: function(start, end) {
             var range = this.viewRange();
-            
+
             if(start >= this.viewport.begin && start <= this.viewport.end) {
                 console.log("Adding rows " + start + " to " + end);
                 // new rows being added to the virtual scrolling container, so that means:
@@ -633,7 +660,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.viewport.end += (end - start);
             }
         },
-        
+
         _applyDiff: function(diff) {
             for(var x=0,l=diff.length;x<l;x++) {
                 var d = diff[x];
@@ -647,7 +674,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.queueUpdateViewport();
             this.queueAdjustHeights();
         },
-        
+
         _dataChanged: function(data, oldData) {
             var diff = this.diff(oldData, data);
             this._applyDiff(diff);
@@ -729,7 +756,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
             this.viewport = range;
         },
-        
+
         _updateStyle: function(temporary, selector, style) {
             if(temporary === true) {
                 $(selector).css(style);
@@ -756,7 +783,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                     this._updateStyle(temporary, this.baseSelector + " .pg-" + this.id + "-column" + column.key, {"width": w + "px", "right": "auto"});
                 }
             }
-            
+
             var leadingWidth = this.columnWidth(0, this.options.frozenColumnsLeft);
             var middleWidth = this.columnWidth(this.options.frozenColumnsLeft, this.options.columns.length - this.options.frozenColumnsRight);
             var trailingWidth = this.columnWidth(this.options.columns.length - this.options.frozenColumnsRight, this.options.columns.length);
@@ -766,7 +793,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var minWidth = 'calc(100% - ' + leadingWidth +'px - ' + trailingWidth + 'px)';
             this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px", "min-width":  minWidth});
             this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
-            
+
             if(this.options.autoResize) {
                 this.container.css({"width": (this.columnWidth(0, this.options.columns.length)) + "px" });
             }
@@ -779,12 +806,12 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
             this.columnheadergroup.all.css("height", (this.headerHeight()) + "px");
-            
+
             this.headercontainer && this.headercontainer.css("height", (headerHeight) + "px").css("top", (columnHeaderHeight) + "px");
             this.footercontainer && this.footercontainer.css("height", (footerHeight) + "px");
-            
+
             this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + (this.options.autoResize ? 0 : scrollBarSize.height)) + "px");
-            
+
             this.scroller.css("top", columnHeaderHeight + "px");
             this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
 
@@ -792,11 +819,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.container.css({"height": (this.rowHeight(0, this.dataSource.recordCount()) + columnHeaderHeight) + "px"});
             }
         },
-        
+
         headerContainerHeight: function() {
             return this.headerHeight();
         },
-        
+
         headerHeight: function headerHeight() {
             return Math.max.apply(undefined, this.target.find(".pg-columnheader span").map(function(i, e) {
                 return $(e).outerHeight();
@@ -819,7 +846,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
                 pos += this.columnWidth(x);
             }
-            
+
             this.adjustWidths(temporary);
 
             return positions;
@@ -844,6 +871,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
         },
 
         processRenderQueue: function(queue) {
+            if(queue.syncScroll) {
+                this.syncScroll(true);
+            }
+
             if(queue.updateViewport) {
                 this.updateViewport();
             }
@@ -877,6 +908,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         queueAfterRender: function(f) {
             this.queueRenderUpdate().callbacks.push(f);
+        },
+
+        queueSyncScroll: function() {
+            this.queueRenderUpdate().syncScroll = true;
         },
 
         columnWidth: function columnWidth(start, end) {
@@ -950,13 +985,19 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             };
         },
 
-        syncScroll: function syncScroll(source, event) {
+        syncScroll: function syncScroll(source, event, lazy) {
             // Sync the scrolling between the scrolling divs
             // tested CSS class injection, but was slower than direct manipulation in this case
+            if(arguments.length == 1 && typeof(arguments[0]) == 'boolean') {
+                lazy = arguments[0];
+                source = undefined;
+            }
             if(!source) source = this.scroller[0];
             this.container.children('.pg-scrolling').scrollTop(source.scrollTop);
             this.middleScrollers.css('transform', 'translate(-' + source.scrollLeft + 'px,0)');
-            this.afterscroll();
+            if(!lazy) {
+                this.afterscroll();
+            }
         },
 
         afterscroll: function() {
@@ -975,25 +1016,34 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             return $("<div class='pg-columnheader'>").append($("<span>").text(column.title));
         },
 
+        renderCellTemplate: (function() {
+            var el = document.createElement("div");
+            el.className = 'pg-cell';
+            return el;
+        })(),
+
         renderCell: function renderCell(record, column, rowIdx, columnIdx) {
             // Render the cell container
-            return $("<div class='pg-cell'>").append(this.renderCellContent(record, column));
+            var el = this.renderCellTemplate.cloneNode();
+            var content = this.renderCellContent(record, column);
+            el.appendChild(content);
+            return el;
         },
-        
+
         renderCellContent: function(record, column) {
             return this.renderCellValue(record, column, this.getCellTextValue(record[column.key], record, column))
         },
-        
+
         updateCellValues: function(list) {
             for(var x=0,l=list.length;x<l;x++) {
                 this.updateCellValue(list[x].id, list[x].key);
             }
         },
-        
+
         afterCellRendered: function(record, column, cell) {
-            
+
         },
-        
+
         updateCellValue: function(rowId, key) {
             var row = this.findRow(rowId);
             var cell = row.children(".pg-cell[data-column-key='" + key + "']");
@@ -1004,7 +1054,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                 this.afterCellRendered(record, column, cell);
             }
         },
-        
+
         getRecordById: function(rowId) {
             return this.dataSource.getRecordById(rowId);
         },
@@ -1013,9 +1063,18 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             return this.container.find("> .pg-rowgroup > .pg-container > .pg-row[data-row-id='" + rowId + "']");
         },
 
+        cellValueTemplate: (function() {
+            var el = document.createElement("span");
+            return el;
+        })(),
+
         renderCellValue: function renderCellValue(record, column, value) {
             // Render the cell content
-            return value != null ? $("<span>").text(value) : $("<span>");
+            var el = this.cellValueTemplate.cloneNode();
+            if(value != null) {
+                el.textContent = value;
+            }
+            return el;
         },
 
         getCellTextValue: function (value, record, column) {

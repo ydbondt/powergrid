@@ -10,7 +10,7 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
 
                     var editable = this.editing.isEditable(record, column);
                     if(editable) {
-                        cell.addClass("pg-editable");
+                        cell.classList.add("pg-editable");
                     }
                     
                     return cell;

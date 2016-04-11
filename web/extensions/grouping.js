@@ -207,8 +207,8 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                     renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
                         if(record.groupRow) {
                             var firstPart = rowFixedPartLeft || rowScrollingPart || rowFixedPartRight;
-                            firstPart.addClass("pg-grouping-grouprow");
-                            firstPart.html(groupRowTemplate.render(record, { column: record._groupColumn }));
+                            $(firstPart).addClass("pg-grouping-grouprow");
+                            $(firstPart).html(groupRowTemplate.render(record, { column: record._groupColumn }));
                         } else {
                             $super.renderRowToParts(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
                         }

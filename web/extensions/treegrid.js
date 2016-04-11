@@ -401,16 +401,20 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
                     
                     afterRenderRow: function(record, idx, rowparts) {
                         $super.afterRenderRow(record, idx, rowparts);
-                        rowparts.toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
+                        $(rowparts).toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
                     },
 
                     renderCellContent: function(record, column) {
                         var content = $super.renderCellContent.apply(this, arguments);
                         if(column.treeColumn) {
-                            return $('<div>')
-                                .addClass((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf")
-                                .addClass('pg-tree-level-' + treeDS.treeSettings(record).depth)
-                                .add(content);
+                            var el = document.createElement("div");
+                            el.classList.add((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf");
+                            el.classList.add('pg-tree-level-' + treeDS.treeSettings(record).depth);
+
+                            var frag = document.createDocumentFragment();
+                            frag.appendChild(el);
+                            frag.appendChild(content);
+                            return frag;
                         } else {
                             return content;
                         }

@@ -20,8 +20,8 @@ define(['jquery','override'], function($, override) {
                     updateValidationStatus: function(record, column, cell) {
                         var validationresult = grid.validation.validate(record, column, cell);
 
-                        var previousClasses = cell.data("validationclasses");
-                        if(previousClasses) cell.removeClass(previousClasses);
+                        var previousClasses = cell.validationclasses;
+                        if(previousClasses) $(cell).removeClass(previousClasses);
 
                         if(validationresult) {
                             var levels = {};
@@ -29,8 +29,8 @@ define(['jquery','override'], function($, override) {
                                 levels[validationresult[x].severity]=true;
                             }
                             var validationClasses = "pg-cell-invalid " + (Object.keys(levels).map(function(level) { return "pg-cell-validation-" + level }).join(" "));
-                            cell.addClass(validationClasses).attr("title", i18n(validationresult[0].message));
-                            cell.data("validationclasses", validationClasses); // store validationclasses separately so we can more easily remove them afterwards when needed
+                            $(cell).addClass(validationClasses).attr("title", i18n(validationresult[0].message));
+                            cell.validationclasses = validationClasses; // store validationclasses separately so we can more easily remove them afterwards when needed
                         }
                     },
 
