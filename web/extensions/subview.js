@@ -13,24 +13,33 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         var row = $(this).parents(".pg-row").first(),
                             rowId = row.attr("data-row-id"),
                             rowIdx = parseInt(row.attr("data-row-idx"));
-                        
+
                         if(!subviewsExpanded[rowId]) {
                             grid.subviews.expandView(grid.dataSource.getRecordById(rowId), rowIdx);
                         } else {
                             grid.subviews.collapseView(grid.dataSource.getRecordById(rowId), rowIdx);
                         }
-                        
+
                         event.stopPropagation();
                         event.preventDefault();
                     });
                 },
                 
                 subviews: {
+                    autoExpand: function(filter) {
+                        for (var i = 0, j=grid.dataSource.data.length; i < j; i++) {
+                            var row = grid.dataSource.data[i];
+                            if (filter.apply(this, [row.id, grid.dataSource])) {
+                                this.expandView(row, i);
+                            }
+                        }
+                    },
                     expandView: function(record, rowIdx) {
                         var group = grid.getRowGroupFor(rowIdx);
                         if(!subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = true;
                             grid.afterRenderRow(record, rowIdx, group.all.children("[data-row-id='" + record.id + "']"));
+                            group.all.find('.pg-subview-toggle').addClass('pg-subview-expanded');
                         }
                     },
 
@@ -39,6 +48,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         if(subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = false;
                             group.all.children("[data-row-id='" + record.id + "']").css("height", grid.rowHeight(rowIdx) + "px");
+                            group.all.find('.pg-subview-toggle').removeClass('pg-subview-expanded');
                         }
                     },
                     
