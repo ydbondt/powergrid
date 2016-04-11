@@ -219,6 +219,11 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             }
 
             $(this.dataSource).on("dataloaded", function(event) {
+                if(!grid.isInited) {
+                    grid.isInited = true;
+                    grid.trigger('inited', grid);
+                }
+                
                 grid.trigger('dataloaded', event.data);
                 utils.inAnimationFrame(function() {
                     grid.renderData();
@@ -251,12 +256,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             });
 
             this.initScrollEvents();
-            grid.trigger('inited', grid);
-            this.inited = true;
         },
         
         ready: function(callback) {
-            if(this.inited) callback.apply(this, [this]);
+            if(this.isInited) callback.apply(this, [this]);
             else this.on('inited', callback.bind(this, this));
         },
         
