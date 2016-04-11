@@ -1,6 +1,68 @@
 define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../templates/filterBox.html'], function(override, $, filterPane, filterBox) {
     "use strict";
     
+    function FilteringDataSource(delegate) {
+        var self = this;
+        this.delegate = delegate;
+        
+        $(delegate).on("dataloaded", function(event) {
+            self.reload();
+        }).on("datachanged", function(event) {
+            self.reload();
+        });
+        
+        if(delegate.isReady()) {
+            this.reload();
+        }
+    }
+    
+    FilteringDataSource.prototype = {
+        view: null,
+        
+        isReady: function() {
+            return this.view != null;
+        },
+        
+        reload: function() {
+            this.delegate.assertReady();
+            this.view = this.delegate.getData();
+        },
+        
+        recordCount: function() {
+            this.assertReady();
+            return this.view.length;
+        },
+        
+        getData: function(start, end) {
+            this.assertReady();
+            if(!start && !end) return this.view;
+            if(!start) start = 0;
+            if(!end) end = this.recordCount();
+            return this.view.slice(start, end);
+        },
+
+        setValue: function(rowId, key, value) {
+            this.delegate.setValue(rowId, key, value);
+        },
+        
+        assertReady: function() {
+            if(!this.isReady()) throw Error("Datasource not ready yet");
+        },
+        
+        buildStatistics: function() {
+            return {
+                actualRecordCount: this.delegate && this.delegate.recordCount()
+            };
+        },
+        
+        applyFilter: function(settings, filter) {
+            var oldview = this.view,
+                view = this.delegate.getData().filter(filter);
+            this.view = view;
+            $(this).trigger('datachanged', { data: view, oldData: oldview });
+        }
+    };
+    
     return {
         init: function(grid, pluginOptions) {
             return override(grid, function($super) {
@@ -10,6 +72,10 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                 
                 return {
                     init: function() {
+                        if(typeof this.dataSource.applyFilter !== 'function') {
+                            this.dataSource = new FilteringDataSource(this.dataSource);
+                        }
+                        
                         $super.init();
                         
                         this.container.on("click", ".pg-filter", function(event) {
