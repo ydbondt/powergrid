@@ -2,7 +2,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
     "use strict";
 
     var defaultOptions = {
-        virtualScrollingExcess: 30, // defines the number of extra rows to render on each side (top/bottom) of the viewport. This reduces flickering when scrolling.
+        virtualScrollingExcess: 10, // defines the number of extra rows to render on each side (top/bottom) of the viewport. This reduces flickering when scrolling.
         frozenRowsTop: 0,
         frozenRowsBottom: 0,
         frozenColumnsLeft: 0,
@@ -48,6 +48,14 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
     function nonFalse(e) {
         return e !== false;
     };
+
+    function overlap(a,b) {
+        if(!a || !b) return false;
+        if(a.begin <= b.begin && a.end >= b.begin) return true;
+        if(a.begin <= b.end && a.end >= b.end) return true;
+        if(a.begin >= b.begin && a.end <= b.end) return true;
+        if(a.begin <= b.begin && a.end >= b.end) return true;
+    }
 
     function PowerGrid(target, options) {
         var grid = this;
@@ -446,10 +454,10 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
 
-            this.viewport = {
+            this.setViewport({
                 begin: 0,
                 end: 0
-            };
+            });
 
             this._renderDataErrorMessage = '';            
             
@@ -680,81 +688,114 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
             this._applyDiff(diff);
         },
 
-        updateViewport: function() {
+        updateViewport: function(renderExcess) {
             var self = this,
                 start = this.options.frozenRowsTop,
                 end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
-                range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
-                scrolling = this.scrollingcontainer,
-                group = this.scrollinggroup,
-                allParts = group.all;
+                rowsInView = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
+                rowsInViewWithExcess = {
+                    begin: Math.max(start, rowsInView.begin - this.options.virtualScrollingExcess),
+                    end: Math.min(end, rowsInView.end + this.options.virtualScrollingExcess)
+                },
+                range;
 
-            // adjust range with excess
-            range.begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
-            range.end = Math.min(end, range.end + this.options.virtualScrollingExcess);
-
-            if(range.begin == this.viewport.begin && range.end == this.viewport.end) return; // viewport hasn't changed, so bail out
-
-            var leadingHeight = this.rowHeight(start, range.begin),
-                trailingHeight = this.rowHeight(range.end, end);
-
-            function overlap(a,b) {
-                if(a.begin <= b.begin && a.end >= b.begin) return true;
-                if(a.begin <= b.end && a.end >= b.end) return true;
-                if(a.begin >= b.begin && a.end <= b.end) return true;
-                if(a.begin <= b.begin && a.end >= b.end) return true;
-            }
-
-            if(overlap(range, this.viewport)) {
-                if(range.begin < this.viewport.begin) {
-                    // have to add rows to beginning
-                    this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, this.viewport.begin), this.scrollinggroup, true);
-                } else if(range.begin > this.viewport.begin) {
-                    // have to remove rows from beginning
-                    allParts.each(function(i,part) {
-                        $(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')').remove();
-                    });
-                }
-
-                if(range.end < this.viewport.end && range.end > this.viewport.begin) {
-                    // have to remove rows from end
-                    allParts.each(function(i,part) {
-                        $(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')').remove();
-                    });
-                } else if(range.end > this.viewport.end) {
-                    // have to add rows to end
-                    this.renderRowGroupContents(Math.max(this.viewport.end, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+            // updateViewport does a two-pass refresh of the viewport. In the first pass, it will render only the rows
+            // that are necessary to fill the current viewport. The second pass (renderExcess == true) is called at the
+            // next available timeslot, and adds the excess rows. This is to ensure that the time before the user sees
+            // the updated viewport is as short as possible, and the user does not have to wait for rows to render
+            // that he's not going to see anyway.
+            if(!renderExcess) {
+                // First pass, render as little as possible.
+                if(overlap(this.viewport, rowsInViewWithExcess)) {
+                    // the target viewport is adjacent to the current one, so we'll take the union of the current
+                    // viewport with what is going to be visible to the user. That means no rows are being removed
+                    // from the DOM just yet, only rows are being added (either rows that are going to be visible,
+                    // or excess rows that are required in the DOM to keep the viewport contiguous).
+                    range = {
+                        begin: Math.min(rowsInView.begin, this.viewport.begin),
+                        end: Math.max(rowsInView.end, this.viewport.end)
+                    }
+                } else {
+                    // there is no overlap of the current viewport with the target viewport, so just drop the current
+                    // viewport alltogether.
+                    range = rowsInView;
                 }
             } else {
-                // no overlap, just clear the entire thing and rebuild
-                allParts.empty();
-                this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+                range = rowsInViewWithExcess;
             }
 
-            allParts.css('padding-top', leadingHeight + 'px');
-            allParts.css('padding-bottom', trailingHeight + 'px');
+            //console.log("UpdateViewport (renderExcess = %s, range %d to %d, current viewport %d to %d)",renderExcess && true,range.begin,range.end,this.viewport.begin,this.viewport.end);
 
-            if(false) { // change to if(true) if you want to debug virtual scrolling. Disable for performance
-                // verify
-                var idxsMatched = {};
-                $(allParts).children('.pg-row').each(function(i, row) {
-                    var idx = parseInt($(row).attr('data-row-idx'));
-                    idxsMatched[idx] = true;
-                    if(idx < range.begin || idx >= range.end) {
-                        debugger;
+            this.setViewport(range);
+
+            if(!renderExcess) {
+                (window.clearImmediate) && window.clearImmediate(this._updateViewportImmediate);
+                this._updateViewportImmediate = (window.setImmediate || requestAnimationFrame)(this.updateViewport.bind(this, [true]));
+            }
+        },
+
+        setViewport: function(range) {
+            var self = this,
+                start = this.options.frozenRowsTop,
+                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                group = this.scrollinggroup,
+                allParts = group.all;
+                
+            if(!this.viewport || range.begin != this.viewport.begin || range.end != this.viewport.end) {
+                var leadingHeight = this.rowHeight(start, range.begin),
+                    trailingHeight = this.rowHeight(range.end, end);
+
+                if(overlap(range, this.viewport)) {
+                    if(range.begin < this.viewport.begin) {
+                        // have to add rows to beginning
+                        this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, this.viewport.begin), this.scrollinggroup, true);
+                    } else if(range.begin > this.viewport.begin) {
+                        // have to remove rows from beginning
+                        allParts.each(function(i,part) {
+                            $(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')').remove();
+                        });
                     }
-                });
 
-                for(var x = range.begin; x < range.end ; x++) {
-                    if(!idxsMatched[x]) {
-                        debugger;
+                    if(range.end < this.viewport.end && range.end > this.viewport.begin) {
+                        // have to remove rows from end
+                        allParts.each(function(i,part) {
+                            $(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')').remove();
+                        });
+                    } else if(range.end > this.viewport.end) {
+                        // have to add rows to end
+                        this.renderRowGroupContents(Math.max(this.viewport.end, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+                    }
+                } else {
+                    // no overlap, just clear the entire thing and rebuild
+                    allParts.empty();
+                    this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+                }
+
+                allParts.css('padding-top', leadingHeight + 'px');
+                allParts.css('padding-bottom', trailingHeight + 'px');
+
+                if(false) { // change to if(true) if you want to debug virtual scrolling. Disable for performance
+                    // verify
+                    var idxsMatched = {};
+                    $(allParts).children('.pg-row').each(function(i, row) {
+                        var idx = parseInt($(row).attr('data-row-idx'));
+                        idxsMatched[idx] = true;
+                        if(idx < range.begin || idx >= range.end) {
+                            debugger;
+                        }
+                    });
+
+                    for(var x = range.begin; x < range.end ; x++) {
+                        if(!idxsMatched[x]) {
+                            debugger;
+                        }
                     }
                 }
-            }
 
-            this.viewport = range;
+                this.viewport = range;
+            }
         },
 
         _updateStyle: function(temporary, selector, style) {
@@ -958,9 +999,21 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
 
         scrollBy: function(dX, dY) {
             // Scroll by a specific offset
-            this.scroller[0].scrollTop += dY;
-            this.scroller[0].scrollLeft += dX;
-            this.afterscroll();
+            var self = this;
+            if(self.scrollBydY === undefined && self.scrollBydX === undefined) {
+                self.scrollBydY = dY;
+                self.scrollBydX = dX;
+                (window.setImmediate || requestAnimationFrame)(function() {
+                    self.scroller[0].scrollTop += self.scrollBydY;
+                    self.scroller[0].scrollLeft += self.scrollBydX;
+                    self.scrollBydY = undefined;
+                    self.scrollBydX = undefined;
+                    self.afterscroll();
+                });
+            } else {
+                self.scrollBydY += dY;
+                self.scrollBydX += dX;
+            }
         },
 
         scrollTo: function(x, y) {

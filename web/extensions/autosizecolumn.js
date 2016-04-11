@@ -46,7 +46,7 @@ define(['override', 'utils', 'jquery'],
                         },
 
                         updateViewport: function() {
-                            $super.updateViewport();
+                            $super.updateViewport.apply(this, arguments);
                             var resized = false;
                             for(var x=0,l=grid.options.columns.length;x<l;x++) {
                                 var col = grid.options.columns[x];
