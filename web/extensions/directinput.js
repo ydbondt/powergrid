@@ -28,6 +28,7 @@ define(['jquery','override'], function($, override) {
                         $super.init();
                         
                         this.container.on("change", ".pg-directinput", function(evt) {
+                            var self = this;
                             var cell = $(this).parents(".pg-cell:eq(0)"),
                                 row = cell.parents(".pg-row:eq(0)"),
                                 key = cell.attr("data-column-key"),
@@ -40,18 +41,15 @@ define(['jquery','override'], function($, override) {
                     renderCellContent: function(record, column) {
                         var value = record[column.key];
                         if(this.directinput.isDirectInput(column)) {
-                            var input;
-                            if((value === null || value === undefined) && column.hideOnNull !== false) {
-                                input = $();
-                            } else {
-                                input = this.directinput.createInput(record, column, value);
+                            var input = document.createDocumentFragment();
+                            if((value !== null && value !== undefined) || column.hideOnNull == false) {
+                                input.appendChild(this.directinput.createInput(record, column, value));
                             }
                             
                             if(column.template) {
-                                return input.add($super.renderCellContent(record, column));
-                            } else {
-                                return input;
+                                input.appendChild($super.renderCellContent(record, column));
                             }
+                            return input;
                         } else {
                             return $super.renderCellContent(record, column, value);
                         }
@@ -69,7 +67,7 @@ define(['jquery','override'], function($, override) {
                                 control.attr("disabled", true);
                             }
 
-                            return control;
+                            return control[0];
                         }
                     }
                 }

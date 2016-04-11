@@ -1,7 +1,7 @@
 "use strict";
 define(
-    ['QUnit', '../extensions/treegrid', '../arraydatasource'],
-    function(QUnit, treegrid, arraydatasource, sorting) {
+    ['QUnit', '../extensions/treegrid', '../arraydatasource', '../utils'],
+    function(QUnit, treegrid, arraydatasource, utils) {
         return function() {
             QUnit.test("Tree collapsing and expanding", function(assert) {
                 var data = [
@@ -20,6 +20,7 @@ define(
                 var ds = new treegrid.TreeGridDataSource(dds, {initialTreeDepth: 1});
 
                 function check(ds, expectedIds, message) {
+                    utils.handleAnimationFrames();
                     var ids = ds.getData().map(function(e) { return e.id; });
                     assert.deepEqual(ids, expectedIds, message);
                 }

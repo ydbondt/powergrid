@@ -27,6 +27,6 @@
     "w2ui": "~1.4"
   },
   "devDependencies": {
-    "qunit": "~1.15.0"
+    "qunit": "~1.23.0"
   }
 }

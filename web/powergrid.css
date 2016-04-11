@@ -4,8 +4,10 @@
 }
 
 .powergrid {
-	position: relative;
-	height: 100%;
+    position: relative;
+    top: 0;
+    bottom: 0;
+    height: 100%;
 }
 
 .powergrid,
@@ -31,14 +33,15 @@
 .pg-cell {
     position: absolute;
     display: inline-block;
-	
+
     /* border-top: 1px solid rgba(0,0,0,0.2); */
-	padding: 5px 8px;
+    padding: 5px 8px;
     box-sizing: border-box;
     cursor: default;
     height: 100%;
     overflow: hidden;
     border: 1px solid rgba(200,200,200,0.1);
+    white-space: nowrap;
 }
 
 .powergrid > .pg-columnheaders {
@@ -68,9 +71,10 @@
     position: absolute;
     cursor: default;
     display: inline-block;
-    overflow: hidden;
     border-right: 1px solid #757575;
     box-sizing: border-box;
+    min-height: 100%;
+    overflow: hidden;
 }
 
 .pg-columnheader > .pg-resizehandle {
@@ -87,9 +91,10 @@
 
 .pg-columnheader > span {
     display: inline-block;
-    height: 31px;
     padding: 7px 8px;
     box-sizing: border-box;
+    white-space: normal;
+    width: 100%;
 }
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
@@ -114,9 +119,10 @@
 }
 
 .pg-filter-box {
-    position: relative;
+    position: absolute;
     left: 0px;
     right: 0px;
+    bottom: 0px;
 }
 
 .pg-filter-box > input.pg-filter-input {
@@ -129,7 +135,7 @@
 .pg-filter {
     position: absolute;
     color: black;
-    font-family: "Glyphicons Halflings";
+    font-family: "Glyphicons Halflings" !important;
     left: 5px;
     top: 4px;
     cursor: default;
@@ -145,7 +151,7 @@
 
 .pg-filter-pane {
     position: absolute;
-    z-index: 1000;
+    z-index: 1001;
     background: white;
     margin-top: 20px;
     margin-left: 7px;
@@ -243,6 +249,7 @@
     background: #d0cdcd;
     width: 100vw;
     min-width: 100%;
+    white-space: nowrap;
 }
 
 .pg-group-column {
@@ -285,16 +292,18 @@
 }
 
 .pg-row {
-    white-space: nowrap;
+    width: 100%;
     box-sizing: border-box;
     position: relative;
     transition: height 0.5s ease;
     overflow: hidden;
     min-width: 100%;
+
 }
 
 .pg-columnheaders .pg-row {
     overflow: inherit;
+    height: 100%;
 }
 
 .pg-cell.pg-editing > input {
@@ -364,7 +373,7 @@
 	position: absolute;
     overflow: hidden;
     z-index: 2;
-    border-top: 2px solid rgba(0, 0, 0, 0.27);
+     border-top: 1px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
 
@@ -424,16 +433,19 @@
     content: '';
     display: block;
     position: absolute;
-    top: 50%; left: 50%;
-    width: 20px; height: 20px;
-    margin-left: -10px; margin-top: -10px;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-left: -30px;
+    margin-top: -30px;
     border-radius: 10px;
     -webkit-box-shadow: 0px 0px 5px white;
     background-color: rgba(255,255,255,0.5);
     background-image: url(loading.svg) !important;
     background-repeat: no-repeat !important;
     background-position: 50% 50% !important;
-    z-index: 9000;
+    z-index: 90000;
 }
 
 .pg-columndragging {
@@ -460,6 +472,7 @@
     background-image: url('./expand.svg');
     background-size: 11px 11px;
     background-position: center center;
+    background-repeat: no-repeat;
 }
 
 .pg-tree-expanded .pg-treetoggle,
@@ -467,6 +480,9 @@
 .pg-tree-expanded .pg-grouping-grouptoggle
 {
     background-image: url('./collapse.svg');
+    background-size: 11px 11px;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
 .pg-subview-toggle.pg-info {
@@ -547,3 +563,84 @@ ul.pg-menu > li:hover {
 [data-group-leaf-level='15'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 24em; }
 [data-group-leaf-level='16'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 25.5em; }
 [data-group-leaf-level='17'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 27em; }
+
+.pg-editing select {
+    width: auto;
+}
+
+.pg-align-left {
+    text-align: left;
+}
+
+.pg-align-right {
+    text-align: right;
+}
+
+.pg-align-center {
+    text-align: center;
+}
+/* NESTED HEADERS */
+.pg-columnheader-nested {
+    position: absolute;
+}
+
+.pg-groupheader {
+    position: absolute;
+    height: 34px;
+    margin: 0;
+    text-align: center;
+    background-color: #565655 !important;
+}
+.pg-groupheader span {
+    white-space:nowrap !important;
+    width: 100%;
+    overflow:hidden;
+
+}
+
+/* COLUMN SETTINGS */
+.columnsettings-overlay {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background-color: rgba(0,0,0,0.5);
+    position: absolute;
+}
+
+.columnsettings-popup {
+    background-color: #FFF;
+    color: #000;
+    margin: auto;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    width: 50%;
+    height: 50%;
+    overflow: hidden;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 30px;
+    border-radius: 3px;
+    overflow: auto;
+}
+
+.columnsettings-column {
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
+}
+
+#columnsettings-close:after {
+    position: absolute;
+    content: '\e014';
+    font-family: "Glyphicons Halflings";
+    font-size: 12pt;
+}
+#columnsettings-close {
+    float: right;
+    margin-right: 0px;
+    margin-top: 10px;
+    color: #CCC;
+    cursor: pointer;
+}
