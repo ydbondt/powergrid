@@ -9,7 +9,10 @@ define(['jquery','override'], function($, override) {
                         $super.init();
                         $(grid.dataSource).on("validationresultchanged", function(event, data) {
                             data.values.forEach(function (e) {
-                                self.updateValidationStatus(e, grid.getColumnForKey(e.key), grid.getCellFor(e.id, e.key));
+                                var column = grid.getColumnForKey(e.key);
+                                if(column) {
+                                    self.updateValidationStatus(e, column, grid.getCellFor(e.id, e.key));
+                                }
                             })
                         })
                     },
