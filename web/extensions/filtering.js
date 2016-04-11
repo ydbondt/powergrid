@@ -124,9 +124,16 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                         if(column.filterable === undefined || column.filterable) {
                             header.addClass("pg-filterable");
                             header.append(filterBox);
+
+                            var timer;
                             
                             header.on("keyup", ".pg-filter-input", function(event) {
-                                grid.filtering.setColumnFilteringAttribute(column.key, { "value": this.value });
+                                var self = this;
+                                if(timer) clearTimeout(timer);
+                                timer = setTimeout(function() {
+                                    grid.filtering.setColumnFilteringAttribute(column.key, { "value": self.value });
+                                    timer = null;
+                                }, 1000);
                             });
                         }
 
