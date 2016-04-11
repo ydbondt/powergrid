@@ -228,21 +228,23 @@ define(['override', 'jquery', 'utils'], function(override, $, utils) {
         
         collapseAll: function(rowId) {
             var ds = this;
-            function collapseall(row) {
-                ds.collapse(row);
-                var children = ds.children(row);
-                if(children) {
-                    children.forEach(collapseall);
+            utils.inAnimationFrame(function() {
+                function collapseall(row) {
+                    ds.collapse(row);
+                    var children = ds.children(row);
+                    if(children) {
+                        children.forEach(collapseall);
+                    }
                 }
-            }
-            
-            if(rowId === undefined) {
-                this.tree.forEach(collapseall);
-            } else {
-                collapseall(this.getRecordById(rowId));
-            }
+                
+                if(rowId === undefined) {
+                    ds.tree.forEach(collapseall);
+                } else {
+                    collapseall(ds.getRecordById(rowId));
+                }
+            });
         },
-
+        
         flattenSubTree: function(nodes, parentMatches, statistics) {
             var view = [],
                 stack = [],
