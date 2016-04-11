@@ -5,15 +5,21 @@ define(['jquery','override'], function($, override) {
             override(grid, function($super) {
                 return {
                     init: function() {
+                        var self = this;
                         $super.init();
+                        $(grid.dataSource).on("validationresultchanged", function(event, data) {
+                            data.values.forEach(function (e) {
+                                self.updateValidationStatus(e, grid.getColumnForKey(e.key), grid.getCellFor(e.id, e.key));
+                            })
+                        })
                     },
-                    
-                    afterCellRendered: function renderCell(record, column, cell) {
-                        var validationresult = grid.validation.validate(record, column);
-                        
+
+                    updateValidationStatus: function(record, column, cell) {
+                        var validationresult = grid.validation.validate(record, column, cell);
+
                         var previousClasses = cell.data("validationclasses");
                         if(previousClasses) cell.removeClass(previousClasses);
-                        
+
                         if(validationresult) {
                             var levels = {};
                             for(var x = 0,l=validationresult.length;x<l;x++) {
@@ -23,7 +29,10 @@ define(['jquery','override'], function($, override) {
                             cell.addClass(validationClasses).attr("title", i18n(validationresult[0].message));
                             cell.data("validationclasses", validationClasses); // store validationclasses separately so we can more easily remove them afterwards when needed
                         }
-                        
+                    },
+
+                    afterCellRendered: function renderCell(record, column, cell) {
+                        this.updateValidationStatus(record, column, cell);
                         $super.afterCellRendered(record, column, cell);
                     },
                     
