@@ -168,7 +168,11 @@ define(['override', 'jquery', 'utils'], function(override, $) {
                             }
                         });
 
-                        setTimeout(editor[0].select.bind(editor[0]), 10);
+                        if (editor[0].select) {
+                            setTimeout(editor[0].select.bind(editor[0]), 10);
+                        } else if (editor[0].focus) {
+                            setTimeout(editor[0].focus.bind(editor[0]), 10);
+                        }
                         return editor;
                     },
                     

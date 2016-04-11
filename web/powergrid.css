@@ -552,3 +552,7 @@ ul.pg-menu > li:hover {
 [data-group-leaf-level='15'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 24em; }
 [data-group-leaf-level='16'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 25.5em; }
 [data-group-leaf-level='17'] .pg-rowgroup > .pg-container:first-child > .pg-row > .pg-cell:first-child { padding-left: 27em; }
+
+.pg-editing select {
+    width: auto;
+}

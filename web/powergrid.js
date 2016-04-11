@@ -120,7 +120,7 @@ define(['jquery', 'vein', 'utils', 'promise'], function($, vein, utils, Promise)
                             }
 
                             if(grid.options.extensions[req]) {
-                                $.extend(grid.options.extensions[req], reqs[req]);
+                                $.extend(true, grid.options.extensions[req], reqs[req]);
                             } else {
                                 grid.options.extensions[req] = reqs[req];
                             }
