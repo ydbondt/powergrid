@@ -158,9 +158,12 @@ define(['../override', '../utils', '../jquery', 'jsrender/jsrender', '../extensi
                 return {
                     init: function() {
                         $super.init();
-                        
-                        var groupKeys = grid.loadSetting("grouping"),
-                            groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
+
+                        var groupKeys = grid.loadSetting("grouping");
+                        if ((!groupKeys || groupKeys.length == 0) && pluginOptions.defaultGroupedColumns) {
+                            groupKeys = pluginOptions.defaultGroupedColumns;
+                        }
+                        var groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
                             this.grouping.updateGroups();
