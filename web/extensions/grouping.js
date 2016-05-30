@@ -213,7 +213,12 @@ define(['../override', '../utils', '../jquery', 'jsrender/jsrender', '../extensi
                         if(record.groupRow) {
                             var firstPart = rowFixedPartLeft || rowScrollingPart || rowFixedPartRight;
                             $(firstPart).addClass("pg-grouping-grouprow");
-                            $(firstPart).html(groupRowTemplate.render(record, { column: record._groupColumn }));
+
+                            var groupToggle = document.createElement("span");
+                            groupToggle.className = "pg-grouping-grouptoggle pg-tree-level-" + record._groupLevel;
+                            groupToggle.setAttribute("data-id", record.id);
+
+                            $(firstPart).empty().append(groupToggle).append((pluginOptions.renderGroupRow || this.grouping.renderGroupRow)(record._groupColumn, record));
                         } else {
                             $super.renderRowToParts(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
                         }
@@ -285,6 +290,11 @@ define(['../override', '../utils', '../jquery', 'jsrender/jsrender', '../extensi
                         
                         renderGroupIndicator: function(column) {
                             return groupIndicatorTemplate.render(column);
+                        },
+
+                        renderGroupRow: function(column, record) {
+                            // <span class="pg-grouping-grouptoggle pg-tree-level-{{:_groupLevel}}" data-id="{{:id}}"></span>
+                            return $(groupRowTemplate.render(record, { column: record._groupColumn }));
                         }
                     }
                 };
