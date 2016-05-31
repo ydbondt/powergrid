@@ -1,5 +1,5 @@
 /**
- * Enables aligning of cell contents.
+ * Dummy extension. Allows easy overriding of PowerGrid functions from the grid settings.
  *
  * Usage:
  */
