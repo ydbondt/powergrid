@@ -7,7 +7,7 @@
  *  - currencyPrecision
  */
 
-define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
+define(['../override', '../jquery', '../utils', 'w2ui'], function(override, $) {
 
     "use strict";
 
@@ -18,7 +18,7 @@ define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
                     currency: function(record, column, value) {
                         var input = $("<input>").w2field('money', {
                             autoFormat: true,
-                            currencyPrefix: 'â‚¬',
+                            currencyPrefix: '€',
                             currencyPrecision: column.precision,
                             precision: column.precision
                         });

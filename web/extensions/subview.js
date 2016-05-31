@@ -1,4 +1,4 @@
-define(['override', 'vein', 'utils'], function(override, vein, utils) {
+define(['../override', 'vein', '../utils'], function(override, vein, utils) {
     "use strict";
     
     return function(grid, pluginOptions) {
@@ -13,24 +13,39 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         var row = $(this).parents(".pg-row").first(),
                             rowId = row.attr("data-row-id"),
                             rowIdx = parseInt(row.attr("data-row-idx"));
-                        
+
                         if(!subviewsExpanded[rowId]) {
                             grid.subviews.expandView(grid.dataSource.getRecordById(rowId), rowIdx);
                         } else {
                             grid.subviews.collapseView(grid.dataSource.getRecordById(rowId), rowIdx);
                         }
-                        
+
                         event.stopPropagation();
                         event.preventDefault();
                     });
                 },
-                
+                findRow: function(rowId) {
+                    var row = $super.findRow(rowId);
+                    var innerRow = row.find('.pg-inner-row');
+                    return innerRow.length == 0 ? row : innerRow;
+                },
+
                 subviews: {
+                    autoExpand: function(filter) {
+                        var data = grid.dataSource.getData();
+                        for (var i = 0, j=data.length; i < j; i++) {
+                            var row = data[i];
+                            if (filter.apply(this, [row.id, grid.dataSource])) {
+                                this.expandView(row, i);
+                            }
+                        }
+                    },
                     expandView: function(record, rowIdx) {
                         var group = grid.getRowGroupFor(rowIdx);
                         if(!subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = true;
-                            grid.afterRenderRow(record, rowIdx, group.all.children("[data-row-id='" + record.id + "']"));
+                            grid.afterRenderRow(record, rowIdx, group.all.children("[data-row-id='" + record.id + "']").toArray());
+                            group.all.find('.pg-subview-toggle').addClass('pg-subview-expanded');
                         }
                     },
 
@@ -39,6 +54,7 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                         if(subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = false;
                             group.all.children("[data-row-id='" + record.id + "']").css("height", grid.rowHeight(rowIdx) + "px");
+                            group.all.find('.pg-subview-toggle').removeClass('pg-subview-expanded');
                         }
                     },
                     
@@ -53,7 +69,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                     function finish() {
                         requestAnimationFrame(function() {
                             subViewHeights[record.id] = subview[0].scrollHeight;
-                            rowParts.css('height', grid.rowHeight(rowIdx) + "px");
+                            rowParts.forEach(function(part) {
+                                part.style.height = grid.rowHeight(rowIdx) + "px";
+                            });
                             grid.adjustHeights();
                         });
                     }
@@ -78,7 +96,9 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                                 finish();
                             }
                         } else {
-                            rowParts.css('height', grid.rowHeight(rowIdx) + "px");
+                            rowParts.forEach(function(part) {
+                                part.style.height = grid.rowHeight(rowIdx) + "px";
+                            });
                         }
                     }
                     
@@ -88,11 +108,17 @@ define(['override', 'vein', 'utils'], function(override, vein, utils) {
                 renderCellContent: function(record, column, value) {
                     var content = $super.renderCellContent.apply(this, arguments);
                     if(column.subViewToggle && record && pluginOptions.hasSubView(grid, record)) {
-                        return $('<div>')
-                            .addClass("pg-subview-toggle")
-                            .addClass(column.subViewToggleClass || "pg-subview-toggle-default")
-                            .toggleClass("pg-subview-expanded", subviewsExpanded[record.id] == true)
-                            .add(content);
+                        var frag = document.createDocumentFragment();
+                        var subview = document.createElement("div");
+                        subview.classList.add("pg-subview-toggle");
+                        subview.classList.add(column.subViewToggleClass || "pg-subview-toggle-default");
+                        if(subviewsExpanded[record.id] == true) {
+                            subview.classList.add("pg-subview-expanded");
+                        }
+
+                        frag.appendChild(subview);
+                        frag.appendChild(content);
+                        return frag;
                     } else {
                         return content;
                     }

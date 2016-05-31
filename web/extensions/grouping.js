@@ -1,9 +1,12 @@
-define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragndrop', 'text!../templates/grouper.html',
-        'text!../templates/grouprow.html', 'text!../templates/groupindicator.html'],
+define(['../override', '../utils', '../jquery', 'jsrender/jsrender', '../extensions/treegrid', '../dragndrop',
+        '../templates/grouper.html!text',
+        '../templates/grouprow.html!text',
+        '../templates/groupindicator.html!text'],
        function(override, utils, $, jsrender, treegrid, DragNDrop, grouperTemplate, grouprow, groupindicator) {
     "use strict";
     
     function GroupingDataSource(delegate) {
+        var self = this;
         this.delegate = delegate;
         for (var x in this.delegate) {
             if (!this[x] && (typeof this.delegate[x] === "function")) {
@@ -41,7 +44,7 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                         f = col.groupProjection && col.groupProjection(nodes) || function(v) { return v; },
                         nextGroupings = groupings.slice(1);
                     for(var x=0,l=nodes.length;x<l;x++) {
-                        var g = f(nodes[x][col.key]);
+                        var g = f(utils.getValue(nodes[x], col.key));
                         var r = groupMap[g];
                         if(!r) {
                             groups.push(groupMap[g] = r = {
@@ -155,9 +158,12 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                 return {
                     init: function() {
                         $super.init();
-                        
-                        var groupKeys = grid.loadSetting("grouping"),
-                            groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
+
+                        var groupKeys = grid.loadSetting("grouping");
+                        if ((!groupKeys || groupKeys.length == 0) && pluginOptions.defaultGroupedColumns) {
+                            groupKeys = pluginOptions.defaultGroupedColumns;
+                        }
+                        var groupSettings = groupKeys && groupKeys.map(this.getColumnForKey.bind(this));
                         if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                             this.grouping.groups = groupSettings;
                             this.grouping.updateGroups();
@@ -199,15 +205,15 @@ define(['override', 'utils', 'jquery', 'jsrender', 'extensions/treegrid', 'dragn
                         });
                     },
                     
-                    headerHeight: function() {
-                        return $super.headerHeight() + this.target.find(".pg-grouper").outerHeight();
+                    headerContainerHeight: function() {
+                        return $super.headerContainerHeight() + this.target.find(".pg-grouper").outerHeight();
                     },
                     
                     renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
                         if(record.groupRow) {
                             var firstPart = rowFixedPartLeft || rowScrollingPart || rowFixedPartRight;
-                            firstPart.addClass("pg-grouping-grouprow");
-                            firstPart.html(groupRowTemplate.render(record, { column: record._groupColumn }));
+                            $(firstPart).addClass("pg-grouping-grouprow");
+                            $(firstPart).html(groupRowTemplate.render(record, { column: record._groupColumn }));
                         } else {
                             $super.renderRowToParts(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
                         }

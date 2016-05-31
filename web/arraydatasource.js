@@ -1,4 +1,4 @@
-define(["jquery"], function($) {
+define(["./jquery", "./utils"], function($, utils) {
     "use strict";
     
     function ArrayDataSource(data, delay) {
@@ -11,9 +11,19 @@ define(["jquery"], function($) {
     }
     
     ArrayDataSource.prototype = {
-        load: function() {
-            this.ready = true;
+        load: function(data) {
+            if(data !== undefined) {
+              this.data = data;
+            }
+
+            for(var x = 0, l = this.data.length;x<l;x++) {
+                if(this.data[x].id === undefined) {
+                    this.data[x].id = x;
+                }
+            }
+
             $(this).trigger("dataloaded");
+            this.ready = true;
         },
         
         recordCount: function() {
@@ -43,7 +53,7 @@ define(["jquery"], function($) {
 
         setValue: function(rowId, key, value) {
             this.assertReady();
-            this.getRecordById(rowId)[key] = value;
+            utils.setValue(this.getRecordById(rowId), key, value);
             $(this).trigger("datachanged", { values: [ { id: rowId, key: key } ] });
         },
 
@@ -53,6 +63,12 @@ define(["jquery"], function($) {
         
         isReady: function() {
             return this.ready;
+        },
+
+        sort: function(comparator) {
+            this.assertReady();
+            this.data.sort(comparator);
+            $(this).trigger("dataloaded");
         }
     };
     

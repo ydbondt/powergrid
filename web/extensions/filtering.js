@@ -1,5 +1,79 @@
-define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../templates/filterBox.html'], function(override, $, filterPane, filterBox) {
+define(['../override', '../jquery', '../utils',
+    '../templates/filterPane.html!text',
+    '../templates/filterBox.html!text'], function(override, $, utils, filterPane, filterBox) {
     "use strict";
+    
+    function FilteringDataSource(delegate) {
+        var self = this;
+        this.delegate = delegate;
+        
+        $(delegate).on("dataloaded", function(event) {
+            self.reload();
+            $(self).trigger("dataloaded");
+        }).on("datachanged", function(event, data) {
+            self.reload();
+            $(self).trigger("datachanged", [data]);
+        });
+        
+        if(delegate.isReady()) {
+            this.reload();
+        }
+
+        if(typeof delegate.sort === 'function') {
+            this.sort = delegate.sort.bind(delegate);
+        }
+    }
+    
+    FilteringDataSource.prototype = {
+        view: null,
+        
+        isReady: function() {
+            return this.view != null;
+        },
+        
+        reload: function() {
+            this.delegate.assertReady();
+            this.view = this.delegate.getData();
+        },
+        
+        recordCount: function() {
+            this.assertReady();
+            return this.view.length;
+        },
+        
+        getData: function(start, end) {
+            this.assertReady();
+            if(!start && !end) return this.view;
+            if(!start) start = 0;
+            if(!end) end = this.recordCount();
+            return this.view.slice(start, end);
+        },
+
+        setValue: function(rowId, key, value) {
+            this.delegate.setValue(rowId, key, value);
+        },
+        
+        assertReady: function() {
+            if(!this.isReady()) throw Error("Datasource not ready yet");
+        },
+        
+        buildStatistics: function() {
+            return {
+                actualRecordCount: this.delegate && this.delegate.recordCount()
+            };
+        },
+        
+        applyFilter: function(settings, filter) {
+            var oldview = this.view,
+                view = this.delegate.getData().filter(filter);
+            this.view = view;
+            $(this).trigger('datachanged', { data: view, oldData: oldview });
+        },
+
+        getRecordById: function(id) {
+            return this.delegate.getRecordById(id);
+        }
+    };
     
     return {
         init: function(grid, pluginOptions) {
@@ -10,6 +84,10 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                 
                 return {
                     init: function() {
+                        if(typeof this.dataSource.applyFilter !== 'function') {
+                            this.dataSource = new FilteringDataSource(this.dataSource);
+                        }
+                        
                         $super.init();
                         
                         this.container.on("click", ".pg-filter", function(event) {
@@ -48,16 +126,34 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
 
                     renderHeaderCell: function(column, columnIdx) {
                         var header = $super.renderHeaderCell(column, columnIdx);
-
+                        
                         if(column.filterable === undefined || column.filterable) {
+                            header.addClass("pg-filterable");
                             header.append(filterBox);
+
+                            var timer;
                             
                             header.on("keyup", ".pg-filter-input", function(event) {
-                                grid.filtering.setColumnFilteringAttribute(column.key, { "value": this.value });
+                                var self = this;
+                                if(timer) clearTimeout(timer);
+                                timer = setTimeout(function() {
+                                    grid.filtering.setColumnFilteringAttribute(column.key, { "value": self.value });
+                                    timer = null;
+                                }, 1000);
                             });
                         }
 
                         return header;
+                    },
+                    
+                    filterHeight: function() {
+                        return Math.max.apply(undefined, this.target.find(".pg-columnheader .pg-filter-box").map(function(i, e) {
+                            return $(e).outerHeight();
+                        }));
+                    },
+                    
+                    headerHeight: function() {
+                        return $super.headerHeight() + this.filterHeight();
                     },
                     
                     filtering: {
@@ -84,7 +180,7 @@ define(['override', 'jquery', 'text!../templates/filterPane.html', 'text!../temp
                         
                         rowMatches: function(settings, row) {
                             for(var x in settings) {
-                                if(!this.valueMatches(settings[x], row[x])) {
+                                if(!this.valueMatches(settings[x], utils.getValue(row, x))) {
                                     if(settings[x].type == 'inclusive') {
                                         return 0;
                                     }

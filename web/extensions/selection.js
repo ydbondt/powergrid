@@ -1,4 +1,4 @@
-define(['override', 'jquery',], function(override, $) {
+define(['../override', '../jquery',], function(override, $) {
     "use strict";
 
     return function(grid, pluginOptions) {
@@ -6,7 +6,7 @@ define(['override', 'jquery',], function(override, $) {
             return {
                 init: function init() {
                     $super.init.apply(this, arguments);
-                    this.container.on("mousedown", ".pg-row", function(evt) {
+                    this.container.on("mousedown", ".pg-rowgroup .pg-row", function(evt) {
                         var id = $(evt.currentTarget).data('row-id');
                         grid.selection.selectSingleRow(id);
                     });
@@ -23,6 +23,13 @@ define(['override', 'jquery',], function(override, $) {
                         this.selectedElements.addClass("pg-selected");
                         
                         grid.trigger("rowselected", id);
+                    },
+
+                    selectedId: function() {
+                        if (!this.selectedElements) {
+                            return undefined;
+                        }
+                        return this.selectedElements.data('row-id');
                     }
                 }
             }

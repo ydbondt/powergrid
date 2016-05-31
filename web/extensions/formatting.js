@@ -16,7 +16,7 @@
  *   - format: Column specific options for the formatter
  *
  */
-define(['override', 'jquery', 'utils'], function(override, $) {
+define(['../override', '../jquery', '../utils'], function(override, $) {
     "use strict";
 
     return function(grid, pluginOptions) {

@@ -13,7 +13,7 @@
  *
  */
 
-define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
+define(['../override', '../jquery', 'jsrender/jsrender'], function(override, $, jsrender) {
     "use strict";
 
     return function(grid, pluginOptions) {
@@ -33,7 +33,9 @@ define(['override', 'jquery', 'jsrender'], function(override, $, jsrender) {
                     if (column.template !== undefined && column.template !== null) {
                         var data = $.extend({}, record);
                         data[column.key] = value;
-                        return $("<span>").html(column.compiledTemplate.render(data, {record: record, column: column}));
+                        var element = document.createElement("span");
+                        element.innerHTML = column.compiledTemplate.render(data, {record: record, column: column});
+                        return element;
                     } else {
                         return $super.renderCellValue.apply(this, arguments);
                     }

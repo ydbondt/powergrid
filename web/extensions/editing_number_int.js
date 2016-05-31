@@ -7,7 +7,7 @@
  *  - currencyPrecision
  */
 
-define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
+define(['../override', '../jquery', '../utils', 'w2ui'], function(override, $) {
 
     "use strict";
 
@@ -18,9 +18,17 @@ define(['override', 'jquery', 'utils', 'w2ui'], function(override, $) {
                     int: function(record, column, value) {
                         var input = $("<input>").w2field('int', {
                             autoFormat: true,
-                            groupSymbol: column.groupSymbol
+                            groupSymbol: i18n('groupingSeparator'),
+                            decimalSymbol: i18n('decimalSeparator')
                         });
-                        input.value(value);
+                        input.val(value);
+                        
+                        var w2 = input.data('w2field');
+                        var v = input.val.bind(input);
+                        input.val = function(x) {
+                            return w2.clean(v());
+                        };
+                        
                         return input;
                     }
                 }

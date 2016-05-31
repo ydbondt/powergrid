@@ -1,8 +1,68 @@
 (function(define) {
     "use strict";
     
-    define(['jquery'], function($) {
+    var animFrameQueue = [], inAnimFrame = false, animFrameRequested = false;
+
+    var pathRegex = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]/g;
+
+    function parsePath(key) {
+        var p = [];
+        key.replace(pathRegex, function(a,b) {
+            if(b !== undefined) {
+                p.push(parseInt(b));
+            } else {
+                p.push(a);
+            }
+        });
+        return p;
+    }
+
+    function getValue(object, key) {
+        var o = object;
+        for(var p=parsePath(key),x=0,l=p.length;x<l;x++) {
+            if(o === undefined) {
+                return undefined;
+            }
+            o = o[p[x]];
+        }
+        return o;
+    }
+
+    function setValue(object, key, value) {
+        var o = object,
+            p=parsePath(key);
+        for(var x=0,l=p.length-1;x<l;x++) {
+            o = o[p[x]];
+        }
+        o[p[x]] = value;
+    }
+    
+    define(['./jquery'], function($) {
         return {
+            inAnimationFrame: function(f, queue) {
+                if(inAnimFrame && !queue) {
+                    f();
+                } else {
+                    animFrameQueue.push(f);
+                    if(!animFrameRequested) {
+                        animFrameRequested = true;
+                        requestAnimationFrame(this.handleAnimationFrames.bind(this));
+                    }
+                }
+            },
+
+            handleAnimationFrames: function() {
+                inAnimFrame = true;
+                try {
+                    while(animFrameQueue.length) {
+                        animFrameQueue.pop()();
+                    }
+                } finally {
+                    inAnimFrame = false;
+                    animFrameRequested = false;
+                }
+            },
+            
             handleEventInAnimationFrame: function (event) {
                 var self = this, args = arguments;
                 requestAnimationFrame(function() {
@@ -38,7 +98,10 @@
                 event.stopPropagation();
                 event.stopImmediatePropagation();
                 event.preventDefault();
-            }
+            },
+
+            getValue: getValue,
+            setValue: setValue
         }
     });
 })(define);
