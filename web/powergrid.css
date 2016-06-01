@@ -293,7 +293,8 @@
     font-size: 10pt;
 }
 
-.pg-row {
+.pg-row,
+.pg-backdrop {
     width: 100%;
     box-sizing: border-box;
     position: relative;
@@ -372,16 +373,16 @@
 }
 
 .powergrid > .pg-scrolling {
-	position: absolute;
+    position: absolute;
     overflow: hidden;
     z-index: 2;
-     border-top: 1px solid rgba(0, 0, 0, 0.27);
+    border-top: 1px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
 
 .powergrid > .pg-rowgroup,
 .pg-columnheaders {
-	position: absolute;
+    position: absolute;
     overflow: hidden;
     background: white;
 }
@@ -397,26 +398,27 @@
 
 .powergrid > div > .pg-container.pg-fixed {
     box-sizing: content-box;
-	position: absolute;
+    position: absolute;
     z-index: 1;
 }
 
 .powergrid > div > .pg-container.pg-fixed.pg-left {
     left: 0px;
-	border-right: 2px solid rgba(0, 0, 0, 0.27);
+    border-right: 2px solid rgba(0, 0, 0, 0.27);
 }
 
 .powergrid > div > .pg-container.pg-fixed.pg-right {
     right: 0px;
-	border-left: 2px solid rgba(0, 0, 0, 0.27);
+    border-left: 2px solid rgba(0, 0, 0, 0.27);
 }
 
 .powergrid > div > .pg-container.pg-scrolling {
-	position: absolute;
+    position: absolute;
     left: 0px;
     right: 0px;
-	white-space: nowrap;
-	min-width: 100%;
+    white-space: nowrap;
+    min-width: 100%;
+    min-height: 100%;
 }
 
 .pg-autoresize > .pg-scroller {
@@ -646,3 +648,20 @@ ul.pg-menu > li:hover {
     color: #CCC;
     cursor: pointer;
 }
+
+.pg-backdrop {
+    height: 100%;
+    position: absolute;
+}
+
+.pg-column-backdrop {
+    height: 100%;
+    position: absolute;
+    border: 1px solid rgba(200,200,200,0.1);
+    z-index: 0;
+}
+
+.pg-column-backdrop:last-child {
+    border-color: transparent;
+}
+
