@@ -580,8 +580,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 cell = this.renderCell(record, column, rowIdx, y);
                 this.afterCellRendered(record, column, cell);
 
-                cell.addClass("pg-column" + this.normalizeCssClass(column.key));
-                cell.attr("data-column-key", column.key);
+                cell.className += " pg-column" + this.normalizeCssClass(column.key);
+                cell.setAttribute("data-column-key", column.key);
 
                 if(y < this.options.frozenColumnsLeft) {
                     rowFixedPartLeft.appendChild(cell);
