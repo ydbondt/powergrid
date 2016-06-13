@@ -91,9 +91,25 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
         rebuildView: function() {
             var statistics = this.buildStatistics();
             statistics.filteredRecordCount = this.filter ? 0 : undefined;
+            this.sortTree();
             this.view = this.flattenSubTree(this.tree, undefined, statistics);
             this._statistics = statistics;
             $(this).trigger("statisticschanged", statistics);
+        },
+
+        sortTree: function() {
+            var ds = this;
+            function sort(arr) {
+                arr.sort(ds.comparator);
+                for(var x=0,l=arr.length;x<l;x++) {
+                    var children = ds.children(arr[x]);
+                    if(children) {
+                        sort(children);
+                    }
+                }
+            }
+
+            sort(this.tree);
         },
         
         buildTree: function(data) {
@@ -294,18 +310,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
         },
         
         sort: function(comparator) {
-            var ds = this;
-            function sort(arr) {
-                arr.sort(comparator);
-                for(var x=0,l=arr.length;x<l;x++) {
-                    var children = ds.children(arr[x]);
-                    if(children) {
-                        sort(children);
-                    }
-                }
-            }
-            
-            sort(this.tree);
+            this.comparator = comparator;
             this.rebuildView();
             $(this).trigger("dataloaded");
         },
