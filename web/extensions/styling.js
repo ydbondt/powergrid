@@ -22,21 +22,32 @@
  */
 define(['../override'], function(override) {
 
+    var whitespace = /\s+/;
+
     return function(grid, pluginOptions) {
         override(grid, function($super) {
             return {
                 renderCell: function(record, column, rowIdx, columnIdx) {
                     var cell = $super.renderCell.apply(this, arguments),
-                        oldClasses;
+                        oldClasses, oldClassUnparsed;
                     var cleanup = pluginOptions.applyClasses(record, column, function(className) {
+                        if(className == oldClassUnparsed) {
+                            return;
+                        }
                         var currentClasses = cell.className;
                         if(oldClasses) {
-                            currentClasses = currentClasses.split(/\w+/).filter(function(e) {
+                            currentClasses = currentClasses.split(whitespace).filter(function(e) {
                                 return oldClasses.indexOf(e) == -1;
                             }).join(" ");
                         }
-                        cell.className = currentClasses + " " + className;
-                        oldClasses = className.split(/\w+/);
+                        if(className) {
+                            cell.className = currentClasses + " " + className;
+                            oldClasses = className.split(whitespace);
+                        } else {
+                            cell.className = currentClasses;
+                            oldClasses = null;
+                        }
+                        oldClassUnparsed = className;
                     });
 
                     // TODO handle clean up (remove observers when cell is destroyed)
