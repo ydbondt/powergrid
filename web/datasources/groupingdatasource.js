@@ -76,7 +76,13 @@ define(['../utils'], function (utils) {
                 }
             }
 
-            this.view = group(this.delegate.getData(), this.groups, "group:", 0);
+            if(this.groups && this.groups.length) {
+                this.view = group(this.delegate.getData(), this.groups, "group:", 0);
+            } else {
+                // make sure view is a copy of the original data, and not original array itself, so when we sort stuff
+                // we don't affect the original datasource
+                this.view = this.delegate.getData().concat([]);
+            }
             $(this).trigger("dataloaded");
         },
 
