@@ -492,8 +492,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             if(rowScrollingPart) rowParts = rowParts.add(rowScrollingPart);
             if(rowFixedPartRight) rowParts = rowParts.add(rowFixedPartRight);
 
-            for(var y = 0; y < this.options.columns.length; y++) {
-                var cell, column = this.options.columns[y];
+            var columns = this.getVisibleColumns();
+            for(var y = 0; y < columns.length; y++) {
+                var cell, column = columns[y];
                 cell = this.renderHeaderCell(column, y);
 
                 cell.addClass("pg-column" + this.normalizeCssClass(column.key));
@@ -501,7 +502,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
                 if(y < this.options.frozenColumnsLeft) {
                     rowFixedPartLeft.append(cell);
-                } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
+                } else if(y > columns.length - this.options.frozenColumnsRight - 1) {
                     rowFixedPartRight.append(cell);
                 } else {
                     rowScrollingPart.append(cell);
@@ -575,8 +576,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
-            for(var y = 0; y < this.options.columns.length; y++) {
-                var cell, column = this.options.columns[y];
+            var columns = this.getVisibleColumns();
+            for(var y = 0; y < columns.length; y++) {
+                var cell, column = columns[y];
                 cell = this.renderCell(record, column, rowIdx, y);
                 this.afterCellRendered(record, column, cell);
 
@@ -585,7 +587,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
                 if(y < this.options.frozenColumnsLeft) {
                     rowFixedPartLeft.appendChild(cell);
-                } else if(y > this.options.columns.length - this.options.frozenColumnsRight - 1) {
+                } else if(y > columns.length - this.options.frozenColumnsRight - 1) {
                     rowFixedPartRight.appendChild(cell);
                 } else {
                     rowScrollingPart.appendChild(cell);
@@ -1133,6 +1135,12 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         getCellTextValue: function (value, record, column) {
             return value;
+        },
+
+        getVisibleColumns() {
+            return this.options.columns.filter(function(c) {
+                return !c.hidden;
+            });
         },
 
         getColumnForKey: function(key) {
