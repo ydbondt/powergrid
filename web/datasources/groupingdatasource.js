@@ -41,7 +41,8 @@ define(['../utils'], function (utils) {
                             },
                         nextGroupings = groupings.slice(1);
                     for (var x = 0, l = nodes.length; x < l; x++) {
-                        var g = f(utils.getValue(nodes[x], col.key));
+                        var baseValue = utils.getValue(nodes[x], col.key);
+                        var g = f(baseValue);
                         var r = groupMap[g];
                         if (!r) {
                             groups.push(groupMap[g] = r = {
@@ -54,7 +55,7 @@ define(['../utils'], function (utils) {
                                 parent: parentGroupId
                             });
 
-                            r[col.key] = g;
+                            r[col.key] = baseValue;
                         }
                         r.children.push(nodes[x]);
                         ds.parentByIdMap[nodes[x].id] = r;
@@ -62,7 +63,7 @@ define(['../utils'], function (utils) {
                     }
 
                     for (var x = 0, l = groups.length; x < l; x++) {
-                        groups[x].recordCount = groups[x].children.length;
+                        groups[x].recordCount = ds.groupRecordCount(groups[x]);
                         groups[x].children = group(groups[x].children, nextGroupings, groups[x].id, level + 1);
                         ds.processGroup(groups[x]);
                     }
@@ -84,6 +85,10 @@ define(['../utils'], function (utils) {
                 this.view = this.delegate.getData().concat([]);
             }
             $(this).trigger("dataloaded");
+        },
+
+        groupRecordCount(group) {
+            return group.children.length;
         },
 
         group: function (groupings) {
