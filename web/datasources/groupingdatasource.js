@@ -46,7 +46,7 @@ define(['../utils'], function (utils) {
                         if (!r) {
                             groups.push(groupMap[g] = r = {
                                 groupRow: true,
-                                id: parentGroupId + g + ":",
+                                id: parentGroupId + x + ":",
                                 description: g,
                                 children: [],
                                 _groupColumn: col,
