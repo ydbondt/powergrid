@@ -2,11 +2,12 @@ define(["./jquery", "./utils"], function($, utils) {
     "use strict";
     
     function ArrayDataSource(data, delay) {
-        this.data = data;
         if(delay) {
-            setTimeout(this.load.bind(this), delay);
+            setTimeout(this.load.bind(this, [data]), delay);
         } else {
-            this.load();
+            if(data) {
+                this.load(data);
+            }
         }
     }
     
@@ -22,8 +23,8 @@ define(["./jquery", "./utils"], function($, utils) {
                 }
             }
 
-            $(this).trigger("dataloaded");
             this.ready = true;
+            $(this).trigger("dataloaded");
         },
         
         recordCount: function() {
