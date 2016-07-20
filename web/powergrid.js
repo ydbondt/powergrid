@@ -961,14 +961,19 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         columnWidth: function columnWidth(start, end) {
             // Calculate the width of a single column, or of a range of columns
             if(end == undefined) {
-                return this.options.columns[start].width;
+                return this._columnWidth(start);
             } else {
                 var sum=0;
                 while(start<end) {
-                    sum += this.options.columns[start++].width;
+                    sum += this._columnWidth(start++);
                 }
                 return sum;
             }
+        },
+
+        _columnWidth: function columnWidth(x) {
+            var col = this.options.columns[x];
+            return col.hidden ? 0 : col.width;
         },
 
         rowHeight: function rowHeight(start, end) {
