@@ -1142,7 +1142,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             return value;
         },
 
-        getVisibleColumns() {
+        getVisibleColumns: function () {
             return this.options.columns.filter(function(c) {
                 return !c.hidden;
             });
