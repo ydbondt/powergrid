@@ -87,7 +87,7 @@ define(['../utils'], function (utils) {
             $(this).trigger("dataloaded");
         },
 
-        groupRecordCount(group) {
+        groupRecordCount: function (group) {
             return group.children.length;
         },
 
