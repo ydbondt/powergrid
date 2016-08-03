@@ -418,7 +418,10 @@
     right: 0px;
     white-space: nowrap;
     min-width: 100%;
-    min-height: 100%;
+}
+
+.powergrid .pg-rowgroup.pg-scrolling > .pg-container.pg-scrolling {
+   min-height: 100%;
 }
 
 .pg-autoresize > .pg-scroller {
