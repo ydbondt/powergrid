@@ -13,7 +13,7 @@
  *
  */
 
-define(['../override', '../jquery', 'jsrender/jsrender'], function(override, $, jsrender) {
+define(['../override', '../jquery', 'jsrender'], function(override, $, jsrender) {
     "use strict";
 
     return function(grid, pluginOptions) {
