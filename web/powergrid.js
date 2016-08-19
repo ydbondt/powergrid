@@ -223,7 +223,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             });
 
             if(this.dataSource.isReady()) {
-            	if(!grid.isInited) {
+                if(!grid.isInited) {
                     grid.isInited = true;
                     grid.trigger('inited', grid);
                 }
@@ -606,7 +606,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     selector += ":gt(" + (start-1) + ")";
                 }
                 rowgroup.children(".pg-container").each(function(i,part) {
-                    $(part).children(selector).remove();
+                    this.destroyRows($(part).children(selector));
                 });
                 return end-start;
             }
@@ -757,14 +757,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     } else if(range.begin > this.viewport.begin) {
                         // have to remove rows from beginning
                         allParts.each(function(i,part) {
-                            $(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')').remove();
+                            this.destroyRows($(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')'));
                         });
                     }
 
                     if(range.end < this.viewport.end && range.end > this.viewport.begin) {
                         // have to remove rows from end
                         allParts.each(function(i,part) {
-                            $(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')').remove();
+                            this.destroyRows($(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')'));
                         });
                     } else if(range.end > this.viewport.end) {
                         // have to add rows to end
@@ -1265,6 +1265,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         normalizeCssClass: function(c) {
             return c.replace(/[.\[\]]/g, '_');
+        },
+
+        destroyRows: function(rows) {
+            rows.remove();
+        },
+
+        getIdsFromRows: function(rows) {
+            return rows.map(function(r) {
+                return $(r).attr('data-row-id');
+            });
         }
     };
 
