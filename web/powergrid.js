@@ -600,13 +600,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         _removeRows: function(start, end) {
             console.log("Removing rows " +start + " to " + end);
+            var self = this;
             function r(start, end, rowgroup) {
                 var selector = ".pg-row:lt(" + end + ")";
                 if(start > 0) {
                     selector += ":gt(" + (start-1) + ")";
                 }
                 rowgroup.children(".pg-container").each(function(i,part) {
-                    this.destroyRows($(part).children(selector));
+                    self.destroyRows($(part).children(selector));
                 });
                 return end-start;
             }
