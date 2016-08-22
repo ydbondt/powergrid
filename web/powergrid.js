@@ -1088,7 +1088,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             // Render the cell container
             var el = this.renderCellTemplate.cloneNode();
             var content = this.renderCellContent(record, column);
-            el.appendChild(content);
+            if(content) {
+                el.appendChild(content);
+            }
             return el;
         },
 

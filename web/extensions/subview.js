@@ -124,7 +124,9 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                         }
 
                         frag.appendChild(subview);
-                        frag.appendChild(content);
+                        if(content) {
+                            frag.appendChild(content);
+                        }
                         return frag;
                     } else {
                         return content;
