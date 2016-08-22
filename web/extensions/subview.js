@@ -78,7 +78,6 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                     
                     if(record && pluginOptions.hasSubView(grid, record) && subviewsExpanded[record.id]) {
                         if(!target.is(".pg-row-has-subview")) {
-                            target.addClass("pg-row-has-subview");
                             rowParts.forEach(function(i,e) {
                                 var wrapper = document.createElement("div");
                                 wrapper.setAttribute('class', 'pg-inner-row');
@@ -87,6 +86,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                     wrapper.appendChild(i.firstChild);
                                 }
                                 i.appendChild(wrapper);
+                                i.setAttribute('class', i.getAttribute('class') + ' pg-row-has-subview');
                             });
                             
                             subview = $('<div class="pg-subview">');
