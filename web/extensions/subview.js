@@ -41,20 +41,20 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                         }
                     },
                     expandView: function(record, rowIdx) {
-                        var group = grid.getRowGroupFor(rowIdx);
+                        var rowParts = grid.getRowPartsForIndex(rowIdx);
                         if(!subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = true;
-                            grid.afterRenderRow(record, rowIdx, group.all.children("[data-row-id='" + record.id + "']").toArray());
-                            group.all.find('.pg-subview-toggle').addClass('pg-subview-expanded');
+                            grid.afterRenderRow(record, rowIdx, rowParts.toArray());
+                            rowParts.find('.pg-subview-toggle').addClass('pg-subview-expanded');
                         }
                     },
 
                     collapseView: function(record, rowIdx) {
-                        var group = grid.getRowGroupFor(rowIdx);
+                        var rowParts = grid.getRowPartsForIndex(rowIdx);
                         if(subviewsExpanded[record.id]) {
                             subviewsExpanded[record.id] = false;
-                            group.all.children("[data-row-id='" + record.id + "']").css("height", grid.rowHeight(rowIdx) + "px");
-                            group.all.find('.pg-subview-toggle').removeClass('pg-subview-expanded');
+                            rowParts.css("height", grid.rowHeight(rowIdx) + "px");
+                            rowParts.find('.pg-subview-toggle').removeClass('pg-subview-expanded');
                         }
                     },
                     
@@ -79,13 +79,20 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                     if(record && pluginOptions.hasSubView(grid, record) && subviewsExpanded[record.id]) {
                         if(!target.is(".pg-row-has-subview")) {
                             target.addClass("pg-row-has-subview");
-                            target.wrapInner('<div class="pg-inner-row"></div>');
-                            target.children('.pg-inner-row').css('height', $super.rowHeight(rowIdx) + "px");
+                            rowParts.forEach(function(i,e) {
+                                var wrapper = document.createElement("div");
+                                wrapper.setAttribute('class', 'pg-inner-row');
+                                wrapper.setAttribute('style', 'height: ' + $super.rowHeight(rowIdx) + "px");
+                                while(i.hasChildNodes()) {
+                                    wrapper.appendChild(i.firstChild);
+                                }
+                                i.appendChild(wrapper);
+                            });
                             
                             subview = $('<div class="pg-subview">');
                             subview.attr("id", (grid.target.attr("id") || "subview") + "-" + record.id);
                             
-                            var promise = pluginOptions.renderSubView(grid, record, subview);
+                            var promise = pluginOptions.renderSubView(grid, record, subview[0]);
                             subview.on("resize", finish);
                             
                             target.append(subview);

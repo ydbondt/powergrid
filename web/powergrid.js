@@ -13,7 +13,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
     function determineScrollBarSize() {
         // Creates a dummy div just to measure the scrollbar sizes, then deletes it when it's no longer necessary.
-        var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: none; opacity: 0'></div>");
+        var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: hidden; opacity: 0'></div>");
         var filler = $("<div style='width:100%; height: 100%;'></div>");
         dummy.append(filler);
         $('body').append(dummy);
@@ -1191,6 +1191,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             } else {
                 return this.scrollinggroup;
             }
+        },
+
+        getRowPartsForIndex: function(rowIndex) {
+            return this.getRowGroupFor(rowIndex).all.children(".pg-row[data-row-idx='" + rowIndex + "']");
         },
 
         diff: function(a, b) {

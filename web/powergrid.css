@@ -299,9 +299,8 @@
     box-sizing: border-box;
     position: relative;
     transition: height 0.5s ease;
-    overflow: hidden;
     min-width: 100%;
-
+    background: inherit;
 }
 
 .pg-columnheaders .pg-row {
@@ -668,3 +667,14 @@ ul.pg-menu > li:hover {
     border-color: transparent;
 }
 
+.pg-container.pg-left {
+    z-index: 1;
+}
+
+.pg-container.pg-scrolling {
+    z-index: 2;
+}
+
+.pg-container.pg-right {
+    z-index: 3;
+}
