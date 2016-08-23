@@ -33,8 +33,6 @@
 .pg-cell {
     position: absolute;
     display: inline-block;
-
-    /* border-top: 1px solid rgba(0,0,0,0.2); */
     padding: 5px 8px;
     box-sizing: border-box;
     cursor: default;
@@ -301,7 +299,6 @@
     position: relative;
     transition: height 0.5s ease;
     min-width: 100%;
-    background: inherit;
 }
 
 .pg-columnheaders .pg-row {
@@ -320,13 +317,12 @@
 .pg-inner-row {
     background: inherit;
     position: absolute;
-    z-index: 2;
     width: 100%;
 }
 
 .pg-subview {
     position: absolute;
-    z-index: 1;
+    z-index: 0;
     bottom: 0px;
     width: 100%;
 }
@@ -375,7 +371,7 @@
 .powergrid > .pg-scrolling {
     position: absolute;
     overflow: hidden;
-    z-index: 2;
+    z-index: 1;
     border-top: 1px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
@@ -388,18 +384,17 @@
 }
 
 .powergrid > .pg-header {
-    z-index: 1;
+    z-index: 2;
 }
 
 .powergrid > .pg-footer {
     border-top: 2px solid rgba(0, 0, 0, 0.27);
-    z-index: 3;
+    z-index: 2;
 }
 
 .powergrid > div > .pg-container.pg-fixed {
     box-sizing: content-box;
     position: absolute;
-    z-index: 1;
 }
 
 .powergrid > div > .pg-container.pg-fixed.pg-left {
@@ -668,14 +663,24 @@ ul.pg-menu > li:hover {
     border-color: transparent;
 }
 
-.pg-container.pg-left .pg-cell {
-    z-index: 1;
+.pg-rowgroup > .pg-container.pg-left {
+    width: 100% !important; /* ensures subviews get full width. */
 }
 
-.pg-container.pg-scrolling .pg-cell {
+.pg-container.pg-left .pg-row:not(.pg-row-has-subview),
+.pg-container.pg-left .pg-inner-row,
+.pg-container.pg-left .pg-columnheader {
     z-index: 2;
 }
 
-.pg-container.pg-right .pg-cell {
-    z-index: 3;
+.pg-container.pg-scrolling .pg-row:not(.pg-row-has-subview),
+.pg-container.pg-scrolling .pg-inner-row,
+.pg-container.pg-scrolling .pg-columnheader  {
+    z-index: 1;
+}
+
+.pg-container.pg-right .pg-row:not(.pg-row-has-subview),
+.pg-container.pg-right .pg-inner-row,
+.pg-container.pg-right .pg-columnheader  {
+    z-index: 2;
 }
