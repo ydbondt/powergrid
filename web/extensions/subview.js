@@ -61,7 +61,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                         },
 
                         subview: function(id) {
-                            return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview");
+                        return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview-container > .pg-subview");
                         }
                     },
 
@@ -97,7 +97,11 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 var promise = pluginOptions.renderSubView(grid, record, subview[0]);
                                 subview.on("resize", finish);
 
-                                target.append(subview);
+                            var subviewcontainer = $('<div class="pg-subview-container">');
+                            subviewcontainer.css('top', $super.rowHeight(rowIdx));
+                            subviewcontainer.append(subview);
+
+                            target.append(subviewcontainer);
 
                                 if(promise.then) {
                                     promise.then(finish);
@@ -149,7 +153,6 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                     }
                 }
             });
-        }
     };
     
 });

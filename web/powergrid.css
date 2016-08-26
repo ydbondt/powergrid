@@ -684,3 +684,11 @@ ul.pg-menu > li:hover {
 .pg-container.pg-right .pg-columnheader  {
     z-index: 2;
 }
+
+.pg-subview-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
