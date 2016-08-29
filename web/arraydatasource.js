@@ -46,9 +46,9 @@ define(["./jquery", "./utils"], function($, utils) {
 
         getData: function(start, end) {
             this.assertReady();
-            if(!start && !end) return this.data;
-            if(!start) start = 0;
-            if(!end) end = this.recordCount();
+            if(start === undefined && end === undefined) return this.data;
+            if(start === undefined || start === null) start = 0;
+            if(end === undefined) end = this.recordCount();
             return this.data.slice(start, end);
         },
 

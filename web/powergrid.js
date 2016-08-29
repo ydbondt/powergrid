@@ -1271,7 +1271,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         normalizeCssClass: function(c) {
-            return c.replace(/[.\[\]]/g, '_');
+            return c.replace(/[^a-zA-Z0-9]/g, '_');
         },
 
         destroyRows: function(rows) {

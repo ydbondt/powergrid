@@ -36,6 +36,16 @@
         }
         o[p[x]] = value;
     }
+
+    function createElement(tag, attributes) {
+        var element = document.createElement(tag);
+        for(var x in attributes) {
+            if(attributes.hasOwnProperty(x)) {
+                element.setAttribute(x, attributes[x]);
+            }
+        }
+        return element;
+    }
     
     define(['./jquery'], function($) {
         return {
@@ -101,7 +111,9 @@
             },
 
             getValue: getValue,
-            setValue: setValue
+            setValue: setValue,
+
+            createElement: createElement
         }
     });
 })(define);
