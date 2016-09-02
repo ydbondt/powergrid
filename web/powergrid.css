@@ -317,7 +317,6 @@
 .pg-inner-row {
     background: inherit;
     position: absolute;
-    width: 100%;
 }
 
 .pg-subview {
@@ -478,7 +477,8 @@
 }
 
 .pg-tree-expanded .pg-treetoggle,
-.pg-subview-toggle-default.pg-subview-expanded,
+.pg-subview-expanded > .pg-inner-row > .pg-cell > .pg-subview-toggle-default,
+.pg-subview-expanded > .pg-cell > .pg-subview-toggle-default,
 .pg-tree-expanded .pg-grouping-grouptoggle
 {
     background-image: url('./collapse.svg');
@@ -669,18 +669,29 @@ ul.pg-menu > li:hover {
 
 .pg-container.pg-left .pg-row:not(.pg-row-has-subview),
 .pg-container.pg-left .pg-inner-row,
-.pg-container.pg-left .pg-columnheader {
+.pg-container.pg-left .pg-columnheader,
+.pg-container.pg-left .pg-subview {
     z-index: 2;
 }
 
 .pg-container.pg-scrolling .pg-row:not(.pg-row-has-subview),
 .pg-container.pg-scrolling .pg-inner-row,
-.pg-container.pg-scrolling .pg-columnheader  {
+.pg-container.pg-scrolling .pg-columnheader,
+.pg-container.pg-scrolling .pg-subview   {
     z-index: 1;
 }
 
 .pg-container.pg-right .pg-row:not(.pg-row-has-subview),
 .pg-container.pg-right .pg-inner-row,
-.pg-container.pg-right .pg-columnheader  {
+.pg-container.pg-right .pg-columnheader,
+.pg-container.pg-right .pg-subview   {
     z-index: 2;
+}
+
+.pg-subview-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
 }

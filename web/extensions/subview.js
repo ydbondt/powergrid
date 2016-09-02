@@ -47,8 +47,12 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             if(!subviewsExpanded[record.id]) {
                                 subviewsExpanded[record.id] = true;
                                 grid.afterRenderRow(record, rowIdx, rowParts.toArray());
-                                rowParts.find('.pg-subview-toggle').addClass('pg-subview-expanded');
+                                rowParts.addClass('pg-subview-expanded');
                             }
+
+                            rowParts.each(function (i, part) {
+                                part.style.height = grid.rowHeight(rowIdx) + "px";
+                            });
                         },
 
                         collapseView: function(record, rowIdx) {
@@ -56,12 +60,16 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             if(subviewsExpanded[record.id]) {
                                 subviewsExpanded[record.id] = false;
                                 rowParts.css("height", grid.rowHeight(rowIdx) + "px");
-                                rowParts.find('.pg-subview-toggle').removeClass('pg-subview-expanded');
+                                rowParts.removeClass('pg-subview-expanded');
                             }
+
+                            rowParts.each(function (i, part) {
+                                part.style.height = grid.rowHeight(rowIdx) + "px";
+                            });
                         },
 
-                        subview: function(id) {
-                            return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview");
+                        subview: function (id) {
+                            return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview-container > .pg-subview");
                         }
                     },
 
@@ -70,6 +78,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
 
                         function finish() {
                             requestAnimationFrame(function() {
+                                target.addClass('pg-row-subview-rendered');
                                 subViewHeights[record.id] = subview[0].scrollHeight;
                                 rowParts.forEach(function(part) {
                                     part.style.height = grid.rowHeight(rowIdx) + "px";
@@ -78,13 +87,13 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             });
                         }
 
-                        if(record && pluginOptions.hasSubView(grid, record) && subviewsExpanded[record.id]) {
-                            if(!target.is(".pg-row-has-subview")) {
-                                rowParts.forEach(function(i,e) {
+                        if (record && pluginOptions.hasSubView(grid, record) && (pluginOptions.prerender || subviewsExpanded[record.id])) {
+                            if (!target.is(".pg-row-has-subview")) {
+                                rowParts.forEach(function (i, e) {
                                     var wrapper = document.createElement("div");
                                     wrapper.setAttribute('class', 'pg-inner-row');
                                     wrapper.setAttribute('style', 'height: ' + $super.rowHeight(rowIdx) + "px");
-                                    while(i.hasChildNodes()) {
+                                    while (i.hasChildNodes()) {
                                         wrapper.appendChild(i.firstChild);
                                     }
                                     i.appendChild(wrapper);
@@ -92,22 +101,25 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 });
 
                                 subview = $('<div class="pg-subview">');
+                                subview.on("resize", finish);
                                 subview.attr("id", (grid.target.attr("id") || "subview") + "-" + record.id);
 
+                                var subviewcontainer = $('<div class="pg-subview-container">');
+                                subviewcontainer.css('top', $super.rowHeight(rowIdx));
+                                subviewcontainer.append(subview);
+
+                                target.append(subviewcontainer);
+                            } else {
+                                subview = [rowParts[0].querySelector(".pg-subview")];
+                            }
+
+                            if (subviewsExpanded[record.id] && !target.is(".pg-row-subview-rendered")) {
                                 var promise = pluginOptions.renderSubView(grid, record, subview[0]);
-                                subview.on("resize", finish);
-
-                                target.append(subview);
-
-                                if(promise.then) {
+                                if (promise.then) {
                                     promise.then(finish);
                                 } else {
                                     finish();
                                 }
-                            } else {
-                                rowParts.forEach(function(part) {
-                                    part.style.height = grid.rowHeight(rowIdx) + "px";
-                                });
                             }
                         }
 
