@@ -758,14 +758,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     } else if(range.begin > this.viewport.begin) {
                         // have to remove rows from beginning
                         allParts.each(function(i,part) {
-                            this.destroyRows($(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')'));
+                            self.destroyRows($(part).children('.pg-row:lt(' + (range.begin - self.viewport.begin) + ')'));
                         });
                     }
 
                     if(range.end < this.viewport.end && range.end > this.viewport.begin) {
                         // have to remove rows from end
                         allParts.each(function(i,part) {
-                            this.destroyRows($(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')'));
+                            self.destroyRows($(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')'));
                         });
                     } else if(range.end > this.viewport.end) {
                         // have to add rows to end
