@@ -629,7 +629,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 sArea = this.getScrollAreaSize(),
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end);
 
-            range.begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
+            var begin = Math.max(start, range.begin - this.options.virtualScrollingExcess);
+            range.begin = begin - (begin%2); // maintain odd/even-ness of rows for styling purposes
             range.end = Math.min(end, range.end + this.options.virtualScrollingExcess);
 
             return range;
@@ -1000,7 +1001,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 }
             }
             if(begin > -1) {
-                return { begin: begin, end: x };
+                return { begin: begin - (begin%2), end: x };
             } else {
                 return { begin: 0, end: 0 };
             }
