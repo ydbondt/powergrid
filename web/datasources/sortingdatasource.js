@@ -43,9 +43,9 @@ define(['util'], function(util) {
 
         getData: function(start, end) {
             this.assertReady();
-            if(!start && !end) return this.view;
-            if(!start) start = 0;
-            if(!end) end = this.recordCount();
+            if(start === undefined && end === undefined) return this.view;
+            if(start === undefined) start = 0;
+            if(end === undefined) end = this.recordCount();
             return this.view.slice(start, end);
         },
 
