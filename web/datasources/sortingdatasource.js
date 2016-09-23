@@ -1,4 +1,4 @@
-define(['util'], function(util) {
+define([], function() {
     function SortingDataSource(delegate) {
         var self = this;
         this.delegate = delegate;

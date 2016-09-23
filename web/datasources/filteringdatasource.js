@@ -1,4 +1,4 @@
-define(['../utils'], function (utils) {
+define([], function () {
     function FilteringDataSource(delegate) {
         var self = this;
         this.delegate = delegate;
