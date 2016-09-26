@@ -5,6 +5,7 @@ define(['./powergrid', './arraydatasource', './jsondatasource', './datasources/g
             ArrayDataSource: ArrayDataSource,
             JsonDataSource: JsonDataSource,
             GroupingDataSource: GroupingDataSource,
-            SortingDataSource: SortingDataSource
+            SortingDataSource: SortingDataSource,
+            FilteringDataSource: FilteringDataSource
         };
     });
