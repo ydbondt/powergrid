@@ -20,8 +20,8 @@
     function getValue(object, key) {
         var o = object;
         for(var p=parsePath(key),x=0,l=p.length;x<l;x++) {
-            if(o === undefined) {
-                return undefined;
+            if(o === undefined || o === null) {
+                return o;
             }
             o = o[p[x]];
         }

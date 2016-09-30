@@ -112,10 +112,20 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                         },
                         
                         compareString: function(a,b) {
-                            var split = /([0-9]+|.)/g,
+                            var split = /([0-9]+|[^0-9]+)/g,
                                 isNumber = /^[0-9]+$/,
                                 sA = a.toLocaleUpperCase().match(split),
                                 sB = b.toLocaleUpperCase().match(split);
+                            if(a==b) return 0;
+                            if(sA === null) {
+                                if(sB === null) {
+                                    return 0;
+                                } else {
+                                    return -1;
+                                }
+                            } else if(sB === null) {
+                                return 1;
+                            }
                             for(var x=0,l=Math.min(sA.length,sB.length);x<l;x++) {
                                 var cA = sA[x], cB = sB[x];
                                 if(cA.match(isNumber)) {

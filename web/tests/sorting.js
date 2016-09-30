@@ -12,6 +12,12 @@ define(
                     assert.equal(mockgrid.sorting.compareString(b,a), -1, b + " should < " + a);
                 }
 
+                function e(a,b) {
+                    assert.equal(mockgrid.sorting.compareString(a,b), 0, a + " should = " + b);
+                    assert.equal(mockgrid.sorting.compareString(b,a), 0, b + " should = " + a);
+                }
+
+                e("", "");
                 t("Ulalala120", "Ulalala20");
                 t("Ulalala20", "U120");
                 t("zazazaa", "Bababa");
