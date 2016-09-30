@@ -2,79 +2,7 @@ define(['../override', '../jquery', '../utils',
     '../templates/filterPane.html!text',
     '../templates/filterBox.html!text'], function(override, $, utils, filterPane, filterBox) {
     "use strict";
-    
-    function FilteringDataSource(delegate) {
-        var self = this;
-        this.delegate = delegate;
-        
-        $(delegate).on("dataloaded", function(event) {
-            self.reload();
-            $(self).trigger("dataloaded");
-        }).on("datachanged", function(event, data) {
-            self.reload();
-            $(self).trigger("datachanged", [data]);
-        });
-        
-        if(delegate.isReady()) {
-            this.reload();
-        }
 
-        if(typeof delegate.sort === 'function') {
-            this.sort = delegate.sort.bind(delegate);
-        }
-    }
-    
-    FilteringDataSource.prototype = {
-        view: null,
-        
-        isReady: function() {
-            return this.view != null;
-        },
-        
-        reload: function() {
-            this.delegate.assertReady();
-            this.view = this.delegate.getData();
-        },
-        
-        recordCount: function() {
-            this.assertReady();
-            return this.view.length;
-        },
-        
-        getData: function(start, end) {
-            this.assertReady();
-            if(!start && !end) return this.view;
-            if(!start) start = 0;
-            if(!end) end = this.recordCount();
-            return this.view.slice(start, end);
-        },
-
-        setValue: function(rowId, key, value) {
-            this.delegate.setValue(rowId, key, value);
-        },
-        
-        assertReady: function() {
-            if(!this.isReady()) throw Error("Datasource not ready yet");
-        },
-        
-        buildStatistics: function() {
-            return {
-                actualRecordCount: this.delegate && this.delegate.recordCount()
-            };
-        },
-        
-        applyFilter: function(settings, filter) {
-            var oldview = this.view,
-                view = this.delegate.getData().filter(filter);
-            this.view = view;
-            $(this).trigger('datachanged', { data: view, oldData: oldview });
-        },
-
-        getRecordById: function(id) {
-            return this.delegate.getRecordById(id);
-        }
-    };
-    
     return {
         init: function(grid, pluginOptions) {
             return override(grid, function($super) {
