@@ -300,7 +300,9 @@
     box-sizing: border-box;
     position: relative;
     transition: height 0.5s ease;
+    overflow: hidden;
     min-width: 100%;
+
 }
 
 .pg-columnheaders .pg-row {
@@ -372,7 +374,7 @@
 .powergrid > .pg-scrolling {
     position: absolute;
     overflow: hidden;
-    z-index: 1;
+    z-index: 2;
     border-top: 1px solid rgba(0, 0, 0, 0.27);
     background: white;
 }
@@ -385,17 +387,18 @@
 }
 
 .powergrid > .pg-header {
-    z-index: 2;
+    z-index: 1;
 }
 
 .powergrid > .pg-footer {
     border-top: 2px solid rgba(0, 0, 0, 0.27);
-    z-index: 2;
+    z-index: 3;
 }
 
 .powergrid > div > .pg-container.pg-fixed {
     box-sizing: content-box;
     position: absolute;
+    z-index: 1;
 }
 
 .powergrid > div > .pg-container.pg-fixed.pg-left {
@@ -479,8 +482,7 @@
 }
 
 .pg-tree-expanded .pg-treetoggle,
-.pg-subview-expanded > .pg-inner-row > .pg-cell > .pg-subview-toggle-default,
-.pg-subview-expanded > .pg-cell > .pg-subview-toggle-default,
+.pg-subview-toggle-default.pg-subview-expanded,
 .pg-tree-expanded .pg-grouping-grouptoggle
 {
     background-image: url('./collapse.svg');
@@ -665,30 +667,6 @@ ul.pg-menu > li:hover {
     border-color: transparent;
 }
 
-.pg-rowgroup > .pg-container.pg-left {
-    width: 100% !important; /* ensures subviews get full width. */
-}
-
-.pg-container.pg-left .pg-row:not(.pg-row-has-subview),
-.pg-container.pg-left .pg-inner-row,
-.pg-container.pg-left .pg-columnheader,
-.pg-container.pg-left .pg-subview {
-    z-index: 2;
-}
-
-.pg-container.pg-scrolling .pg-row:not(.pg-row-has-subview),
-.pg-container.pg-scrolling .pg-inner-row,
-.pg-container.pg-scrolling .pg-columnheader,
-.pg-container.pg-scrolling .pg-subview   {
-    z-index: 1;
-}
-
-.pg-container.pg-right .pg-row:not(.pg-row-has-subview),
-.pg-container.pg-right .pg-inner-row,
-.pg-container.pg-right .pg-columnheader,
-.pg-container.pg-right .pg-subview   {
-    z-index: 2;
-}
 
 .pg-subview-container {
     position: absolute;

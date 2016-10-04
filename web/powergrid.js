@@ -863,6 +863,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
             if(this.options.autoResize) {
                 this.container.css({"height": (this.rowHeight(0, this.dataSource.recordCount()) + columnHeaderHeight) + "px"});
+                this.container.trigger('resize');
             }
         },
 
