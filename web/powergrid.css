@@ -42,6 +42,7 @@
     overflow: hidden;
     border: 1px solid rgba(200,200,200,0.1);
     white-space: nowrap;
+    background: inherit;
 }
 
 .powergrid > .pg-columnheaders {
@@ -320,13 +321,11 @@
 .pg-inner-row {
     background: inherit;
     position: absolute;
-    z-index: 2;
-    width: 100%;
 }
 
 .pg-subview {
     position: absolute;
-    z-index: 1;
+    z-index: 0;
     bottom: 0px;
     width: 100%;
 }
@@ -668,3 +667,11 @@ ul.pg-menu > li:hover {
     border-color: transparent;
 }
 
+
+.pg-subview-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
