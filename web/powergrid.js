@@ -197,6 +197,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 container.addClass("pg-autoresize");
             }
 
+            var hiddenColumns = this.loadSetting("hidden");
+            this._hideColumns(hiddenColumns);
+
             this.options.columns.forEach(function(column, index) {
                 if(column.key === undefined) {
                     column.key = index;
@@ -657,6 +660,26 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             }
 
             this.scrollTo(newScrollLeft, newScrollTop);
+        },
+
+        hideColumns: function(keys) {
+            this.saveSetting("hidden", keys);
+            this._hideColumns(keys);
+            this.renderData();
+            this.columnheadergroup.all.empty();
+            this.renderColumnHeaderContents(this.columnheadergroup);
+            this.adjustColumnPositions(false);
+        },
+
+        _hideColumns: function(keys) {
+            if (keys) {
+                this.options.columns.forEach(function (column) {
+                    let hide = keys.find(function (key) {
+                        return key === column.key;
+                    })
+                    column.hidden = (hide) ? true : false;
+                });
+            }
         },
 
         _addRows: function(start, end) {
