@@ -75,7 +75,11 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
             
             function calcDepth(nodes, depth) {
                 nodes.forEach(function(x) {
-                    self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
+                    if(x.id in self._treeSettings) {
+                        self._treeSettings[x.id].depth = depth;
+                    } else {
+                        self._treeSettings[x.id] = {depth: depth, expanded: depth < (initialTreeDepth || 0)};
+                    }
                     var children = self.children(x);
                     if(children && children.length) {
                         calcDepth(children, depth+1);
