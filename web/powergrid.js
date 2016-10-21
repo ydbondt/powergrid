@@ -674,7 +674,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         _hideColumns: function(keys) {
             if (keys) {
                 this.options.columns.forEach(function (column) {
-                    let hide = keys.find(function (key) {
+                    var hide = keys.find(function (key) {
                         return key === column.key;
                     })
                     column.hidden = (hide) ? true : false;
