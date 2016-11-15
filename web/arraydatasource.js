@@ -70,6 +70,15 @@ define(["./jquery", "./utils"], function($, utils) {
             this.assertReady();
             this.data.sort(comparator);
             $(this).trigger("dataloaded");
+        },
+
+        replace(record) {
+            var data = this.data,
+                idx = data.find(function(r) { return r.id == record.id; });
+            if(idx !== undefined) {
+                data.splice(idx, 1, record);
+                $(this).trigger("datachanged", { rows: [record] })
+            }
         }
     };
     

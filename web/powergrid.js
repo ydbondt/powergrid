@@ -285,6 +285,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.updateCellValues(data.values);
                         grid.trigger('change');
                     }
+                    if(data.rows) {
+                        grid.updateRows(data.rows);
+                        grid.trigger('change');
+                    }
                     grid.trigger('datachanged', data);
                     grid.trigger('viewchanged');
                 });
@@ -454,6 +458,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.headergroup && this.headergroup.all.empty();
             this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
+
+            this.allRowsDisposed();
 
             this.setViewport({
                 begin: 0,
@@ -775,6 +781,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 } else {
                     // no overlap, just clear the entire thing and rebuild
                     allParts.empty();
+                    this.allRowsDisposed();
                     this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
                 }
 
@@ -1105,6 +1112,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             }
         },
 
+        updateRows: function(list) {
+            let columns = this.getVisibleColumns();
+            for(var x=0,l=list.length;x<l;x++) {
+                for(var y=0, cl=columns.length; y<cl; y++) {
+                    this.updateCellValue(list[x].id, columns[y].key);
+                }
+            }
+        },
+
         afterCellRendered: function(record, column, cell) {
 
         },
@@ -1115,8 +1131,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             if(cell.length) {
                 var record = this.dataSource.getRecordById(rowId),
                     column = this.getColumnForKey(key);
-                cell.empty().append(this.renderCellContent(record, column));
-                this.afterCellRendered(record, column, cell);
+                cell.empty();
+                this.cellContentDisposed(record, column);
+                cell.append(this.renderCellContent(record, column));
+                this.afterCellRendered(record, column, cell[0]);
             }
         },
 
@@ -1275,14 +1293,30 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             return c.replace(/[^a-zA-Z0-9]/g, '_');
         },
 
+        cellContentDisposed: function(record, column) {
+            // hook for extensions to be notified when a cell's content is removed from the DOM.
+        },
+
+        allRowsDisposed: function() {
+            // hook for extensions to be notified when the whole grid's contents are removed from the DOM.
+        },
+
         destroyRows: function(rows) {
             rows.remove();
+            if(typeof this.rowsDisposed === 'function') {
+                this.rowsDisposed(this.getIdsFromRows(rows));
+            }
         },
 
         getIdsFromRows: function(rows) {
-            return rows.map(function(r) {
+            return rows.map(function(i, r) {
                 return $(r).attr('data-row-id');
-            });
+            }).toArray();
+        },
+
+        updateRowHeight: function(rowIndex) {
+            var parts = this.getRowPartsForIndex(rowIndex);
+            parts.css({height: this.rowHeight(rowIndex) + "px"});
         }
     };
 

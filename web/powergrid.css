@@ -688,6 +688,16 @@ ul.pg-menu > li:hover {
     z-index: 2;
 }
 
+.pg-container.pg-left .pg-row.pg-editing {
+    z-index: 4;
+}
+.pg-container.pg-scrolling .pg-row.pg-editing {
+    z-index: 5;
+}
+.pg-container.pg-right .pg-row.pg-editing {
+    z-index: 6;
+}
+
 .pg-subview-container {
     position: absolute;
     bottom: 0;
