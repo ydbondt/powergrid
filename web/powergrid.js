@@ -1113,7 +1113,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         updateRows: function(list) {
-            let columns = this.getVisibleColumns();
+            var columns = this.getVisibleColumns();
             for(var x=0,l=list.length;x<l;x++) {
                 for(var y=0, cl=columns.length; y<cl; y++) {
                     this.updateCellValue(list[x].id, columns[y].key);
