@@ -316,8 +316,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     case 2: ddX=self.pageHeight(); ddY=self.pageWidth(); break;
                 }
 
-                self.scrollBy(dX * ddX, dY * ddY);
-                evt.preventDefault();
+                if(self.scrollBy(dX * ddX, dY * ddY)) {
+                    evt.preventDefault();
+                }
             });
 
             this.initTouchScrollEvents();
@@ -1017,6 +1018,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         scrollBy: function(dX, dY) {
             // Scroll by a specific offset
             var self = this;
+
+            if(
+                (dX < 0 && self.scroller[0].scrollLeft == 0) ||
+                (dX > 0 && self.scroller[0].scrollLeft == self.scroller[0].scrollWidth - self.scroller[0].offsetWidth + scrollBarSize.width) ||
+                (dY < 0 && self.scroller[0].scrollTop == 0) ||
+                (dY > 0 && self.scroller[0].scrollTop == self.scroller[0].scrollHeight - self.scroller[0].offsetHeight + scrollBarSize.height)) {
+                    return false;
+            }
+
+
             if(self.scrollBydY === undefined && self.scrollBydX === undefined) {
                 self.scrollBydY = dY;
                 self.scrollBydX = dX;
@@ -1031,6 +1042,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 self.scrollBydY += dY;
                 self.scrollBydX += dX;
             }
+
+            return true;
         },
 
         scrollTo: function(x, y) {

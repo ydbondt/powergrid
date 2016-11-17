@@ -23,7 +23,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                 rowHeight: function(start, end) {
                     if(pluginOptions.additionalRowHeight !== undefined) {
                         if(end !== undefined) {
-                            var editedRowCountInWindow = Object.keys(editedCellMapByRowIdx).filter(i => start <= parseInt(i) && parseInt(i) < end).length;
+                            var editedRowCountInWindow = Object.keys(editedCellMapByRowIdx).filter(function(i) { return start <= parseInt(i) && parseInt(i) < end; }).length;
                             return $super.rowHeight(start, end) + editedRowCountInWindow * pluginOptions.additionalRowHeight;
                         } else {
                             return $super.rowHeight(start) + (editedCellMapByRowIdx[start] ? pluginOptions.additionalRowHeight : 0);
