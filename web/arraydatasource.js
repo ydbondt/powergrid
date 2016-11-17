@@ -72,7 +72,7 @@ define(["./jquery", "./utils"], function($, utils) {
             $(this).trigger("dataloaded");
         },
 
-        replace(record) {
+        replace: function(record) {
             var data = this.data,
                 idx = data.find(function(r) { return r.id == record.id; });
             if(idx !== undefined) {
