@@ -7,14 +7,18 @@
 
     function parsePath(key) {
         var p = [];
-        key.replace(pathRegex, function(a,b) {
-            if(b !== undefined) {
-                p.push(parseInt(b));
-            } else {
-                p.push(a);
-            }
-        });
-        return p;
+        if (key.replace) {
+            key.replace(pathRegex, function (a, b) {
+                if (b !== undefined) {
+                    p.push(parseInt(b));
+                } else {
+                    p.push(a);
+                }
+            });
+            return p;
+        }
+
+        return key;
     }
 
     function getValue(object, key) {
