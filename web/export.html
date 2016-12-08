@@ -25,7 +25,9 @@
                 });
                 
                 var data = new Array(2500);
+
                 
+
                 $("#test").PowerGrid({
                     columns: columns,
                     
@@ -76,12 +78,17 @@
                     },
                     
                     extensions: {
-                        'columnsizing': {},
-                        'columnmoving': {},
-                        'editing': true
+                        'export_csv': {autodownload: true}
                     }
                 });
+
+                $("#export_csv").on('click', function() {
+                    $("#test").data().powergrid.export_csv("my-export.csv")
+                        .then(function(result) { alert("Downloaded " + result.filename) });
+                });
             });
+
+
 		</script>
         
         <style>
@@ -105,9 +112,9 @@
         </style>
 	</head>
 	<body>
-        <form action="error.html">
-            <div id="test"></div>
-            <input type="submit" value="Submit" />
-        </form>
+		<button id="export_csv">Export to CSV</button>
+		<div class="results"></div>
+		<div id="test"></div>
+		<input type="submit" value="Submit" />
 	</body>
 </html>
