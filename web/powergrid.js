@@ -1303,7 +1303,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         normalizeCssClass: function(c) {
-            return c.replace(/[^a-zA-Z0-9]/g, '_');
+            if (c.replace) {
+                return c.replace(/[^a-zA-Z0-9]/g, '_');
+            }
+            return c;
         },
 
         cellContentDisposed: function(record, column) {
