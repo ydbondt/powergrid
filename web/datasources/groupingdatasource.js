@@ -145,6 +145,14 @@ define(['../utils'], function (utils) {
 
         processGroup: function(group) {
 
+        },
+
+        hasSubView: function(record) {
+            if(record.groupRow) {
+                return false;
+            } else if(typeof this.delegate.hasSubView === 'function') {
+                return this.delegate.hasSubView(record);
+            }
         }
     };
 

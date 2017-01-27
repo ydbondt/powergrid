@@ -68,6 +68,18 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             });
                         },
 
+                        hasSubView: function(record) {
+                            if(typeof pluginOptions.hasSubView === 'function') {
+                                var v = pluginOptions.hasSubView(grid, record);
+                                if(v !== undefined) return v;
+                            }
+                            if(typeof grid.dataSource.hasSubView === 'function') {
+                                var v = grid.dataSource.hasSubView(record);
+                                if(v !== undefined) return v;
+                            }
+                            return false;
+                        },
+
                         subview: function (id) {
                             return grid.container.find("> .pg-rowgroup > .pg-container > .pg-row.pg-row-has-subview[data-row-id='" + id + "'] > .pg-subview-container > .pg-subview");
                         }
@@ -87,7 +99,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                             });
                         }
 
-                        if (record && pluginOptions.hasSubView(grid, record) && (pluginOptions.prerender || subviewsExpanded[record.id])) {
+                        if (record && grid.subviews.hasSubView(record) && (pluginOptions.prerender || subviewsExpanded[record.id])) {
                             if (!target.is(".pg-row-has-subview")) {
                                 rowParts.forEach(function (i, e) {
                                     var wrapper = document.createElement("div");
@@ -128,7 +140,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
 
                     renderCellContent: function(record, column, value) {
                         var content = $super.renderCellContent.apply(this, arguments);
-                        if(column.subViewToggle && record && pluginOptions.hasSubView(grid, record)) {
+                        if(column.subViewToggle && record && grid.subviews.hasSubView(record)) {
                             var frag = document.createDocumentFragment();
                             var subview = document.createElement("div");
                             subview.classList.add("pg-subview-toggle");
