@@ -234,7 +234,7 @@
 }
 
 .pg-group-indicator:before {
-    border-left-color: transparent !important;   
+    border-left-color: transparent !important;
     left: -10px;
 }
 
@@ -450,8 +450,7 @@
 }
 
 .pg-columndragging {
-    z-index: 10;
-    position: relative;
+    z-index: 10 !important;
     opacity: 0.8;
 }
 
@@ -704,4 +703,16 @@ ul.pg-menu > li:hover {
     left: 0;
     right: 0;
     overflow: hidden;
+}
+
+.pg-draggable {
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    cursor: grab;
+}
+
+.pg-draggable.pg-dragging {
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
 }
