@@ -36,6 +36,8 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 tracking = true;
                                 dragstarted = false;
 
+                                $(header).addClass("pg-dragging");
+
                                 event.stopPropagation();
                             }
                         }
@@ -60,6 +62,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 
                                 if(dX * dX + dY * dY > 400) {
                                     cells.addClass("pg-columndragging");
+                                    $(header).addClass("pg-columndragging");
                                     dragstarted = true;
                                 } else {
                                     return;
@@ -105,12 +108,14 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                     }
                                     $(header).css({ "transform": "translate(" + (newX - col.offsetLeft) + "px, " + newY + "px)" });
                                 } else {
+                                    $(header).css({ "transform": "translate(" + (newX - col.offsetLeft) + "px)" });
                                     cells.css({ "transform": "translate(" + (newX - col.offsetLeft) + "px)" });
                                 }
                             });
                         }
                     
                         function endDrag(event) {
+                            $(header).removeClass("pg-dragging");
                             tracking = false;
                             if(dragstarted) {
                                 if(dragTarget) {
@@ -129,6 +134,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 
                                 $(grid.baseSelector + " .pg-column" + grid.normalizeCssClass(col.key)).css({ "transform": "" });
                                 cells.removeClass("pg-columndragging");
+                                $(header).removeClass("pg-columndragging");
                                 
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
@@ -153,6 +159,12 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                     destroy: function() {
                         $(window).off("mousemove." + this.id).off("mouseup." + this.id);
                         $super.destroy();
+                    },
+
+                    renderHeaderCell: function(column, colIdx) {
+                        var cell = $super.renderHeaderCell(column, colIdx);
+                        $(cell).addClass("pg-draggable");
+                        return cell;
                     }
                 }
             });

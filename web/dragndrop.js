@@ -8,9 +8,11 @@ define(['./jquery'], function($) {
     
     function DragNDrop(container, selector, targetselector) {
         var target, oX, oY, possibleTargets, prevDropTarget, oOffset, pX, pY;
-        
+
         $(container).on("mousedown", selector, function(event) {
             target = $(this);
+
+            target.addClass("pg-dragging");
             
             var event = new $.Event("customdragstart", {
                 dragee: target,
@@ -67,6 +69,8 @@ define(['./jquery'], function($) {
                 target.css("transform", "translate(" + (pX = (event.pageX - oX + oOffset.left - nOffset.left + pX)) + "px, " + (pY = (event.pageY - oY + oOffset.top - nOffset.top + pY)) + "px)");
             }
         }).on("mouseup", function(event) {
+            target.removeClass("pg-dragging");
+
             if(target !== undefined) {
                 if(prevDropTarget !== undefined) {
                     var event = new $.Event("customdrop", {
