@@ -116,12 +116,12 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         fixedGroups: [],
                         
                         initReordering: function(grouper) {
-                            new DragNDrop(grouper, ".pg-group-indicator", ".pg-group-indicator");
+                            new DragNDrop(grouper, ".pg-group-indicator.pg-draggable", ".pg-group-indicator.pg-draggable");
 
                             var newOrder;
                             
                             grouper.on("customdragstart", function(event) {
-                            }).on("customdragover", ".pg-group-indicator", function(event) {
+                            }).on("customdragover", ".pg-group-indicator.pg-draggable", function(event) {
                                 var targetKey = $(this).attr("data-group-key"),
                                     dragKey = $(event.dragee).attr("data-group-key"),
                                     gKeys = (newOrder || grid.grouping.groups).map(function(e) { return e.key; }),
@@ -170,7 +170,11 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         },
                         
                         renderGroupIndicator: function(column, removable) {
-                            return groupIndicatorTemplate.render(column, { removable: removable });
+                            var indicator = $(groupIndicatorTemplate.render(column, { removable: removable }));
+                            if(removable) {
+                                indicator.addClass("pg-draggable");
+                            }
+                            return indicator;
                         },
 
                         renderGroupRow: function(column, record) {
