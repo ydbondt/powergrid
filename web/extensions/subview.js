@@ -133,6 +133,10 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                     finish();
                                 }
                             }
+
+                            if(subviewsExpanded[record.id] == true) {
+                                target.addClass('pg-subview-expanded');
+                            }
                         }
 
                         $super.afterRenderRow(record, rowIdx, rowParts);
