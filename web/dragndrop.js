@@ -69,9 +69,9 @@ define(['./jquery'], function($) {
                 target.css("transform", "translate(" + (pX = (event.pageX - oX + oOffset.left - nOffset.left + pX)) + "px, " + (pY = (event.pageY - oY + oOffset.top - nOffset.top + pY)) + "px)");
             }
         }).on("mouseup", function(event) {
-            target.removeClass("pg-dragging");
-
             if(target !== undefined) {
+                target.removeClass("pg-dragging");
+
                 if(prevDropTarget !== undefined) {
                     var event = new $.Event("customdrop", {
                         pageX: event.pageX,
