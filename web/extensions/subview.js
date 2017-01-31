@@ -48,6 +48,10 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 subviewsExpanded[record.id] = true;
                                 grid.afterRenderRow(record, rowIdx, rowParts.toArray());
                                 rowParts.addClass('pg-subview-expanded');
+                                rowParts.addClass('pg-subview-animating');
+                                rowParts.one('transitionend', function() {
+                                    rowParts.removeClass('pg-subview-animating');
+                                });
                             }
 
                             rowParts.each(function (i, part) {
@@ -61,6 +65,10 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                                 subviewsExpanded[record.id] = false;
                                 rowParts.css("height", grid.rowHeight(rowIdx) + "px");
                                 rowParts.removeClass('pg-subview-expanded');
+                                rowParts.addClass('pg-subview-animating');
+                                rowParts.one('transitionend', function() {
+                                    rowParts.removeClass('pg-subview-animating');
+                                });
                             }
 
                             rowParts.each(function (i, part) {
