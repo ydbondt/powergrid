@@ -626,6 +626,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
             if(start < end && start >= this.viewport.begin && start < this.viewport.end) {
                 var count = r(start - this.viewport.begin, Math.min(this.viewport.end, end) - this.viewport.begin, this.scrollingcontainer);
+                this._incrementRowIndexes(start, start - end);
                 start = Math.min(scrollEnd, end);
                 this.viewport.end -= count;
             }
@@ -689,6 +690,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             }
         },
 
+        _incrementRowIndexes: function(start, offset) {
+            this.container.find("> .pg-rowgroup > .pg-container > .pg-row").each(function(idx, row) {
+                var idx = parseInt(row.getAttribute('data-row-idx'));
+                if(idx >= start) {
+                    row.setAttribute('data-row-idx', idx + offset);
+                }
+            });
+        },
+
         _addRows: function(start, end) {
             var range = this.viewRange();
 
@@ -699,6 +709,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 // b) remove the rows that are no longer in the viewport
                 // Preferably we'd do b first.
                 end = Math.min(range.end, end);
+                this._incrementRowIndexes(start, end-start);
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);
             }
