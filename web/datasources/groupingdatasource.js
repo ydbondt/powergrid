@@ -52,7 +52,7 @@ define(['../utils'], function (utils) {
                                 children: [],
                                 _groupColumn: col,
                                 _groupLevel: level,
-                                parent: parentGroupId
+                                parent: level > 0 ? parentGroupId : null
                             });
 
                             r[col.key] = baseValue;
@@ -127,7 +127,14 @@ define(['../utils'], function (utils) {
         },
 
         parent: function (row) {
-            return row.parent || this.parentByIdMap[row.id].id;
+            if(row.parent) {
+                return row.parent;
+            } else {
+                var parentRow = this.parentByIdMap[row.id];
+                if(parentRow) {
+                    return parentRow.id;
+                }
+            }
         },
 
         hasChildren: function (row) {
