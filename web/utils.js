@@ -41,14 +41,62 @@
         o[p[x]] = value;
     }
 
-    function createElement(tag, attributes) {
+    function createElement(tag, attributes, content) {
         var element = document.createElement(tag);
-        for(var x in attributes) {
-            if(attributes.hasOwnProperty(x)) {
-                element.setAttribute(x, attributes[x]);
+        if(typeof attributes == 'string' || Array.isArray(attributes)) {
+            content = attributes;
+            attributes = undefined;
+        }
+        if(attributes) {
+            for (var x in attributes) {
+                if (attributes.hasOwnProperty(x)) {
+                    element.setAttribute(x, attributes[x]);
+                }
+            }
+        }
+        if(typeof content == 'string') {
+            element.textContent = content;
+        } else if(Array.isArray(content)) {
+            for(var x=0,l=content.length;x<l;x++) {
+                element.appendChild(content[x]);
             }
         }
         return element;
+    }
+
+    function normalizeOptions(options) {
+        if(Array.isArray(options)) {
+            return options;
+        } else {
+            return Object.keys(options).map(function(key) {
+                return {
+                    value: key,
+                    label: options[key]
+                };
+            });
+        }
+    }
+
+    function createEventListener() {
+        var handlers = {};
+        return {
+            on: function(eventName, handler) {
+                if(eventName in handlers) {
+                    handlers[eventName] = handlers[eventName].concat(handler);
+                } else {
+                    handlers[eventName] = [handler];
+                }
+            },
+
+            trigger: function(eventName) {
+                var self = this, args = Array.apply(null, arguments).slice(1);
+                if(eventName in handlers) {
+                    handlers[eventName].forEach(function(handler) {
+                        handler.apply(self, args);
+                    });
+                }
+            }
+        }
     }
     
     define(['./jquery'], function($) {
@@ -117,7 +165,11 @@
             getValue: getValue,
             setValue: setValue,
 
-            createElement: createElement
+            createElement: createElement,
+
+            normalizeOptions: normalizeOptions,
+
+            createEventListener: createEventListener
         }
     });
 })(define);

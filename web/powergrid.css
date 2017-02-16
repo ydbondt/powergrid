@@ -73,7 +73,6 @@
     border-right: 1px solid #757575;
     box-sizing: border-box;
     min-height: 100%;
-    overflow: hidden;
 }
 
 .pg-columnheader > .pg-resizehandle {
@@ -125,11 +124,47 @@
     color: black;
 }
 
-.pg-filter-box > input.pg-filter-input {
+.pg-filter-box > .pg-filter-input {
     width: 100%;
     box-sizing: border-box;
     padding-left: 19px;
     margin: 0;
+    height: 22px;
+    background: white;
+}
+
+.pg-filter-box.pg-filter-options > .span:empty {
+    content: 'All'
+}
+
+.pg-filter-box.pg-filter-options > .span {
+    display: block;
+    height: 22px;
+}
+
+.pg-filter-box.pg-filter-options > .pg-filter-input > ul {
+    list-style: none;
+    position: absolute;
+    padding: 0;
+    z-index: 1000;
+    display: none;
+
+    border: 1px solid black;
+    background: white;
+    padding: 5px;
+    margin: 0;
+    font-size: 80%;
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+.pg-filter-box.pg-filter-options.pg-focus > .pg-filter-input > ul {
+    display: block;
+}
+
+.pg-filter-box.pg-filter-options > .pg-filter-input > ul > li {
+    padding: 0;
 }
 
 .pg-filter {
@@ -375,8 +410,12 @@
     background: white;
 }
 
-.powergrid > .pg-rowgroup,
 .pg-columnheaders {
+    position: absolute;
+    background: white;
+}
+
+.powergrid > .pg-rowgroup {
     position: absolute;
     overflow: hidden;
     background: white;
