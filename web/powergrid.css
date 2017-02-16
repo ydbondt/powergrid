@@ -131,6 +131,8 @@
     margin: 0;
     height: 22px;
     background: white;
+    font-size: 13px;
+    border: none;
 }
 
 .pg-filter-box.pg-filter-options > .span:empty {
@@ -142,12 +144,27 @@
     height: 22px;
 }
 
-.pg-filter-box.pg-filter-options > .pg-filter-input > ul {
-    list-style: none;
+.pg-filter-current-options {
+    display: inline-block;
+    padding-left: 0;
+    margin: 0;
+    padding-top: 4px;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.pg-filter-current-options > li {
+    display: inline-block;
+}
+
+.pg-filter-current-options > li:not(:last-child):after {
+    content: ', ';
+}
+
+.pg-filter-dropdown {
     position: absolute;
-    padding: 0;
     z-index: 1000;
-    display: none;
 
     border: 1px solid black;
     background: white;
@@ -156,14 +173,25 @@
     font-size: 80%;
     top: 100%;
     left: 0;
-    right: 0;
+    margin-top: 22px;
 }
 
-.pg-filter-box.pg-filter-options.pg-focus > .pg-filter-input > ul {
+.pg-filter-dropdown-open {
     display: block;
 }
 
-.pg-filter-box.pg-filter-options > .pg-filter-input > ul > li {
+.pg-filter-dropdown-open > .dropdown-menu {
+    /* bootstrap support */
+    display: inline-block;
+}
+
+.pg-filter-dropdown > .pg-filter-dropdown-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pg-filter-dropdown > .pg-filter-dropdown-menu > li {
     padding: 0;
 }
 

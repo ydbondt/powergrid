@@ -49,7 +49,7 @@
         }
         if(attributes) {
             for (var x in attributes) {
-                if (attributes.hasOwnProperty(x)) {
+                if (attributes.hasOwnProperty(x) && attributes[x] !== false) {
                     element.setAttribute(x, attributes[x]);
                 }
             }
