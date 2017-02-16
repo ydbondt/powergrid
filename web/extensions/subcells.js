@@ -71,7 +71,6 @@ define(['../override', '../utils'], function(override, utils) {
                                 return total + height(grid.subcells.count(record));
                             }, 0);
                         }
-                        console.log(start, end, h);
                         return h;
                     },
 
