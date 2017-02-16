@@ -59,7 +59,7 @@ define(['../override', '../jquery', '../utils',
                     
                     filtering: {
                         createFilterBox: function(column) {
-                            if(column.type in pluginOptions.filterFactories) {
+                            if(column.type && pluginOptions.filterFactories && column.type in pluginOptions.filterFactories) {
                                 return pluginOptions.filterFactories[column.type](column, grid);
                             } else {
                                 return this.createDefaultFilterBox(column);
