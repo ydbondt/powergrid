@@ -1,7 +1,7 @@
 define(['../override', '../jquery', '../utils',
     '../datasources/filteringdatasource',
-    'text!../templates/filterPane.html!text',
-    'text!../templates/filterBox.html'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
++    '../templates/filterPane.html!text',
+    '../templates/filterBox.html!text'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
     "use strict";
 
     return {
@@ -39,7 +39,11 @@ define(['../override', '../jquery', '../utils',
                             filters[column.key] = filter;
                             header.append(filter.filterBox);
                             filter.on("change", function(value) {
-                                columnSettings[column.key] = value;
+                                if(value !== null && value !== undefined) {
+                                    columnSettings[column.key] = value;
+                                } else {
+                                    delete columnSettings[column.key];
+                                }
                                 grid.filtering.filter(columnSettings);
                             });
                         }
