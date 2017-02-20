@@ -10,6 +10,8 @@ define(['../override', '../jquery', '../utils',
                 var columnSettings = {};
                 
                 var currentFilterPane;
+
+                var filters = {};
                 
                 return {
                     init: function() {
@@ -19,30 +21,6 @@ define(['../override', '../jquery', '../utils',
                         
                         $super.init();
                         
-                        this.container.on("click", ".pg-filter", function(event) {
-                            var $this = $(this),
-                                key = $this.parents('.pg-columnheader').attr('data-column-key'),
-                                column = grid.getColumnForKey(key);
-                            
-                            if(currentFilterPane) {
-                                grid.filtering.closeFilterPane();
-                            }
-                            
-                            currentFilterPane = $("<div class='pg-filter-pane'>");
-                            grid.filtering.renderFilterPane(currentFilterPane, column);
-                            currentFilterPane.css("top", $this.offset().top + "px").css("left", $this.offset().left + "px");
-                            $("body").append(currentFilterPane);
-                            
-                            event.preventDefault();
-                            event.stopPropagation();
-                        });
-                        
-                        $("body").on("click." + this.id, function(event) {
-                            if(currentFilterPane && $(this).parents(".pg-filter-pane").empty()) {
-                                grid.filtering.closeFilterPane();
-                            }
-                        });
-                        
                         this.container.on("click mousedown", ".pg-filter-box", function(event) {
                             event.stopPropagation();
                         });
@@ -50,7 +28,6 @@ define(['../override', '../jquery', '../utils',
                     
                     destroy: function() {
                         $super.destroy();
-                        $("body").off("click." + this.id);
                     },
 
                     renderHeaderCell: function(column, columnIdx) {
@@ -58,16 +35,19 @@ define(['../override', '../jquery', '../utils',
                         
                         if(column.filterable === undefined || column.filterable) {
                             header.addClass("pg-filterable");
-                            header.append(filterBox);
-
+                            var filter = this.filtering.getFilter(column);
                             var timer;
-                            
-                            header.on("keyup", ".pg-filter-input", function(event) {
-                                var self = this;
+
+                            header.append(filter.filterBox);
+                            filter.on("change", function(value) {
                                 if(timer) clearTimeout(timer);
                                 timer = setTimeout(function() {
-                                    grid.filtering.setColumnFilteringAttribute(column.key, { "value": self.value });
-                                    timer = null;
+                                    if(value !== null && value !== undefined) {
+                                        columnSettings[column.key] = value;
+                                    } else {
+                                        delete columnSettings[column.key];
+                                    }
+                                    grid.filtering.filter(columnSettings);
                                 }, 1000);
                             });
                         }
@@ -86,21 +66,94 @@ define(['../override', '../jquery', '../utils',
                     },
                     
                     filtering: {
-                        renderFilterPane: function(container, column) {
-                            container.html(filterPane);
-                            container.on("click", "[data-filter-method],[data-filter-type]", function(event) {
-                                grid.filtering.setColumnFilteringAttribute(column.key, 
-                                    {
-                                        method: $(this).attr("data-filter-method"),
-                                        type: $(this).attr("data-filter-type")
-                                    });
-                                grid.filtering.closeFilterPane();
-                            });
+                        getFilter: function(column) {
+                            if(!column.key) {
+                                column = grid.getColumnForKey(column);
+                            }
+
+                            if(column.key in filters) {
+                                return filters[column.key];
+                            } else {
+                                return filters[column.key] = this.createFilter(column);
+                            }
                         },
-                        
-                        closeFilterPane: function() {
-                            currentFilterPane.remove();
-                            currentFilterPane = null;
+
+                        createFilter: function(column) {
+                            if(column.type && pluginOptions.filterFactories && column.type in pluginOptions.filterFactories) {
+                                return pluginOptions.filterFactories[column.type](column, grid);
+                            } else {
+                                return this.createDefaultFilter(column);
+                            }
+                        },
+
+                        createDefaultFilter: function(column) {
+                            var listener = utils.createEventListener(),
+                                fragment = $(filterBox),
+                                filterValue = { value: '', method: 'contains', type: 'inclusive' },
+                                filter = {
+                                    filterBox: fragment,
+                                    on: listener.on,
+                                    trigger: listener.trigger,
+                                    value: filterValue,
+                                    valueMatches: function(value, columnSettings) {
+                                        var hasValue = value !== undefined && value !== null && value !== "";
+                                        switch(columnSettings.method) {
+                                            case "contains":
+                                                return (!columnSettings.value || hasValue && (value.toLocaleUpperCase()).indexOf(columnSettings.value.toLocaleUpperCase()) > -1);
+                                            case "beginsWith":
+                                                return (!columnSettings.value || hasValue && value.length >= columnSettings.value.length && value.substring(0, columnSettings.value.length).toLocaleUpperCase() == columnSettings.value.toLocaleUpperCase());
+                                            case "endsWith":
+                                                return (!columnSettings.value || hasValue && value.length >= columnSettings.value.length && value.substring(value.length - columnSettings.value.length).toLocaleUpperCase() == columnSettings.value.toLocaleUpperCase());
+                                            default: throw "Unsupported filter operator " + columnSettings.type;
+                                        }
+                                    }
+                                },
+                                currentFilterPane;
+
+                            function closeFilterPane() {
+                                currentFilterPane.remove();
+                                currentFilterPane = null;
+                            }
+
+                            fragment.on("click", ".pg-filter", function(event) {
+                                var $this = $(this),
+                                    key = $this.parents('.pg-columnheader').attr('data-column-key'),
+                                    column = grid.getColumnForKey(key);
+
+                                if(currentFilterPane) {
+                                    return;
+                                }
+
+                                currentFilterPane = $("<div class='pg-filter-pane'>");
+
+                                currentFilterPane.html(filterPane);
+                                currentFilterPane.on("click", "[data-filter-method],[data-filter-type]", function(event) {
+                                    filterValue.method = $(this).attr("data-filter-method");
+                                    filterValue.type = $(this).attr("data-filter-type");
+                                    filter.trigger('change', filterValue);
+                                    grid.filtering.closeFilterPane();
+                                });
+
+                                currentFilterPane.css("top", $this.offset().top + "px").css("left", $this.offset().left + "px");
+                                $("body").append(currentFilterPane);
+
+                                event.preventDefault();
+                                event.stopPropagation();
+
+                                $("body").one("click", function(event) {
+                                    if(currentFilterPane && $(this).parents(".pg-filter-pane").empty()) {
+                                        grid.filtering.closeFilterPane();
+                                    }
+                                });
+                            });
+
+                            fragment.on("keyup", ".pg-filter-input", function(event) {
+                                var value = this.value;
+                                filterValue.value = value;
+                                filter.trigger('change', filterValue);
+                            });
+
+                            return filter;
                         },
                         
                         filter: function(settings) {
@@ -109,8 +162,8 @@ define(['../override', '../jquery', '../utils',
                         
                         rowMatches: function(settings, row) {
                             for(var x in settings) {
-                                if(!this.valueMatches(settings[x], utils.getValue(row, x))) {
-                                    if(settings[x].type == 'inclusive') {
+                                if(!this.getFilter(x).valueMatches(utils.getValue(row, x), settings[x])) {
+                                    if(settings[x].type == 'inclusive' || settings[x].type === undefined) {
                                         return 0;
                                     }
                                 } else {
@@ -120,29 +173,6 @@ define(['../override', '../jquery', '../utils',
                                 }
                             }
                             return 1;
-                        },
-                        
-                        valueMatches: function(columnSetting, value) {
-                            var hasValue = value !== undefined && value !== null && value !== "";
-                            switch(columnSetting.method) {
-                                case "contains":
-                                    return (!columnSetting.value || hasValue && (value.toLocaleUpperCase()).indexOf(columnSetting.value.toLocaleUpperCase()) > -1);
-                                case "beginsWith":
-                                    return (!columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(0, columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase());
-                                case "endsWith":
-                                    return (!columnSetting.value || hasValue && value.length >= columnSetting.value.length && value.substring(value.length - columnSetting.value.length).toLocaleUpperCase() == columnSetting.value.toLocaleUpperCase());
-                                default: throw "Unsupported filter operator " + columnSetting.type;
-                            }
-                        },
-                        
-                        setColumnFilteringAttribute: function(key, attributes) {
-                            if(!columnSettings[key]) columnSettings[key] = this.createDefaultFiltering(key);
-                            $.extend(columnSettings[key], attributes);
-                            this.filter(columnSettings);
-                        },
-                        
-                        createDefaultFiltering: function(key) {
-                            return { value: '', method: 'contains', type: 'inclusive' };
                         }
                     }
                 }

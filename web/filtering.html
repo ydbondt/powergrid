@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PowerGrid proof of concept</title>
+    <script src="../bower_components/requirejs/require.js" type="text/javascript"></script>
+    <script src="config.js" type="text/javascript"></script>
+
+    <link href="powergrid.css" rel="stylesheet" />
+    <script>
+        require(['jquery', 'powergrid', 'arraydatasource', 'promise', 'override'], function($, powergrid, ArrayDataSource, Promise, override) {
+            if(window.requestAnimationFrame === undefined) {
+                requestAnimationFrame = function(f) {
+                    setTimeout(f, 0);
+                };
+            }
+
+            var columns = [
+                { title: "Operation Name", key: "name", width: 300, subViewToggle: true, flex: 1 },
+                { title: "Status", key: "status", width: 100, flex: 0.5, type: 'option', options: {'planned': 'Planned','cancelled': 'Cancelled','ongoing': 'Ongoing','landed': 'Landed'} },
+            ];
+
+            var data = [{
+                name: "Black Ops",
+                uas:  [{
+                    model: "Trimble",
+                    serial: "PH123456789"
+                }],
+                status: 'planned'
+            }, {
+                name: "Test Flight",
+                uas: [{
+                    model: "Trimble",
+                    serial: "PH0987654321"
+                }, {
+                    model: "DJI",
+                    serial: "X1000"
+                }, {
+                    model: "Sensefly",
+                    serial: "SF111"
+                }],
+                status: 'cancelled'
+            }];
+            var content = "";
+
+            var ds = new ArrayDataSource(data);
+
+            var grid = $("#test").PowerGrid({
+                columns: columns,
+
+                dataSource: ds,
+
+                extensions: {
+                    'directinput': true,
+                    'columnsizing': {},
+                    'columnmoving': {},
+                    'editing': {
+                        isEditable: function(record, column) {
+                            if(column.key === 'selected')
+                                return record.id % 5 != 0;
+                            return true;
+                        }
+                    },
+                    'subcells': {
+                        cellpadding: 10,
+                        cellheight: 19
+                    },
+                    'subview': {
+                        hasSubView: function(grid, record) {
+                            return true;
+                        },
+
+                        renderSubView: function(grid, record, target) {
+                            return new Promise(function(resolve, reject) {
+                                setTimeout(function() {
+                                    target.innerHTML = record.name;
+                                    resolve();
+                                }, 100);
+                            });
+                        }
+                    },
+                    'flexcolumns': true,
+                    'filtering_option': true
+                }
+            });
+
+            window.addEventListener('resize', function() {
+                grid.resize();
+            });
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 11pt;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        #test {
+            width: 100%;
+            height: 100%;
+        }
+
+        .pg-subview {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="test"></div>
+</body>
+</html>
