@@ -1,6 +1,6 @@
 define(['../override', '../jquery', '../utils',
     '../datasources/filteringdatasource',
-+    '../templates/filterPane.html!text',
+    '../templates/filterPane.html!text',
     '../templates/filterBox.html!text'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
     "use strict";
 
@@ -35,16 +35,20 @@ define(['../override', '../jquery', '../utils',
                         
                         if(column.filterable === undefined || column.filterable) {
                             header.addClass("pg-filterable");
-                            var filter = this.filtering.createFilterBox(column);
-                            filters[column.key] = filter;
+                            var filter = this.filtering.getFilter(column);
+                            var timer;
+
                             header.append(filter.filterBox);
                             filter.on("change", function(value) {
-                                if(value !== null && value !== undefined) {
-                                    columnSettings[column.key] = value;
-                                } else {
-                                    delete columnSettings[column.key];
-                                }
-                                grid.filtering.filter(columnSettings);
+                                if(timer) clearTimeout(timer);
+                                timer = setTimeout(function() {
+                                    if(value !== null && value !== undefined) {
+                                        columnSettings[column.key] = value;
+                                    } else {
+                                        delete columnSettings[column.key];
+                                    }
+                                    grid.filtering.filter(columnSettings);
+                                }, 1000);
                             });
                         }
 
@@ -62,15 +66,27 @@ define(['../override', '../jquery', '../utils',
                     },
                     
                     filtering: {
-                        createFilterBox: function(column) {
-                            if(column.type && pluginOptions.filterFactories && column.type in pluginOptions.filterFactories) {
-                                return pluginOptions.filterFactories[column.type](column, grid);
+                        getFilter: function(column) {
+                            if(!column.key) {
+                                column = grid.getColumnForKey(column);
+                            }
+
+                            if(column.key in filters) {
+                                return filters[column.key];
                             } else {
-                                return this.createDefaultFilterBox(column);
+                                return filters[column.key] = this.createFilter(column);
                             }
                         },
 
-                        createDefaultFilterBox: function(column) {
+                        createFilter: function(column) {
+                            if(column.type && pluginOptions.filterFactories && column.type in pluginOptions.filterFactories) {
+                                return pluginOptions.filterFactories[column.type](column, grid);
+                            } else {
+                                return this.createDefaultFilter(column);
+                            }
+                        },
+
+                        createDefaultFilter: function(column) {
                             var listener = utils.createEventListener(),
                                 fragment = $(filterBox),
                                 filterValue = { value: '', method: 'contains', type: 'inclusive' },
@@ -131,16 +147,10 @@ define(['../override', '../jquery', '../utils',
                                 });
                             });
 
-                            var timer;
-
                             fragment.on("keyup", ".pg-filter-input", function(event) {
                                 var value = this.value;
-                                if(timer) clearTimeout(timer);
-                                timer = setTimeout(function() {
-                                    filterValue.value = value;
-                                    filter.trigger('change', filterValue);
-                                    timer = null;
-                                }, 1000);
+                                filterValue.value = value;
+                                filter.trigger('change', filterValue);
                             });
 
                             return filter;
@@ -152,7 +162,7 @@ define(['../override', '../jquery', '../utils',
                         
                         rowMatches: function(settings, row) {
                             for(var x in settings) {
-                                if(!filters[x].valueMatches(utils.getValue(row, x), settings[x])) {
+                                if(!this.getFilter(x).valueMatches(utils.getValue(row, x), settings[x])) {
                                     if(settings[x].type == 'inclusive' || settings[x].type === undefined) {
                                         return 0;
                                     }
