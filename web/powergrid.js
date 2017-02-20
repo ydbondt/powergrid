@@ -136,10 +136,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                                 newkeys.push(req);
                             }
 
-                            if(grid.options.extensions[req]) {
-                                $.extend(true, grid.options.extensions[req], reqs[req]);
-                            } else {
+                            if(!grid.options.extensions[req] || grid.options.extensions[req] === true) {
                                 grid.options.extensions[req] = reqs[req];
+                            } else {
+                                $.extend(true, grid.options.extensions[req], reqs[req]);
                             }
                         }
                     }
@@ -880,7 +880,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.columnheadergroup.right && this.columnheadergroup.right.css("width", (trailingWidth + scrollBarSize.width) + "px");
             var minWidth = 'calc(100% - ' + leadingWidth +'px - ' + trailingWidth + 'px)';
             this.middleScrollers.css({"left": leadingWidth + "px", "width": middleWidth + "px", "min-width":  minWidth});
-            this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth + this.scroller.width() - this.scrollingcontainer.width()) + "px"});
+            this.scrollFiller.css({"width": (leadingWidth + middleWidth + trailingWidth) + "px"});
 
             if(this.options.autoResize) {
                 this.container.css({"width": (this.columnWidth(0, this.options.columns.length)) + "px" });
@@ -1002,22 +1002,29 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.queueRenderUpdate().syncScroll = true;
         },
 
-        columnWidth: function columnWidth(start, end) {
+        setColumnWidth: function(column, width, temporary) {
+            column.width = width;
+            this.queueAdjustColumnPositions(temporary);
+            this.queueAdjustHeights();
+        },
+
+        columnWidth: function columnWidth(start, end, transform) {
+            var self = this;
+            function columnWidth(x) {
+                var col = self.options.columns[x];
+                return col.hidden ? 0 : (transform ? transform(col, col.width) : col.width);
+            };
+
             // Calculate the width of a single column, or of a range of columns
             if(end == undefined) {
-                return this._columnWidth(start);
+                return columnWidth(start);
             } else {
                 var sum=0;
                 while(start<end) {
-                    sum += this._columnWidth(start++);
+                    sum += columnWidth(start++);
                 }
                 return sum;
             }
-        },
-
-        _columnWidth: function columnWidth(x) {
-            var col = this.options.columns[x];
-            return col.hidden ? 0 : col.width;
         },
 
         rowHeight: function rowHeight(start, end) {
@@ -1367,6 +1374,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         updateRowHeight: function(rowIndex) {
             var parts = this.getRowPartsForIndex(rowIndex);
             parts.css({height: this.rowHeight(rowIndex) + "px"});
+        },
+
+        viewportWidth: function() {
+            return this.container.width() - scrollBarSize.width;
+        },
+
+        resize: function() {
+            // indicate that the grid container has resized. used in extensions.
         }
     };
 

@@ -38,7 +38,7 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
                             }
                             
                             oX = event.pageX;
-                            w = col.width;
+                            w = grid.columnWidth(idx);
 
                             offset = event.offsetX || event.originalEvent.layerX || 0;
 
@@ -50,17 +50,16 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
                         }
 
                         function doResize(event) {
+                            var width;
                             if(resizing == 1) {
-                                col.width = Math.max(0, event.pageX - oX + w);
+                                width = Math.max(0, event.pageX - oX + w);
                             } else if(resizing == -1) {
-                                col.width = Math.max(0, oX - event.pageX + w);
+                                width = Math.max(0, oX - event.pageX + w);
                             } else {
                                 return;
                             }
-                            requestAnimationFrame(function() {
-                                grid.adjustColumnPositions(true);
-                                grid.adjustHeights();
-                            });
+
+                            grid.setColumnWidth(col, width, true);
                         }
 
                         function endResize(event) {
@@ -69,9 +68,7 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
                                 grid.saveSetting(col.key + "_width", col.width);
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
-                                requestAnimationFrame(function() {
-                                    grid.adjustColumnPositions(false); // final redraw
-                                })
+                                grid.queueAdjustColumnPositions(false);
                             }
                         }
 
