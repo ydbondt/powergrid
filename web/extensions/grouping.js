@@ -97,7 +97,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                     },
                     
                     renderRowToParts: function(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight) {
-                        if(record.groupRow) {
+                        if(this.grouping.isGroupRow(record)) {
                             var firstPart = rowFixedPartLeft || rowScrollingPart || rowFixedPartRight;
                             $(firstPart).addClass("pg-grouping-grouprow");
 
@@ -184,6 +184,10 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
 
                         groupColumns: function() {
                             return this.fixedGroups.concat(this.groups);
+                        },
+
+                        isGroupRow: function(row) {
+                            return row.groupRow;
                         }
                     }
                 };

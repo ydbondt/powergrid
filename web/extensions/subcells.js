@@ -21,6 +21,8 @@
  */
 define(['../override', '../utils'], function(override, utils) {
     return {
+        conflictsWith: ['variablerowheight'],
+
         init: function(grid, pluginOptions) {
             var MULTIROWKEY = /^(.*)\[\*\]\.(.*)$/,
                 subcelltemplate = utils.createElement("div", {'class': 'pg-subcell', 'style': 'height: ' + pluginOptions.cellheight + 'px'});
