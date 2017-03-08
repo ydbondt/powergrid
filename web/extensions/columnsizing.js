@@ -7,10 +7,12 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
         init: function(grid, pluginOptions) {
             override(grid, function($super) {
                 return {
-                    renderHeaderCell: function() {
-                        var h = $super.renderHeaderCell.apply(this, arguments);
-                        var handle = $("<div class='pg-resizehandle'></div>");
-                        h.append(handle);
+                    renderHeaderCell: function(column, columnIdx) {
+                        var h = $super.renderHeaderCell(column, columnIdx);
+                        if(column.resizable !== false) {
+                            var handle = $("<div class='pg-resizehandle'></div>");
+                            h.append(handle);
+                        }
                         return h;
                     },
 
