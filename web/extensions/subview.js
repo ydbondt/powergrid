@@ -2,7 +2,7 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
     "use strict";
     
     return {
-        loadFirst: ['subcells'],
+        loadFirst: ['subcells', 'variablerowheight'],
         init: function(grid, pluginOptions) {
             override(grid, function($super) {
                 var subViewHeights = [];
