@@ -86,7 +86,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         grouper.on("columndropped", function(event) {
                             grid.grouping.addGroupBy(event.column);
                         }).on("columndragenter", function(event) {
-                            if(grid.grouping.groupColumns().indexOf(event.column) > -1) {
+                            if(event.column.groupable === false || grid.grouping.groupColumns().indexOf(event.column) > -1) {
                                 event.preventDefault();
                             }
                         });
@@ -109,6 +109,10 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         } else {
                             $super.renderRowToParts(record, rowIdx, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
                         }
+                    },
+
+                    isColumnHidden: function(column) {
+                        return $super.isColumnHidden(column) || ( (pluginOptions.hideGroupedColumns && column.hideWhenGrouped !== false || column.hideWhenGrouped) && this.grouping.groups.indexOf(column) > -1);
                     },
                     
                     grouping: {
@@ -167,6 +171,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                                 grid.renderData();
                             }
                             grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
+                            grid.queueAdjustColumnPositions();
                         },
                         
                         renderGroupIndicator: function(column, removable) {

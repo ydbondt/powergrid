@@ -679,12 +679,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.adjustColumnPositions(false);
         },
 
+        isColumnHidden: function(column) {
+            return column.hidden;
+        },
+
         _hideColumns: function(keys) {
             if (keys) {
                 this.options.columns.forEach(function (column) {
                     var hide = keys.find(function (key) {
                         return key === column.key;
-                    })
+                    });
                     column.hidden = (hide) ? true : false;
                 });
             }
@@ -1012,7 +1016,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             var self = this;
             function columnWidth(x) {
                 var col = self.options.columns[x];
-                return col.hidden ? 0 : (transform ? transform(col, col.width) : col.width);
+                return self.isColumnHidden(col) ? 0 : (transform ? transform(col, col.width) : col.width);
             };
 
             // Calculate the width of a single column, or of a range of columns
@@ -1219,8 +1223,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         getVisibleColumns: function () {
+            var self = this;
             return this.options.columns.filter(function(c) {
-                return !c.hidden;
+                return !self.isColumnHidden(c);
             });
         },
 
