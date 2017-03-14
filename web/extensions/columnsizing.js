@@ -38,6 +38,10 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
                             if(col.resizable === false) {
                                 return;
                             }
+
+                            if(grid.flexcolumns && grid.flexcolumns.deflex) {
+                                grid.flexcolumns.deflex();
+                            }
                             
                             oX = event.pageX;
                             w = grid.columnWidth(idx);

@@ -42,13 +42,20 @@ define(['../override', '../jquery', '../utils'], function(override, $) {
                     }
                 },
 
-                setColumnWidth: function(column, width, temporary) {
-                    column.flex = 0;
-                    $super.setColumnWidth.apply(this, arguments);
-                },
-
                 resize: function() {
                     this.queueAdjustColumnPositions(false);
+                },
+
+                flexcolumns: {
+                    deflex: function() {
+                        var columns = grid.options.columns;
+                        for (var x = 0, l = columns.length; x < l; x++) {
+                            if (columns[x].flex) {
+                                columns[x].width = grid.columnWidth(x);
+                                columns[x].flex = 0;
+                            }
+                        }
+                    }
                 }
             }
         });
