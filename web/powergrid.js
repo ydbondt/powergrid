@@ -670,13 +670,17 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.scrollTo(newScrollLeft, newScrollTop);
         },
 
-        hideColumns: function(keys) {
-            this.saveSetting("hidden", keys);
-            this._hideColumns(keys);
+        updateColumns: function () {
             this.renderData();
             this.columnheadergroup.all.empty();
             this.renderColumnHeaderContents(this.columnheadergroup);
-            this.adjustColumnPositions(false);
+            this.queueAdjustColumnPositions(false);
+        },
+
+        hideColumns: function(keys) {
+            this.saveSetting("hidden", keys);
+            this._hideColumns(keys);
+            this.updateColumns();
         },
 
         isColumnHidden: function(column) {
