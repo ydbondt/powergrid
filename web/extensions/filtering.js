@@ -131,7 +131,7 @@ define(['../override', '../jquery', '../utils',
                                     filterValue.method = $(this).attr("data-filter-method");
                                     filterValue.type = $(this).attr("data-filter-type");
                                     filter.trigger('change', filterValue);
-                                    grid.filtering.closeFilterPane();
+                                    closeFilterPane();
                                 });
 
                                 currentFilterPane.css("top", $this.offset().top + "px").css("left", $this.offset().left + "px");
@@ -142,7 +142,7 @@ define(['../override', '../jquery', '../utils',
 
                                 $("body").one("click", function(event) {
                                     if(currentFilterPane && $(this).parents(".pg-filter-pane").empty()) {
-                                        grid.filtering.closeFilterPane();
+                                        closeFilterPane();
                                     }
                                 });
                             });

@@ -64,9 +64,11 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         this.columnheadercontainer.addClass("pg-grouping-enabled").prepend(grouper);
                         
                         if(this.grouping.groups) {
-                            this.grouping.fixedGroups.forEach(function(e) {
-                                grouper.append(grid.grouping.renderGroupIndicator(e, false));
-                            });
+                            if(pluginOptions.indicatorForFixedGroups !== false) {
+                                this.grouping.fixedGroups.forEach(function (e) {
+                                    grouper.append(grid.grouping.renderGroupIndicator(e, false));
+                                });
+                            }
                             this.grouping.groups.forEach(function(e) {
                                 grouper.append(grid.grouping.renderGroupIndicator(e, true));
                             });
@@ -112,7 +114,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                     },
 
                     isColumnHidden: function(column) {
-                        return $super.isColumnHidden(column) || ( (pluginOptions.hideGroupedColumns && column.hideWhenGrouped !== false || column.hideWhenGrouped) && this.grouping.groups.indexOf(column) > -1);
+                        return $super.isColumnHidden(column) || ( (pluginOptions.hideGroupedColumns && column.hideWhenGrouped !== false || column.hideWhenGrouped) && (this.grouping.fixedGroups.indexOf(column) > -1 || this.grouping.groups.indexOf(column) > -1));
                     },
                     
                     grouping: {
@@ -171,7 +173,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                                 grid.renderData();
                             }
                             grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
-                            grid.queueAdjustColumnPositions();
+                            grid.updateColumns();
                         },
                         
                         renderGroupIndicator: function(column, removable) {
