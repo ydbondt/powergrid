@@ -162,6 +162,14 @@
                 event.preventDefault();
             },
 
+            passthrough: function(target, delegate, functions) {
+                for(var x = 0,l=functions.length;x<l;x++) {
+                    if(typeof delegate[functions[x]] == 'function') {
+                        target[functions[x]] = delegate[functions[x]].bind(delegate);
+                    }
+                }
+            },
+
             getValue: getValue,
             setValue: setValue,
 

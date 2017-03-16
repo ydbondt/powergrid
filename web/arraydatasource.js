@@ -74,9 +74,9 @@ define(["./jquery", "./utils"], function($, utils) {
 
         replace: function(record) {
             var data = this.data,
-                idx = data.find(function(r) { return r.id == record.id; });
-            if(idx !== undefined) {
-                data.splice(idx, 1, record);
+                existingRow = data.find(function(r) { return r.id == record.id; });
+            if(existingRow !== undefined) {
+                data.splice(data.indexOf(existingRow), 1, record);
                 $(this).trigger("datachanged", { rows: [record] })
             }
         }
