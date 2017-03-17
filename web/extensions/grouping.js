@@ -171,9 +171,9 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                             grid.target.attr("data-group-leaf-level", allGroups.length);
                             if(groupingds.isReady()) {
                                 grid.renderData();
+                                grid.updateColumns();
                             }
                             grid.saveSetting("grouping", this.groups.map(function(column) { return column.key; }));
-                            grid.updateColumns();
                         },
                         
                         renderGroupIndicator: function(column, removable) {

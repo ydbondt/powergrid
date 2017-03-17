@@ -18,6 +18,8 @@ define(['../utils'], function (utils) {
 
         $(delegate).on("dataloaded", this.load.bind(this));
         this.groups = [];
+
+        utils.passthrough(this, delegate, ['commitRow','startEdit','rollbackRow','replace']);
     }
 
     GroupingDataSource.prototype = {

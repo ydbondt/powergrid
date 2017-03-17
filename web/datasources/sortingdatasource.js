@@ -1,4 +1,4 @@
-define([], function() {
+define(['../utils'], function(utils) {
     function SortingDataSource(delegate) {
         var self = this;
         this.delegate = delegate;
@@ -18,6 +18,8 @@ define([], function() {
         if(delegate.isReady()) {
             this.reload();
         }
+
+        utils.passthrough(this, delegate, ['commitRow','startEdit','rollbackRow','replace']);
     }
 
     SortingDataSource.prototype = {
