@@ -26,6 +26,8 @@ define(['../override', '../jquery', '../utils'], function(override, $) {
                     var formatter = column.formatter;
                     if (typeof column.formatter === "string") {
                         formatter = pluginOptions[column.formatter];
+                    } else if(column.formatter == null && column.type) {
+                        formatter = pluginOptions[column.type];
                     }
 
                     if (formatter) {
