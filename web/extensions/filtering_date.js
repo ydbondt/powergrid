@@ -2,9 +2,26 @@
  * Filtering for date fields
  * Enabled when column is of type 'date' or 'datetime'
  * By default this uses a HTML5 date field, which is very limited and not widely supported, but does not impose new
- * dependencies. This can be overridden using the plugin options.
+ * dependencies. This can be overridden using the plugin options, by providing a createField function, as in the example
+ * below that uses bootstrap-datetimepicker
  *
- * TODO provide example
+ * 'filtering_date': {
+ *      createField: function(value, type, callback, fieldName) {
+ *          let f = document.createElement("input");
+ *          $(f).datetimepicker();
+ *          let dp = $(f).data('DateTimePicker');
+ *          dp.date(value);
+ *          $(f).on("dp.change", function(e) {
+ *              callback(e.date ? e.date.toDate() : null);
+ *          });
+ *          return f;
+ *      }
+ *  }
+ *
+ *  - value: initial value for the field
+ *  - type: 'date' or 'datetime' depending on the column type
+ *  - callback: callback to invoke when the value of the field changes
+ *  - fieldName: 'before' or 'after'
  */
 
 var sequence=1;
