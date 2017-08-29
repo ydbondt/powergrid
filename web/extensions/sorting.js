@@ -25,7 +25,12 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             var key = $(this).attr('data-column-key'),
                                 col = grid.getColumnForKey(key),
                                 direction;
-                            
+
+                            if($(this).parents(".powergrid").get(0) != grid.container.get(0)) {
+                                // columnheader does not belong to this grid
+                                return;
+                            }
+
                             if(sortColumns[0] && sortColumns[0].key === key) {
                                 direction = sortColumns[0].direction;
                             }
@@ -44,6 +49,8 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             }));
                             grid.sorting.sort(sortColumns);
                             grid.saveSetting("sorting", sortColumns);
+
+                            event.stopPropagation();
                         });
 
                         $(grid.dataSource).one("dataloaded", function(e) {
