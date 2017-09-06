@@ -873,7 +873,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             for(var x = 0, l=columns.length; x < l; x++) {
                 var column = columns[x];
                 var w = this.columnWidth(x);
-                if(this.options.fullWidth  && (x == this.options.columns.length - this.options.frozenColumnsRight  - 1)) {
+
+                var fullWidth = this.options.fullWidth && x < this.options.columns.length - this.options.frozenColumnsRight;
+                for(var xx=x+1; fullWidth && xx < this.options.columns.length - this.options.frozenColumnsRight; xx++) {
+                    if(!this.isColumnHidden(this.options.columns[xx])) {
+                        fullWidth = false;
+                    }
+                }
+
+                if(fullWidth) {
                     this._updateStyle(temporary, this.baseSelector + " .pg-column" + this.normalizeCssClass(column.key), {"width": "auto", "min-width": w + "px", "right": "0"});
                 } else {
                     this._updateStyle(temporary, this.baseSelector + " .pg-column" + this.normalizeCssClass(column.key), {"width": w + "px", "right": "auto"});
