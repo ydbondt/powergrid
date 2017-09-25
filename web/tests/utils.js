@@ -45,6 +45,11 @@ define(
                     }
                 });
             });
+
+            QUnit.test("findRanges", function(assert) {
+                assert.deepEqual(utils.findRanges([0,1,2,3,5,6,8,12]), [{start: 0, count: 4}, {start: 5, count: 2}, {start: 8, count: 1}, {start: 12, count: 1}], "find ranges");
+                assert.deepEqual(utils.findRanges([3,1,8,2,6,0,12,5]), [{start: 0, count: 4}, {start: 5, count: 2}, {start: 8, count: 1}, {start: 12, count: 1}], "find ranges unsorted");
+            });
         };
     }
 );

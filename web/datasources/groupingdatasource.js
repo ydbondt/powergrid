@@ -33,15 +33,19 @@ define(['../utils'], function (utils) {
         },
 
         getRootNodes: function() {
-            return this.view;
+            return Promise.resolve(this.view);
         },
 
         children: function(row, start, end) {
             switch(arguments.length) {
-                case 1: return row.children;
-                case 2: return row.children(slice, start);
-                case 3: return row.children(slice, start, end);
+                case 1: return Promise.resolve(row.children);
+                case 2: return Promise.resolve(row.children.slice(start));
+                case 3: return Promise.resolve(row.children.slice(start, end));
             }
+        },
+
+        countRootNodes: function() {
+            return this.view.length;
         },
 
         countChildren: function(row) {

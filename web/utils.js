@@ -98,6 +98,25 @@
             }
         }
     }
+
+    function findRanges(indeces) {
+        var ranges = [];
+        indeces.sort(function(a,b) { return a-b; });
+
+        var prevIdx = indeces[0], currentCount=1;
+        for(var x=1; x<indeces.length;x++) {
+            if(indeces[x] == indeces[x - 1] + 1) {
+                currentCount++;
+            } else {
+                ranges.push({start: prevIdx, count: currentCount});
+                prevIdx = indeces[x];
+                currentCount = 1;
+            }
+        }
+
+        ranges.push({start: prevIdx, count: currentCount});
+        return ranges;
+    }
     
     define(['./jquery'], function($) {
         return {
@@ -169,6 +188,8 @@
                     }
                 }
             },
+
+            findRanges: findRanges,
 
             getValue: getValue,
             setValue: setValue,

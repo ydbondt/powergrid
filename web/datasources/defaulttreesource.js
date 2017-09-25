@@ -65,15 +65,27 @@ define([], function() {
             var rootNodes = [],
                 nodesPerId = {};
 
-            for (var x = 0, l = data.length; x < l; x++) {
-                var r = data[x];
+            function processChildren(parentRecord) {
+                if(parentRecord.children) {
+                    for(var x = 0, l = parentRecord.children.length; x < l; x++) {
+                        var childRecord = parentRecord.children[x],
+                            node = {
+                                record: childRecord,
+                                children: processChildren(childRecord)
+                            };
+                        nodesPerId[childRecord.id] = node;
+                    }
+                    return [].concat(parentRecord.children);
+                } else {
+                    return [];
+                }
             }
 
             for (var x = 0, l = data.length; x < l; x++) {
                 var record = data[x],
                     node = {
                         record: record,
-                        children: []
+                        children: processChildren(record)
                     };
                 nodesPerId[record.id] = node;
 
@@ -90,8 +102,8 @@ define([], function() {
             $(this).trigger('dataloaded');
         },
 
-        getRootNodes: function() {
-            return this.tree;
+        getRootNodes: function(start, end) {
+            return this.tree.slice(start || 0, end)
         },
 
         getRecordById: function (id) {
@@ -107,9 +119,17 @@ define([], function() {
             return node.children.length > 0;
         },
 
-        children: function (row) {
+        children: function (row, start, end) {
             var node = this.nodesPerId[row.id];
-            return node.children;
+            return node.children.slice(start || 0, end);
+        },
+
+        countChildren: function(row) {
+            return this.children(row).length;
+        },
+
+        countRootNodes: function() {
+            return this.getRootNodes().length;
         },
 
         rowOrAncestorMatches: function (row) {

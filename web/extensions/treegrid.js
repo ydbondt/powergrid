@@ -34,7 +34,7 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
                     
                     afterRenderRow: function(record, idx, rowparts) {
                         $super.afterRenderRow(record, idx, rowparts);
-                        $(rowparts).toggleClass("pg-tree-expanded", treeDS.treeSettings(record).expanded);
+                        $(rowparts).toggleClass("pg-tree-expanded", treeDS.findShadowNodeForId(record.id).expanded);
                     },
 
                     renderCellContent: function(record, column) {
@@ -42,7 +42,7 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
                         if(column.treeColumn) {
                             var el = document.createElement("div");
                             el.classList.add((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf");
-                            el.classList.add('pg-tree-level-' + treeDS.treeSettings(record).depth);
+                            el.classList.add('pg-tree-level-' + treeDS.findShadowNodeForId(record.id).level);
 
                             var frag = document.createDocumentFragment();
                             frag.appendChild(el);

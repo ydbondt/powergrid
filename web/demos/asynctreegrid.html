@@ -78,12 +78,22 @@
                 });
             }
 
+            function window(arr, start, end) {
+                if(start !== undefined && end !== undefined) {
+                    return arr.slice(start, end);
+                } else if(start !== undefined) {
+                    return arr.slice(start);
+                } else {
+                    return arr;
+                }
+            }
+
             var datasource = new TreeGridDataSource({
                 isReady: function() {
                     return true;
                 },
-                children: function(row) {
-                    return postpone(children[row.id], 1500);
+                children: function(row, start, end) {
+                    return postpone(window(children[row.id], start, end), 1500);
                 },
                 hasChildren: function(row) {
                     return row.id in children;
@@ -91,8 +101,11 @@
                 countChildren: function(row) {
                     return children[row.id].length;
                 },
-                getRootNodes: function() {
-                    return postpone(data, 1500);
+                getRootNodes: function(start, end) {
+                    return postpone(window(data, start, end), 1500);
+                },
+                countRootNodes: function() {
+                    return data.length;
                 }
             });
 

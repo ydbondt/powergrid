@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PowerGrid: Asynchronously loaded tree</title>
+    <script>var require = { baseUrl: '../' };</script>
+    <script src="../../bower_components/requirejs/require.js" type="text/javascript"></script>
+    <script src="../config.js" type="text/javascript"></script>
+
+    <link href="../powergrid.css" rel="stylesheet"/>
+    <script>
+        require(['jquery', 'powergrid', 'datasources/treegriddatasource'], function ($, powergrid, TreeGridDataSource) {
+            if (window.requestAnimationFrame === undefined) {
+                requestAnimationFrame = function(f) {
+                    setTimeout(f, 0);
+                };
+            }
+
+            function postpone(what, howlong) {
+                return new Promise(function(resolve, reject) {
+                    setTimeout(function() {
+                        resolve(what);
+                    }, howlong);
+                });
+            }
+
+            function range(begin, end, factor, parentId) {
+                var result = new Array(end - begin);
+                for(var x=begin;x<end;x++) {
+                    result[x-begin] = {id: parentId + "-" + x, value: x * factor};
+                }
+                return result;
+            }
+
+            // The following returns a datasource of numbers of 1 to 1000 in the root. Each number contains the factors of that number with its index.
+            // Tree goes infinitely deep
+
+            var datasource = new TreeGridDataSource({
+                isReady: function() {
+                    return true;
+                },
+                children: function(row, start, end) {
+                    return postpone(range(start || 0, end || this.countChildren(row), row.value, row.id), 1500);
+                },
+                hasChildren: function(row) {
+                    return true;
+                },
+                countChildren: function(row) {
+                    return 1000;
+                },
+                getRootNodes: function(start, end) {
+                    return postpone(range(start || 0, end || this.countRootNodes(), 1, "root"), 1500);
+                },
+                countRootNodes: function() {
+                    return 1000;
+                }
+            });
+
+            $("#test").PowerGrid({
+                columns: [
+                    {
+                        key: "value",
+                        title: "Value",
+                        treeColumn: true
+                    }
+                ],
+
+                dataSource: datasource,
+
+                extensions: {
+                    'columnsizing': {},
+                    'columnmoving': {},
+                    'editing': true,
+                    'treegrid': {autoTreeDataSource: false}
+                }
+            });
+        });
+    </script>
+
+    <style>
+        * {
+            font-family: sans-serif;
+            font-size: 11pt;
+        }
+
+        body {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        #test {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="test"></div>
+</body>
+</html>

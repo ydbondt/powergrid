@@ -3,9 +3,17 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
     // This works by wrapping the datasource in a TreeGridDataSource whose data can change
     // depending on which rows are collapsed or expanded.
 
-    function TreeGridDataSource(treesource, options) {
-        this._treeSettings = {};
+    /*
+     * Shadow node object description:
+     * {
+     *   level: tree level (0 for root rows)
+     *   index: index of this node within its parents children
+     *   expanded: true if node is expanded in tree
+     *   id: id of the row associated with this shadow node. undefined if not yet known (i.e. row is not yet loaded)
+     *   parentId: id of the parent row. undefined for root rows
+     */
 
+    function TreeGridDataSource(treesource, options) {
         if (typeof treesource.getRootNodes == 'function') {
             this.treesource = treesource;
         } else {
@@ -26,23 +34,144 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
     }
 
     TreeGridDataSource.prototype = {
+        initShadowTree: function () {
+            if(!this.treesource.isReady()) {
+                throw new Error("Treesource is not ready yet.");
+            }
+
+            this.shadowTree = [];
+
+            for (var x = 0, l = this.treesource.countRootNodes(); x < l; x++) {
+                this.shadowTree[x] = {
+                    level: 0,
+                    index: x,
+                    expanded: false
+                };
+            }
+
+            this.view = this.shadowTree.concat([]); // initial (unexpanded) view is copy of root shadow tree
+        },
+
+        findShadowNodeForId: function(id, searchIn) {
+            if(arguments.length == 1) {
+                return this.findShadowNodeForId(id, this.shadowTree);
+            } else {
+                for(var x=0,l=searchIn.length;x<l;x++) {
+                    if(searchIn[x].id == id) return searchIn[x];
+                    if(searchIn[x].children) {
+                        var result = this.findShadowNodeForId(id, searchIn[x].children);
+                        if(result !== null) {
+                            return result;
+                        }
+                    }
+                }
+                return null;
+            }
+        },
+
+        /**
+         * Returns the number descendant rows of the given shadowNode that should be visible in the grid, assuming the given shadowNode is visible (i.e. ancestry expanded)
+         * @param shadowNode
+         * @returns number
+         */
+        getShadowNodeSubTreeSize: function(shadowNode) {
+            var self = this;
+
+            if(shadowNode.children === undefined) {
+                throw new Error("Shadow Node children expected to be known (as shadow nodes) when it is expanded");
+            }
+
+            return shadowNode.children.reduce(function(count, child) {
+                return count + (child.expanded ? self.getShadowNodeSubTreeSize(child) : 0);
+            }, shadowNode.children.length);
+        },
+
+        loadShadowEntries: function(shadowNodes) {
+            var rootNodes = [],
+                nodesPerParentId = {},
+                self = this;
+
+            for(var x=0,l=shadowNodes.length;x<l;x++) {
+                var node = shadowNodes[x];
+                if(node.id === undefined) {
+                    if (node.parentId !== undefined) {
+                        if (!(node.parentId in nodesPerParentId)) {
+                            nodesPerParentId[node.parentId] = [node];
+                        } else {
+                            nodesPerParentId[node.parentId].push(node);
+                        }
+                    } else {
+                        rootNodes.push(node);
+                    }
+                }
+            }
+
+            var promises = [];
+
+            function createLUT(shadowNodes) {
+                var index = [];
+                for(var x=0,l=shadowNodes.length;x<l;x++) {
+                    index[shadowNodes[x].index] = shadowNodes[x];
+                }
+                return index;
+            }
+
+            function toIndex(node) {
+                return node.index;
+            }
+
+            if(rootNodes.length) {
+                var rootNodeRanges = utils.findRanges(rootNodes.map(toIndex));
+                    lut = createLUT(rootNodes);
+
+                promises = promises.concat(rootNodeRanges.map(function(range) {
+                    return Promise.resolve(self.treesource.getRootNodes(range.start, range.start + range.count)).then(function(result) {
+                        if(result.length > range.count) {
+                            throw new Error("Treesource returns too many root nodes");
+                        }
+                        for(var x=0, l = result.length; x < l; x++) {
+                            let row = result[x];
+                            self.recordByIdMap[row.id] = row;
+                            lut[range.start + x].id = row.id;
+                        }
+                        return range;
+                    });
+                }));
+            }
+
+            for(var parentId in nodesPerParentId) {
+                var childNodeRanges = utils.findRanges(nodesPerParentId[parentId].map(toIndex)),
+                    parent = this.getRecordById(parentId),
+                    lut = createLUT(nodesPerParentId[parentId]);
+
+                promises = promises.concat(childNodeRanges.map(function(range) {
+                    return Promise.resolve(self.treesource.children(parent, range.start, range.start + range.count)).then(function(result) {
+                        if(result.length > range.count) {
+                            throw new Error("Treesource returns too many children");
+                        }
+                        for(var x=0, l = result.length; x < l; x++) {
+                            let row = result[x];
+                            self.recordByIdMap[row.id] = row;
+                            lut[range.start + x].id = row.id;
+                        }
+                        return range;
+                    });
+                }));
+            }
+
+            return Promise.all(promises).then(function(ranges) {
+                return shadowNodes;
+            });
+        },
+
         load: function() {
             var self = this;
             this.parentByIdMap = {};
             this.childrenByIdMap = {};
             this.recordByIdMap = {};
 
-            this.initView(this.options && this.options.initialTreeDepth || 0).then(function() {
-                $(self).trigger("dataloaded");
-            });
-        },
-
-        treeSettings: function (row) {
-            if (!this._treeSettings[row.id]) {
-                var depth = this.parent(row) ? this._treeSettings[this.parent(row)].depth + 1 : 0;
-                this._treeSettings[row.id] = {expanded: false, depth: depth};
-            }
-            return this._treeSettings[row.id];
+            this.initShadowTree();
+            $(self).trigger("dataloaded");
         },
 
         isReady: function () {
@@ -72,11 +201,18 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
 
         getData: function (start, end) {
             this.assertReady();
+            var self = this, shadowRows;
             if (start !== undefined || end !== undefined) {
-                return this.view.slice(start, end);
+                shadowRows = this.view.slice(start, end);
             } else {
-                return this.view;
+                shadowRows = this.view;
             }
+
+            return this.loadShadowEntries(shadowRows).then(function() {
+                return shadowRows.map(function(shadowRow) {
+                    return self.getRecordById(shadowRow.id);
+                });
+            });
         },
 
         recordCount: function () {
@@ -94,67 +230,65 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
         },
 
         expand: function (row) {
-            var rowId = row.id, l, x, start, self = this;
+            var self = this;
+            var shadowNode = this.findShadowNodeForId(row.id);
 
-            if (this.isExpanded(row)) {
+            if(shadowNode.expanded) {
                 // already expanded, don't do anything
                 return;
             }
 
-            // find the location of this row in the current view
-            for (x = 0, l = this.view.length; x < l; x++) {
-                if (this.view[x].id == rowId) {
-                    start = x;
-                    break;
+            return (shadowNode.children === undefined ? Promise.resolve(this.treesource.countChildren(row)).then(function(rowCount) {
+                // generate shadow children
+                shadowNode.children = new Array(rowCount);
+                for(var x=0;x<rowCount;x++) {
+                    shadowNode.children[x] = {
+                        parentId: row.id,
+                        index: x,
+                        level: shadowNode.level + 1,
+                        expanded: false
+                    };
                 }
-            }
+            }) : Promise.resolve()).then(function() {
+                // expand it. then we must insert rows
+                shadowNode.expanded = true;
 
-            // expand it. then we must insert rows
-            this.treeSettings(row).expanded = true;
-            if (start !== undefined) {
-                this.flattenSubTree(row).then(function(rows) {
+                var start = self.view.indexOf(shadowNode);
+
+                if (start !== undefined) {
+                    var rows = self.flattenShadowSubTree(shadowNode);
+
                     self.view.splice.apply(self.view, [start + 1, 0].concat(rows));
+
                     $(self).trigger('rowsadded', {start: start + 1, end: start + 1 + rows.length});
-                    $(self).trigger('treetoggled', {id: rowId, index: start, state: self.isExpanded(row)});
-                });
-            } else {
-                $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
-            }
+                }
+                $(self).trigger('treetoggled', {id: row.id, index: start, state: true});
+            });
         },
 
         collapse: function (row) {
-            var rowId = row.id, x, l, start, end, startDepth;
+            var shadowNode = this.findShadowNodeForId(row.id);
 
-            if (!this.isExpanded(row)) {
+            if (!shadowNode.expanded) {
                 // already collapsed, don't do anything
                 return;
             }
 
-            for (x = 0, l = this.view.length; x < l; x++) {
-                if (start === undefined && this.view[x].id == rowId) {
-                    startDepth = this.treeSettings(row).depth;
-                    start = x;
-                } else if (start !== undefined) {
-                    if (this.treeSettings(this.view[x]).depth <= startDepth) {
-                        break;
-                    }
-                }
-            }
+            var start = this.view.indexOf(shadowNode);
 
-            end = x;
-
-            // collapse it. we must remove some rows from the view.
-            this.treeSettings(row).expanded = false;
+            shadowNode.expanded = false;
             if (start !== undefined) {
-                this.view.splice(start + 1, end - start - 1);
-                $(this).trigger('rowsremoved', {start: start + 1, end: end});
+                var count = this.getShadowNodeSubTreeSize(shadowNode);
+
+                this.view.splice(start + 1, count);
+                $(this).trigger('rowsremoved', {start: start + 1, end: start + count + 1});
             }
 
-            $(this).trigger('treetoggled', {id: rowId, index: start, state: this.isExpanded(row)});
+            $(this).trigger('treetoggled', {id: row.id, index: start, state: false});
         },
 
         isExpanded: function (row) {
-            return this.treeSettings(row).expanded;
+            return this.findShadowNodeForId(row.id).expanded;
         },
 
         expandAll: function (rowId) {
@@ -195,52 +329,17 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
             });
         },
 
-        flattenTree: function (nodes, depth) {
-            var view = [],
-                self = this,
-                treesource = this.treesource;
-
-            function preload(nodes) {
-                var promises = [];
-                for(var x  = 0, l = nodes.length; x < l; x++) {
-                    var r = nodes[x];
-                    if(self.isExpanded(r) && !(r.id in self.childrenByIdMap)) {
-                        promises.push(self.children(r).then(function(children) {
-                            preload(children);
-                        }));
-                    }
+        flattenShadowSubTree: function(shadowNode) {
+            if(shadowNode.expanded) {
+                var flat = [];
+                for(var x=0,l=shadowNode.children.length;x<l;x++) {
+                    flat.push(shadowNode.children[x]);
+                    flat = flat.concat(this.flattenShadowSubTree(shadowNode.children[x]));
                 }
-                return Promise.all(promises);
+                return flat;
+            } else {
+                return [];
             }
-
-            function build(nodes, depth, parent) {
-                var childPromises = [];
-                for (var x = 0, l = nodes.length; x < l; x++) {
-                    var r = nodes[x];
-                    var treesettings = self.treeSettings(r);
-                    treesettings.depth = depth;
-                    self.recordByIdMap[r.id] = r;
-
-                    view.push(r);
-
-                    if (self.isExpanded(r) && r.id in self.childrenByIdMap) {
-                        var children = self.childrenByIdMap[r.id];
-                        build(children, depth + 1);
-                    }
-                }
-            }
-
-            return preload(nodes).then(function() {
-                build(nodes, depth);
-                return view;
-            });
-        },
-
-        flattenSubTree: function(node) {
-            var self = this, rs = this.treeSettings(node);
-            return this.children(node).then(function(children) {
-                return self.flattenTree(children, rs.depth + 1);
-            })
         },
 
         hasChildren: function(row) {
@@ -265,6 +364,9 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
         },
 
         getRecordById: function(id) {
+            if(!(id in this.recordByIdMap)) {
+                throw new Error("Record with id " + id + " not yet loaded or does not exist. This is likely a bug or incorrect usage.");
+            }
             return this.recordByIdMap[id];
         },
 
@@ -281,6 +383,10 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
 
         applyFilter: function (columnSettings, filterFunction) {
             this.treesource.filter(columnSettings, filterFunction);
+        },
+
+        setValue: function(rowId, key, value) {
+            this.treesource.setValue(rowId, key, value);
         }
 
     };
