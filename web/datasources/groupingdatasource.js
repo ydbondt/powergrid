@@ -32,8 +32,8 @@ define(['../utils'], function (utils) {
             return this.delegate.recordCount();
         },
 
-        getRootNodes: function() {
-            return Promise.resolve(this.view);
+        getRootNodes: function(start, end) {
+            return Promise.resolve(this.view.slice(start || 0, end));
         },
 
         children: function(row, start, end) {
