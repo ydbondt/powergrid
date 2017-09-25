@@ -555,23 +555,22 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 fragmentRight = targetRight && document.createDocumentFragment();
 
             var dataSubset = this.dataSource.getData(start<0?0:start, end);
+            var rows = new Array(end-start);
 
             for(var x = start; x < end; x++) {
-                var record = dataSubset[x-start];
-
                 var rowFixedPartLeft = targetLeft && this.rowGroupTemplates.fixed.cloneNode();
                 var rowScrollingPart = targetMiddle && this.rowGroupTemplates.scrolling.cloneNode();
                 var rowFixedPartRight = targetRight && this.rowGroupTemplates.fixed.cloneNode();
-
                 var rowParts = [rowFixedPartLeft, rowScrollingPart, rowFixedPartRight].filter(nonFalse);
 
-                this.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
-
-                this.afterRenderRow(record, x, rowParts);
+                rows[x] = {
+                    rowFixedPartLeft: rowFixedPartLeft,
+                    rowScrollingPart: rowScrollingPart,
+                    rowFixedPartRight: rowFixedPartRight
+                };
 
                 rowParts.forEach(function(e) {
                     e.setAttribute("data-row-idx", x);
-                    e.setAttribute("data-row-id", record.id);
                     e.style.height = self.rowHeight(x) + "px";
                 });
 
@@ -579,6 +578,25 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 if(fragmentMiddle) fragmentMiddle.appendChild(rowScrollingPart);
                 if(fragmentRight)  fragmentRight.appendChild(rowFixedPartRight);
             }
+
+            Promise.resolve(dataSubset).then(function(dataSubset) {
+                for(var x = start; x < end; x++) {
+                    var record = dataSubset[x-start],
+                        row = rows[x],
+                        rowFixedPartLeft = row.rowFixedPartLeft,
+                        rowScrollingPart = row.rowScrollingPart,
+                        rowFixedPartRight = row.rowFixedPartRight;
+
+                    var rowParts = [rowFixedPartLeft, rowScrollingPart, rowFixedPartRight].filter(nonFalse);
+
+                    self.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
+                    self.afterRenderRow(record, x, rowParts);
+
+                    rowParts.forEach(function(e) {
+                        e.setAttribute("data-row-id", record.id);
+                    });
+                }
+            });
 
             if(targetLeft) targetLeft[method](fragmentLeft);
             if(targetMiddle) targetMiddle[method](fragmentMiddle);

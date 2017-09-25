@@ -1,4 +1,4 @@
-import { PowerGrid } from './main.js';
+import {PowerGrid} from './main.js';
 
 var numbers = (function(s){var l,x=[];while(s>(l=x.length))x[l]=l;return x})(30);
 

@@ -7,7 +7,7 @@
         
 		<link href="powergrid.css" rel="stylesheet" />
 		<script>
-			require(['jquery', 'powergrid', 'arraydatasource', 'promise'], function($, powergrid, ArrayDataSource, Promise) {
+			require(['jquery', 'powergrid', 'datasources/arraydatasource', 'promise'], function($, powergrid, ArrayDataSource, Promise) {
                 if(window.requestAnimationFrame === undefined) {
                     requestAnimationFrame = function(f) {
                         setTimeout(f, 0);

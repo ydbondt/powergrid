@@ -7,9 +7,6 @@ define(['../utils'], function (utils) {
                 this[x] = this.delegate[x].bind(this.delegate);
             }
         }
-        if (delegate.isReady()) {
-            this.load();
-        }
 
         $(delegate).on("datachanged", function (event, data) {
             self.load();
@@ -24,8 +21,50 @@ define(['../utils'], function (utils) {
 
     GroupingDataSource.prototype = {
         load: function () {
-            this.parentByIdMap = {};
             this.updateView();
+        },
+
+        getRecordCount: function() {
+            return this.delegate.recordCount();
+        },
+
+        getRootNodes: function() {
+            return this.view;
+        },
+
+        children: function(row, start, end) {
+            switch(arguments.length) {
+                case 1: return row.children;
+                case 2: return row.children(slice, start);
+                case 3: return row.children(slice, start, end);
+            }
+        },
+
+        countChildren: function(row) {
+            return row.recordCount;
+        },
+
+        filter: function(settings, predicate) {
+            this.filterPredicate = predicate;
+            this.updateView();
+        },
+
+        sort: function(comparator, settings) {
+            var self = this;
+            this.sortComparator = comparator;
+
+            function s(nodes) {
+                nodes.sort(comparator);
+                if(nodes.length && nodes[0].groupRow === true) {
+                    for(var x=0,l=nodes.length;x<l;x++) {
+                        s(nodes[x].children);
+                    }
+                }
+            }
+
+            s(this.view);
+
+            $(this).trigger('dataloaded');
         },
 
         updateView: function () {
@@ -33,18 +72,18 @@ define(['../utils'], function (utils) {
             var groupRows = this.groupRows = {};
             var rowToGroupMap = {};
 
+            this.parentByIdMap = {};
+
             function group(nodes, groupings, parentGroupId, level) {
                 if (groupings && groupings.length) {
                     var groupMap = {},
                         groups = [],
                         col = groupings[0],
-                        f = col.groupProjection && col.groupProjection(nodes) || function (v) {
-                                return v;
-                            },
+                        f = col.groupProjection && col.groupProjection(nodes),
                         nextGroupings = groupings.slice(1);
                     for (var x = 0, l = nodes.length; x < l; x++) {
                         var baseValue = utils.getValue(nodes[x], col.key);
-                        var g = f(baseValue);
+                        var g = f ? f(baseValue) : baseValue;
                         var r = groupMap[g];
                         if (!r) {
                             groups.push(groupMap[g] = r = {
@@ -70,11 +109,18 @@ define(['../utils'], function (utils) {
                         ds.processGroup(groups[x]);
                     }
 
+                    groups.sort(this.comparator);
+
                     return groups;
                 } else {
                     for (var x = 0, l = nodes.length; x < l; x++) {
                         rowToGroupMap[nodes[x].id] = parentGroupId;
                     }
+
+                    if(ds.filterPredicate) {
+                        nodes = nodes.filter(ds.filterPredicate);
+                    }
+
                     return nodes;
                 }
             }
@@ -104,15 +150,6 @@ define(['../utils'], function (utils) {
             return this.groupRows[id] || this.delegate.getRecordById(id);
         },
 
-        getData: function (start, end) {
-            this.assertReady();
-            if (start !== undefined || end !== undefined) {
-                return this.view.slice(start, end);
-            } else {
-                return this.view;
-            }
-        },
-
         recordCount: function () {
             this.assertReady();
             return this.view.length;
@@ -129,13 +166,9 @@ define(['../utils'], function (utils) {
         },
 
         parent: function (row) {
-            if(row.parent) {
-                return row.parent;
-            } else {
-                var parentRow = this.parentByIdMap[row.id];
-                if(parentRow) {
-                    return parentRow.id;
-                }
+            var parentRow = this.parentByIdMap[row.id];
+            if(parentRow) {
+                return parentRow.id;
             }
         },
 
@@ -146,10 +179,6 @@ define(['../utils'], function (utils) {
             } else {
                 return false;
             }
-        },
-
-        buildTree: function () {
-            return this.getData();
         },
 
         processGroup: function(group) {

@@ -7,7 +7,7 @@
         
         <link href="powergrid.css" rel="stylesheet" />
         <script>
-            require(['jquery', 'powergrid', 'arraydatasource', 'promise', 'override'], function($, powergrid, ArrayDataSource, Promise, override) {
+            require(['jquery', 'powergrid', 'datasources/arraydatasource', 'promise', 'override'], function($, powergrid, ArrayDataSource, Promise, override) {
                 if(window.requestAnimationFrame === undefined) {
                     requestAnimationFrame = function(f) {
                         setTimeout(f, 0);
@@ -15,33 +15,40 @@
                 }
                 
                 var columns = [
-                    { title: "Operation Name", key: "name", width: 300, subViewToggle: true },
-                    { title: "Model", key: "uas[*].model", width: 100 },
-                    { title: "Serial", key: "uas[*].serial", width: 100 }
+                    { title: "Number", key: "x", width: 200, subViewToggle: true, subViewToggleClass: "pg-info", editable: true, type: "number" },
+                    { title: "Description", key: "description", width: 300 },
+                    { title: "Selected", key: "selected", width: 30, type: "checkbox", editable: true },
+                    { title: "Selected as string", key: "selectedAsString", width: 60 }
                 ];
                 
-                var data = [{
-                    name: "Black Ops",
-                    uas:  [{
-                        model: "Trimble",
-                        serial: "PH123456789"
-                    }]
-                }, {
-                    name: "Test Flight",
-                    uas: [{
-                        model: "Trimble",
-                        serial: "PH0987654321"
-                    }, {
-                        model: "DJI",
-                        serial: "X1000"
-                    }, {
-                        model: "Sensefly",
-                        serial: "SF111"
-                    }]
-                }];
+                var data = [];
                 var content = "";
                 
+                for(var x=0;x<500;x++) {
+                    content += x + "<br/>";
+                    data.push({
+                        id: x,
+                        description: "Row " + x,
+                        x: x,
+                        content: content,
+                        selected: x%3 == 0 ? null : x%2 == 0,
+                        selectedAsString: ""
+                    });
+                }
+                
                 var ds = new ArrayDataSource(data);
+                override(ds, function($super) {
+                    return {
+                        setValue: function(rowIdx, key, value) {
+                            $super.setValue(rowIdx, key, value);
+                            if(key === 'x') {
+                                this.setValue(rowIdx, 'description', "Row " + value);
+                            } else if(key === 'selected') {
+                                this.setValue(rowIdx, 'selectedAsString', value ? "Selected" : "Deselected");
+                            }
+                        }
+                    }
+                });
                 
                 $("#test").PowerGrid({
                     columns: columns,
@@ -59,19 +66,15 @@
                                 return true;
                             }
                         },
-                        'subcells': {
-                            cellpadding: 10,
-                            cellheight: 19
-                        },
                         'subview': {
                             hasSubView: function(grid, record) {
                                 return true;
                             },
-
+                            
                             renderSubView: function(grid, record, target) {
                                 return new Promise(function(resolve, reject) {
                                     setTimeout(function() {
-                                        target.innerHTML = record.name;
+                                        target.innerHTML = record.content;
                                         resolve();
                                     }, 100);
                                 });

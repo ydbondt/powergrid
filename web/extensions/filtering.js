@@ -1,7 +1,7 @@
 define(['../override', '../jquery', '../utils',
     '../datasources/filteringdatasource',
-    '../templates/filterPane.html!text',
-    '../templates/filterBox.html!text'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
+    '../templates/filterPane',
+    '../templates/filterBox'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
     "use strict";
 
     return {

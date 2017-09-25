@@ -1,4 +1,4 @@
-define(['./powergrid', './arraydatasource', './jsondatasource', './datasources/groupingdatasource', './datasources/sortingdatasource', './datasources/filteringdatasource'],
+define(['./powergrid', './datasources/arraydatasource', './datasources/jsondatasource', './datasources/groupingdatasource', './datasources/sortingdatasource', './datasources/filteringdatasource'],
     function (PowerGrid, ArrayDataSource, JsonDataSource, GroupingDataSource, SortingDataSource, FilteringDataSource) {
         return {
             PowerGrid: PowerGrid,

@@ -1,0 +1,1 @@
+define([], function() { return '<div class="pg-group-indicator" data-group-key="{{:key}}">{{if ~removable}}<span class="pg-group-delete" data-group-key="{{:key}}"></span>{{/if}} <span>{{:title}}</span></div>'});
