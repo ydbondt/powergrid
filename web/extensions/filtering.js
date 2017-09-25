@@ -115,6 +115,14 @@ define(['../override', '../jquery', '../utils',
                                 currentFilterPane = null;
                             }
 
+                            function updateFilter() {
+                                if(filterValue.value === "") {
+                                    filter.trigger('change', null);
+                                } else {
+                                    filter.trigger('change', filterValue);
+                                }
+                            }
+
                             fragment.on("click", ".pg-filter", function(event) {
                                 var $this = $(this),
                                     key = $this.parents('.pg-columnheader').attr('data-column-key'),
@@ -130,7 +138,7 @@ define(['../override', '../jquery', '../utils',
                                 currentFilterPane.on("click", "[data-filter-method],[data-filter-type]", function(event) {
                                     filterValue.method = $(this).attr("data-filter-method");
                                     filterValue.type = $(this).attr("data-filter-type");
-                                    filter.trigger('change', filterValue);
+                                    updateFilter();
                                     closeFilterPane();
                                 });
 
@@ -150,7 +158,7 @@ define(['../override', '../jquery', '../utils',
                             fragment.on("keyup", ".pg-filter-input", function(event) {
                                 var value = this.value;
                                 filterValue.value = value;
-                                filter.trigger('change', filterValue);
+                                updateFilter();
                             });
 
                             return filter;

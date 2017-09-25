@@ -1,3 +1,7 @@
+/**
+ * Datasource for client-side grouping of an in-memory datasource.
+ */
+
 define(['../utils'], function (utils) {
     function GroupingDataSource(delegate) {
         var self = this;
@@ -71,6 +75,7 @@ define(['../utils'], function (utils) {
             var ds = this;
             var groupRows = this.groupRows = {};
             var rowToGroupMap = {};
+            var DISCARD_GROUP = {};
 
             this.parentByIdMap = {};
 
@@ -79,16 +84,35 @@ define(['../utils'], function (utils) {
                     var groupMap = {},
                         groups = [],
                         col = groupings[0],
-                        f = col.groupProjection && col.groupProjection(nodes),
+                        groupProjection = col.groupProjection && col.groupProjection(nodes),
                         nextGroupings = groupings.slice(1);
+
                     for (var x = 0, l = nodes.length; x < l; x++) {
                         var baseValue = utils.getValue(nodes[x], col.key);
-                        var g = f ? f(baseValue) : baseValue;
+                        var g = groupProjection ? groupProjection(baseValue) : baseValue;
                         var r = groupMap[g];
+
+                        if(r === DISCARD_GROUP) {
+                            continue;
+                        }
+
+                        if(ds.filterPredicate) {
+                            var filterResult = ds.filterPredicate(nodes[x]);
+                            if(filterResult < 0) {
+                                if(r) {
+                                    groups.splice(groups.indexOf(r), 1);
+                                }
+                                groupMap[g] = DISCARD_GROUP;
+                                continue;
+                            } else if(filterResult == 0) {
+                                continue;
+                            }
+                        }
+
                         if (!r) {
                             groups.push(groupMap[g] = r = {
                                 groupRow: true,
-                                id: parentGroupId + x + ":",
+                                id: parentGroupId + g + ":",
                                 description: g,
                                 children: [],
                                 _groupColumn: col,
@@ -102,6 +126,10 @@ define(['../utils'], function (utils) {
                         ds.parentByIdMap[nodes[x].id] = r;
                         groupRows[r.id] = r;
                     }
+
+                    groups = groups.filter(function(g) {
+                        return g !== DISCARD_GROUP;
+                    });
 
                     for (var x = 0, l = groups.length; x < l; x++) {
                         groups[x].recordCount = ds.groupRecordCount(groups[x]);
