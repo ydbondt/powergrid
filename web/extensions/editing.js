@@ -289,7 +289,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                     },
 
                     createDefaultEditor: function(record, column, value) {
-                        return $("<input>").attr("type", column.type).val(value)
+                        return $("<input>").attr("type", column.type).val(value);
                     },
 
                     createEditor: function(record, column, value) {
@@ -304,14 +304,15 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                             editor = this.createDefaultEditor(record, column, value);
                         }
 
-                        if(editor instanceof Element || editor instanceof DocumentFragment || $.isArray(editor)) {
+                        if(editor instanceof Element || editor instanceof DocumentFragment || editor instanceof $) {
+                            var element = editor;
                             editor = {
-                                editor: editor,
+                                editor: element,
                                 value: function() {
-                                    return $(editor).val();
+                                    return $(element).val();
                                 },
                                 on: function(eventName, handler) {
-                                    $(editor).on(eventName, handler);
+                                    $(element).on(eventName, handler);
                                 }
                             }
                         }
@@ -353,9 +354,13 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                         var editorNode = $(editor.editor)[0];
 
                         if (editorNode.select) {
-                            setTimeout(editorNode.select.bind(editor.editor), 10);
+                            setTimeout(function() {
+                                editorNode.select();
+                            }, 10);
                         } else if (editorNode.focus) {
-                            setTimeout(editorNode.focus.bind(editor.editor), 10);
+                            setTimeout(function() {
+                                editorNode.focus();
+                            }, 10);
                         }
                         return editor.editor;
                     },

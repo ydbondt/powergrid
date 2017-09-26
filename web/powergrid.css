@@ -734,6 +734,12 @@ ul.pg-menu > li:hover {
     width: 100% !important; /* ensures subviews get full width. */
 }
 
+.pg-rowgroup > .pg-container.pg-left > .pg-row {
+    /* fixes issue where fixed left row overlaps other cells and blocks click events */
+    width: 0;
+    min-width: 0;
+}
+
 .pg-container.pg-left .pg-row:not(.pg-row-has-subview),
 .pg-container.pg-left .pg-inner-row,
 .pg-container.pg-left .pg-columnheader,
