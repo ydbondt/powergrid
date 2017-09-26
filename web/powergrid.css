@@ -381,6 +381,7 @@
 .pg-inner-row {
     background: inherit;
     position: absolute;
+    min-width: 100%; /* fix issue where last cell would be truncated when a subview is added */
 }
 
 .pg-subview {
@@ -429,6 +430,10 @@
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
     left: 0px;
+}
+
+.pg-fixed.pg-right > .pg-row > .pg-columnheader:last-child {
+    width: auto !important; /* last column header should take remaining width */
 }
 
 .powergrid > .pg-scrolling {
@@ -734,12 +739,6 @@ ul.pg-menu > li:hover {
     width: 100% !important; /* ensures subviews get full width. */
 }
 
-.pg-rowgroup > .pg-container.pg-left > .pg-row {
-    /* fixes issue where fixed left row overlaps other cells and blocks click events */
-    width: 0;
-    min-width: 0;
-}
-
 .pg-container.pg-left .pg-row:not(.pg-row-has-subview),
 .pg-container.pg-left .pg-inner-row,
 .pg-container.pg-left .pg-columnheader,
@@ -789,4 +788,15 @@ ul.pg-menu > li:hover {
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
     cursor: grabbing;
+}
+
+/**
+ * Make rows transparent for pointer events. This fixes issues where pg-rows from the fixed left column overlap cells from the scrolling part and intercept click events.
+ */
+.pg-row:not(.pg-grouping-grouprow) {
+    pointer-events: none;
+}
+
+.pg-cell, .pg-columnheader {
+    pointer-events: all;
 }

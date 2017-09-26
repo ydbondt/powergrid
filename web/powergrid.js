@@ -458,10 +458,20 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             };
         },
 
+        /**
+         * Resets the grid contents.
+         */
         renderData: function() {
             this.headergroup && this.headergroup.all.empty();
             this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
+
+            /**
+             * The working set contains all rows that are currently in the grid (though not necessarily in view) and have
+             * been loaded through 'getData'. If the dataset changes, this needs to be kept up to date and the indexes in
+             * the working set should always match the index in the grid for any given row.
+             */
+            this.workingSet = new Array(this.dataSource.recordCount());
 
             this.allRowsDisposed();
 
@@ -470,15 +480,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 end: 0
             });
 
-            this._renderDataErrorMessage = '';            
-            
             this.headergroup && this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
             this.footergroup && this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
-            
-            if ( typeof this._renderDataErrorMessage !== "undefined" && this._renderDataErrorMessage ) {
-                $.msgbox(i18n(this._renderDataErrorMessage), { type:'error', buttons : [{type: 'submit', value: i18n('close')}] });
-                this._renderDataErrorMessage = '';
-            }
             
             this.queueUpdateViewport();
             this.queueAdjustHeights();
@@ -486,6 +489,48 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.queueAfterRender(function() {
                 this.trigger("datarendered");
             });
+        },
+
+        /**
+         * Returns a row by index from the working set, or undefined if the row wasn't loaded yet.
+         * @param index
+         */
+        getRow: function(index) {
+            return this.workingSet[index];
+        },
+
+        /**
+         * Calls the dataSource's getData, updates the working set and returns a Promise of the results.
+         * @param start
+         * @param end
+         * @returns {Promise.<TResult>|*}
+         */
+        getData: function(start, end) {
+            var self = this;
+            return Promise.resolve(this.dataSource.getData(start, end)).then(function(result) {
+                for(var x=0,l=result.length;x<l;x++) {
+                    self.workingSet[(start || 0) + x] = result[x];
+                }
+                return result;
+            });
+        },
+
+        /**
+         * Calls the dataSource's getData, updates the working set and immediately returns the records. This
+         * only works if the dataSource is synchronous (i.e. getData returns an array, not a Promise).
+         * @param start
+         * @param end
+         */
+        getDataSync: function(start, end) {
+            var result = this.dataSource.getData(start, end);
+            if(Array.isArray(result)) {
+                for(var x=0,l=result.length;x<l;x++) {
+                    this.workingSet[(start || 0) + x] = result[x];
+                }
+                return result;
+            } else {
+                throw new Error("This method requires a synchronous datasource.");
+            }
         },
 
         renderColumnHeaderContents: function(rowgroup) {
@@ -554,7 +599,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 fragmentMiddle = targetMiddle && document.createDocumentFragment(),
                 fragmentRight = targetRight && document.createDocumentFragment();
 
-            var dataSubset = this.dataSource.getData(start<0?0:start, end);
+            var dataSubset = this.getData(start<0?0:start, end);
             var rows = new Array(end-start);
 
             for(var x = start; x < end; x++) {
@@ -628,6 +673,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         _removeRows: function(start, end) {
             console.log("Removing rows " +start + " to " + end);
+
+            this.workingSet.splice(start, end);
+
             var self = this;
             function r(start, end, rowgroup) {
                 var selector = ".pg-row:lt(" + end + ")";
@@ -727,6 +775,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         _addRows: function(start, end) {
             var range = this.viewRange();
+
+            this.workingSet.splice(start, 0, new Array(end - start));
 
             if(start >= this.viewport.begin && start <= this.viewport.end) {
                 console.log("Adding rows " + start + " to " + end);
@@ -843,7 +893,13 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     // no overlap, just clear the entire thing and rebuild
                     allParts.empty();
                     this.allRowsDisposed();
-                    this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+
+                    var scrollingStart = Math.max(start, range.begin);
+                    var scrollingEnd =   Math.min(range.end, end);
+
+                    if(scrollingEnd > scrollingStart) {
+                        this.renderRowGroupContents(scrollingStart, scrollingEnd, this.scrollinggroup, false);
+                    }
                 }
 
                 allParts.css('padding-top', leadingHeight + 'px');

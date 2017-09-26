@@ -241,7 +241,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                                 case -1:
                                     do {
                                         nextRowIdx += move;
-                                        nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                        nextRecord = grid.getRow(nextRowIdx);
                                     } while(nextRecord && !this.isEditable(nextRecord, nextColumn));
                                     break;
                                 case 2:
@@ -251,7 +251,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                                         i += move / 2;
                                         if(i >= grid.columnCount() || i < 0) {
                                             nextRowIdx += move / 2;
-                                            nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                            nextRecord = grid.getRow(nextRowIdx);
                                             i = move < 0 ? grid.columnCount() - 1 : 0;
                                         }
                                         nextColumn = grid.getColumnForIndex(i);

@@ -33,15 +33,6 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
                     },
 
                     subviews: {
-                        autoExpand: function(filter) {
-                            var data = grid.dataSource.getData();
-                            for (var i = 0, j=data.length; i < j; i++) {
-                                var row = data[i];
-                                if (filter.apply(this, [row.id, grid.dataSource])) {
-                                    this.expandView(row, i);
-                                }
-                            }
-                        },
                         expandView: function(record, rowIdx) {
                             var rowParts = grid.getRowPartsForIndex(rowIdx);
                             if(!subviewsExpanded[record.id]) {
@@ -173,10 +164,10 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
 
                     rowHeight: function rowHeight(start, end) {
                         if(end === undefined) {
-                            var r = grid.dataSource.getData(start, start + 1)[0].id;
+                            var r = grid.getDataSync(start, start + 1)[0].id;
                             return $super.rowHeight(start) + (subviewsExpanded[r] && subViewHeights[r] || 0);
                         } else {
-                            var ids = grid.dataSource.getData(start, end).map(function(e) { return e.id; }), subviewheights = 0;
+                            var ids = grid.getDataSync(start, end).map(function(e) { return e.id; }), subviewheights = 0;
                             for(var x=start;x<end;x++) {
                                 if(subviewsExpanded[ids[x]]) subviewheights += subViewHeights[ids[x]];
                             }

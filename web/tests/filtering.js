@@ -1,7 +1,7 @@
 "use strict";
 define(
-    ['QUnit', '../extensions/treegrid', '../extensions/filtering'],
-    function(QUnit, treegrid, filtering) {
+    ['QUnit', '../datasources/treegriddatasource', '../extensions/filtering', '../datasources/arraydatasource'],
+    function(QUnit, TreeGridDataSource, filtering, ArrayDataSource) {
         return function() {
             QUnit.test("3 deep treegrid filtering with inclusive and exclusive", function(assert) {
 
@@ -30,7 +30,7 @@ define(
                     ]}
                 ];
 
-                var ds = new treegrid.TreeGridDataSource(tree, {initialTreeDepth: 3});
+                var ds = new TreeGridDataSource(new ArrayDataSource(tree), {initialTreeDepth: 3});
                 var mockgrid = {
                     dataSource: ds
                 };

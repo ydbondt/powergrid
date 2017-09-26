@@ -67,9 +67,9 @@ define(['../override', '../utils'], function(override, utils) {
                         }
                         var h;
                         if(end === undefined) {
-                            h = height(this.subcells.count(this.dataSource.getData(start, start+1)[0]));
+                            h = height(this.subcells.count(this.getDataSync(start, start+1)[0]));
                         } else {
-                            h = this.dataSource.getData(start, end).reduce(function(total, record) {
+                            h = this.getDataSync(start, end).reduce(function(total, record) {
                                 return total + height(grid.subcells.count(record));
                             }, 0);
                         }

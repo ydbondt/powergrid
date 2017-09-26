@@ -130,7 +130,7 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                             throw new Error("Treesource returns too many root nodes");
                         }
                         for(var x=0, l = result.length; x < l; x++) {
-                            let row = result[x];
+                            var row = result[x];
                             self.recordByIdMap[row.id] = row;
                             lut[range.start + x].id = row.id;
                         }
@@ -150,7 +150,7 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                             throw new Error("Treesource returns too many children");
                         }
                         for(var x=0, l = result.length; x < l; x++) {
-                            let row = result[x];
+                            var row = result[x];
                             self.recordByIdMap[row.id] = row;
                             lut[range.start + x].id = row.id;
                         }
