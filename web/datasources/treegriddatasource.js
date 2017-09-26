@@ -1,7 +1,7 @@
 define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) {
-    // Adds treegrid functionality to the grid.
-    // This works by wrapping the datasource in a TreeGridDataSource whose data can change
-    // depending on which rows are collapsed or expanded.
+    /**
+     * Takes a TreeSource and adapts it to represent the flat list of expanded nodes.
+     */
 
     /*
      * Shadow node object description:
@@ -14,6 +14,8 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
      */
 
     function TreeGridDataSource(treesource, options) {
+        this.options = options;
+
         if (typeof treesource.getRootNodes == 'function') {
             this.treesource = treesource;
         } else {
@@ -29,8 +31,6 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
         $(this.treesource).on("datachanged editabilitychanged validationresultchanged", function (event, data) {
             $(self).trigger(event.type, [data]);
         });
-
-        this.options = options;
     }
 
     TreeGridDataSource.prototype = {
@@ -121,7 +121,7 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
             }
 
             if(rootNodes.length) {
-                var rootNodeRanges = utils.findRanges(rootNodes.map(toIndex));
+                var rootNodeRanges = utils.findRanges(rootNodes.map(toIndex)),
                     lut = createLUT(rootNodes);
 
                 promises = promises.concat(rootNodeRanges.map(function(range) {
@@ -140,23 +140,25 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
             }
 
             for(var parentId in nodesPerParentId) {
-                var childNodeRanges = utils.findRanges(nodesPerParentId[parentId].map(toIndex)),
-                    parent = this.getRecordById(parentId),
-                    lut = createLUT(nodesPerParentId[parentId]);
+                (function() {
+                    var childNodeRanges = utils.findRanges(nodesPerParentId[parentId].map(toIndex)),
+                        parent = self.getRecordById(parentId),
+                        lut = createLUT(nodesPerParentId[parentId]);
 
-                promises = promises.concat(childNodeRanges.map(function(range) {
-                    return Promise.resolve(self.treesource.children(parent, range.start, range.start + range.count)).then(function(result) {
-                        if(result.length > range.count) {
-                            throw new Error("Treesource returns too many children");
-                        }
-                        for(var x=0, l = result.length; x < l; x++) {
-                            var row = result[x];
-                            self.recordByIdMap[row.id] = row;
-                            lut[range.start + x].id = row.id;
-                        }
-                        return range;
-                    });
-                }));
+                    promises = promises.concat(childNodeRanges.map(function(range) {
+                        return Promise.resolve(self.treesource.children(parent, range.start, range.start + range.count)).then(function(result) {
+                            if(result.length > range.count) {
+                                throw new Error("Treesource returns too many children");
+                            }
+                            for(var x=0, l = result.length; x < l; x++) {
+                                var row = result[x];
+                                self.recordByIdMap[row.id] = row;
+                                lut[range.start + x].id = row.id;
+                            }
+                            return range;
+                        });
+                    }));
+                })();
             }
 
             return Promise.all(promises).then(function(ranges) {
@@ -184,21 +186,6 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
             }
         },
 
-        initView: function (initialTreeDepth) {
-            var self = this;
-            return this.rebuildView();
-        },
-
-        rebuildView: function () {
-            var self = this;
-            return Promise.resolve(this.treesource.getRootNodes()).then(function (tree) {
-                return self.flattenTree(tree, 0).then(function(view) {
-                    self.view = view;
-                    $(self).trigger("dataloaded");
-                });
-            });
-        },
-
         getData: function (start, end) {
             this.assertReady();
             var self = this, shadowRows;
@@ -221,21 +208,29 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
         },
 
         toggle: function (rowId) {
-            var row = this.getRecordById(rowId);
-            if (this.isExpanded(row)) {
-                this.collapse(row);
-            } else {
-                this.expand(row);
+            var shadowNode = this.findShadowNodeForId(rowId);
+            if(shadowNode) {
+                /** If no shadow node could be found, then that means the node isn't visible yet and we'll do nothing */
+                var row = this.getRecordById(rowId);
+                if (this.isExpanded(row)) {
+                    return this.collapse(row);
+                } else {
+                    return this._expandShadowNode(shadowNode, row);
+                }
             }
         },
 
         expand: function (row) {
-            var self = this;
             var shadowNode = this.findShadowNodeForId(row.id);
+            return this._expandShadowNode(shadowNode, row);
+        },
+
+        _expandShadowNode: function(shadowNode, row) {
+            var self = this;
 
             if(shadowNode.expanded) {
                 // already expanded, don't do anything
-                return;
+                return Promise.resolve();
             }
 
             return (shadowNode.children === undefined ? Promise.resolve(this.treesource.countChildren(row)).then(function(rowCount) {
@@ -268,10 +263,13 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
 
         collapse: function (row) {
             var shadowNode = this.findShadowNodeForId(row.id);
+            this._collapseShadowNode(shadowNode);
+        },
 
+        _collapseShadowNode: function(shadowNode) {
             if (!shadowNode.expanded) {
                 // already collapsed, don't do anything
-                return;
+                return Promise.resolve();
             }
 
             var start = this.view.indexOf(shadowNode);
@@ -284,30 +282,40 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                 $(this).trigger('rowsremoved', {start: start + 1, end: start + count + 1});
             }
 
-            $(this).trigger('treetoggled', {id: row.id, index: start, state: false});
+            $(this).trigger('treetoggled', {id: shadowNode.id, index: start, state: false});
+
+            return Promise.resolve();
         },
 
         isExpanded: function (row) {
             return this.findShadowNodeForId(row.id).expanded;
         },
 
-        expandAll: function (rowId) {
-            var ds = this;
-            utils.inAnimationFrame(function () {
-                function expandall(row) {
-                    var children = ds.children(row);
-                    if (children) {
-                        children.forEach(expandall);
-                    }
-                    ds.expand(row);
-                }
+        expandAll: function (rowId, depth) {
+            var self = this;
+            function expand(nodes, depth) {
+                return self.loadShadowEntries(nodes).then(function() {
+                    return Promise.all(nodes.map(function(node) {
+                        var record = self.getRecordById(node.id);
+                        return self._expandShadowNode(node, record).then(function() {
+                            if(node.children && (depth === undefined || depth > 1)) {
+                                return expand(node.children, depth === undefined ? undefined : depth - 1);
+                            }
+                        });
+                    }));
+                });
+            }
+            var nodes;
+            if(rowId) {
+                nodes = [this.findShadowNodeForId(rowId)];
+            } else {
+                nodes = this.shadowTree;
+            }
+            return expand(nodes, depth);
+        },
 
-                if (rowId === undefined) {
-                    ds.tree.forEach(expandall);
-                } else {
-                    expandall(ds.getRecordById(rowId));
-                }
-            });
+        expandToLevel: function(depth) {
+            return this.expandAll(false, depth);
         },
 
         collapseAll: function (rowId) {

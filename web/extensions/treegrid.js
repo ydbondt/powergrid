@@ -8,7 +8,10 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
             override(grid, function($super) {
                 var treeDS;
                 if(pluginOptions.autoTreeDataSource !== false) {
-                    treeDS = new TreeGridDataSource(this.dataSource, pluginOptions);
+                    treeDS = new TreeGridDataSource(this.dataSource);
+                    if(pluginOptions.initialTreeDepth) {
+                        treeDS.expandToLevel(pluginOptions.initialTreeDepth);
+                    }
                 } else {
                     treeDS = this.dataSource;
                 }

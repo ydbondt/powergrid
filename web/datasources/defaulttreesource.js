@@ -1,4 +1,12 @@
 define([], function() {
+    /**
+     * Takes a delegate DataSource and adapts it into a TreeSource. Hierarchy is built up using one of two methods:
+     * - each child row has a 'parent' property that references the id of its parent
+     * - each row has a 'children' property containing an array of its children
+     *
+     * @param delegate
+     * @constructor
+     */
     function DefaultTreeSource(delegate) {
         this.delegate = delegate;
 
@@ -28,6 +36,7 @@ define([], function() {
             var self = this;
             if (this.delegate) {
                 if (this.delegate.buildTree) {
+                    console.warn("buildTree() on datasource is deprecated. Consider implementing a TreeSource instead.");
                     this.tree = this.delegate.buildTree();
                     this.tree.forEach(function(item) {
                         self.nodesPerId[item.id] = item;
@@ -103,7 +112,13 @@ define([], function() {
         },
 
         getRootNodes: function(start, end) {
-            return this.tree.slice(start || 0, end)
+            if(this.predicate) {
+                return this.tree.filter(function(node) {
+                    return node.isFilterMatch;
+                }).slice(start || 0, end);
+            } else {
+                return this.tree.slice(start || 0, end)
+            }
         },
 
         getRecordById: function (id) {
@@ -121,14 +136,35 @@ define([], function() {
 
         children: function (row, start, end) {
             var node = this.nodesPerId[row.id];
-            return node.children.slice(start || 0, end);
+            if(this.predicate) {
+                return node.children.filter(function(child) {
+                    return child.isFilterMatch;
+                }).slice(start || 0, end);
+            } else {
+                return node.children.slice(start || 0, end);
+            }
         },
 
         countChildren: function(row) {
-            return this.children(row).length;
+            var node = this.nodesPerId[row.id];
+            if(this.predicate) {
+                // filtering is enabled
+                return node.children.reduce(function(total, child) {
+                    if(child.isFilterMatch) return total + 1;
+                    else return total;
+                }, 0);
+            } else {
+                return node.children.length;
+            }
         },
 
         countRootNodes: function() {
+            if(this.predicate) {
+                return this.getRootNodes().reduce(function(total, node) {
+                    if(node.isFilterMatch) return total + 1;
+                    else return total;
+                }, 0);
+            }
             return this.getRootNodes().length;
         },
 
@@ -148,6 +184,59 @@ define([], function() {
             } else {
                 return stats;
             }
+        },
+
+        filter: function(columnSettings, predicate) {
+            this.predicate = predicate;
+            this.refreshFilterAttributes();
+            $(this).trigger('dataloaded');
+        },
+
+        refreshFilterAttributes: function() {
+            var predicate = this.predicate;
+            function matches(node) {
+                if(!predicate) {
+                    return 1;
+                } else {
+                    return predicate(node);
+                }
+            }
+
+            function apply(nodes, parentMatches) {
+                var treeMatch = 0;
+
+                for(var x=0,l=nodes.length;x<l;x++) {
+                    var node = nodes[x],
+                        nodeMatch = matches(node),
+                        match;
+
+                    if(nodeMatch < 0) {
+                        match = false;
+                    } else if(node.children && node.children.length) {
+                        var childrenMatch = apply(node.children, nodeMatch > 0);
+                        if(childrenMatch < 0) {
+                            match = false;
+                        } else if(childrenMatch == 0) {
+                            match = parentMatches || (nodeMatch > 0);
+                        } else {
+                            match = true;
+                        }
+                    } else {
+                        match = parentMatches || (nodeMatch > 0);
+                    }
+
+                    node.isFilterMatch = match;
+                    if(match < 0) {
+                        treeMatch = -1;
+                    } else if(match > 0 && treeMatch != -1) {
+                        treeMatch = 1;
+                    }
+                }
+
+                return treeMatch;
+            }
+
+            apply(this.tree, false);
         },
 
         statistics: function () {
