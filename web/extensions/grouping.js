@@ -2,8 +2,8 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
         '../templates/grouper',
         '../templates/grouprow',
         '../templates/groupindicator',
-        '../datasources/treegriddatasource'],
-       function(override, utils, $, jsrender, treegrid, DragNDrop, GroupingDataSource, grouperTemplate, grouprow, groupindicator, TreeGridDataSource) {
+        '../datasources/synctreegriddatasource'],
+       function(override, utils, $, jsrender, treegrid, DragNDrop, GroupingDataSource, grouperTemplate, grouprow, groupindicator, SyncTreeGridDataSource) {
     "use strict";
     
     return {
@@ -20,7 +20,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
             
             var origds = grid.dataSource,
                 groupingds = (typeof origds.group  === 'function' ? origds : new GroupingDataSource(origds)),
-                treeds = new TreeGridDataSource(groupingds),
+                treeds = new SyncTreeGridDataSource(groupingds),
                 groupRowTemplate = $.templates(grouprow),
                 groupIndicatorTemplate = $.templates(groupindicator);
 

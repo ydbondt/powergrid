@@ -10,12 +10,6 @@ define([], function() {
     function DefaultTreeSource(delegate) {
         this.delegate = delegate;
 
-        for (var x in this.delegate) {
-            if (!this[x] && (typeof this.delegate[x] === "function")) {
-                this[x] = this.delegate[x].bind(this.delegate);
-            }
-        }
-
         if (delegate.isReady()) {
             this.load();
         }
@@ -58,7 +52,7 @@ define([], function() {
             function sort(arr) {
                 arr.sort(self.comparator);
                 for (var x = 0, l = arr.length; x < l; x++) {
-                    var children = arr[x].children;
+                    var children = self.nodesPerId[arr[x].id].children;
                     if (children) {
                         sort(children);
                     }

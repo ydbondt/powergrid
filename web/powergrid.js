@@ -34,8 +34,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         scrollBarSize = determineScrollBarSize();
 
         //adjust the margin to compensate for the scrollbar
-        vein.inject('.pg-rowgroup', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
-        vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
+        if (vein) {
+            vein.inject('.pg-rowgroup', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
+            vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
+        }
     });
 
     function elementWithClasses(tagname, classes) {
@@ -257,7 +259,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     });
                 });
             }).on("rowsremoved", function(event, data) {
-                utils.inAnimationFrame(function() {
+                // utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
 
                     grid.queueUpdateViewport();
@@ -266,9 +268,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('rowsremoved', data);
                         grid.trigger('viewchanged');
                     });
-                });
+                // });
             }).on("rowsadded", function(event, data) {
-                utils.inAnimationFrame(function() {
+                // utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
 
                     grid.queueUpdateViewport();
@@ -278,7 +280,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('rowsadded', data);
                         grid.trigger('viewchanged');
                     });
-                });
+                // });
             }).on("datachanged", function(event, data) {
                 utils.inAnimationFrame(function() {
                     if(data.data) {
@@ -778,13 +780,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
             this.workingSet = this.workingSet.slice(0, start).concat(new Array(end - start)).concat(this.workingSet.slice(start));
 
-            if(start >= this.viewport.begin && start <= this.viewport.end) {
+            if(end >= this.viewport.begin && start <= this.viewport.end) {
                 console.log("Adding rows " + start + " to " + end);
                 // new rows being added to the virtual scrolling container, so that means:
                 // a) insert some rows between two existing rows
                 // b) remove the rows that are no longer in the viewport
                 // Preferably we'd do b first.
                 end = Math.min(range.end, end);
+                start = Math.max(range.begin, start);
                 this._incrementRowIndexes(start, end-start);
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);

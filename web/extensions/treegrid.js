@@ -1,4 +1,4 @@
-define(['../override', '../jquery', '../datasources/treegriddatasource'], function(override, $, TreeGridDataSource) {
+define(['../override', '../jquery', '../datasources/synctreegriddatasource', '../datasources/defaulttreesource'], function(override, $, SyncTreeGridDataSource, DefaultTreeSource) {
     
     "use strict";
     
@@ -8,7 +8,7 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
             override(grid, function($super) {
                 var treeDS;
                 if(pluginOptions.autoTreeDataSource !== false) {
-                    treeDS = new TreeGridDataSource(this.dataSource);
+                    treeDS = new SyncTreeGridDataSource(new DefaultTreeSource(this.dataSource));
                     if(pluginOptions.initialTreeDepth) {
                         treeDS.expandToLevel(pluginOptions.initialTreeDepth);
                     }
@@ -37,7 +37,7 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
                     
                     afterRenderRow: function(record, idx, rowparts) {
                         $super.afterRenderRow(record, idx, rowparts);
-                        $(rowparts).toggleClass("pg-tree-expanded", treeDS.findShadowNodeForId(record.id).expanded);
+                        $(rowparts).toggleClass("pg-tree-expanded", treeDS.isExpanded(record));
                     },
 
                     renderCellContent: function(record, column) {
@@ -45,7 +45,7 @@ define(['../override', '../jquery', '../datasources/treegriddatasource'], functi
                         if(column.treeColumn) {
                             var el = document.createElement("div");
                             el.classList.add((this.dataSource.hasChildren(record)) ? "pg-treetoggle" : "pg-treeleaf");
-                            el.classList.add('pg-tree-level-' + treeDS.findShadowNodeForId(record.id).level);
+                            el.classList.add('pg-tree-level-' + treeDS.getTreeLevel(record));
 
                             var frag = document.createDocumentFragment();
                             frag.appendChild(el);

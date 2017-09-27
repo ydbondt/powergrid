@@ -1,7 +1,7 @@
 "use strict";
 define(
-    ['QUnit', '../datasources/treegriddatasource', '../extensions/filtering', '../datasources/arraydatasource'],
-    function (QUnit, TreeGridDataSource, filtering, ArrayDataSource) {
+    ['QUnit', '../datasources/synctreegriddatasource', '../extensions/filtering', '../datasources/arraydatasource', '../datasources/defaulttreesource'],
+    function (QUnit, SyncTreeGridDataSource, filtering, ArrayDataSource, DefaultTreeSource) {
         return function () {
             QUnit.test("3 deep treegrid filtering with inclusive and exclusive", function (assert) {
                 var tree = [
@@ -43,7 +43,7 @@ define(
                     }
                 ];
 
-                var ds = new TreeGridDataSource(new ArrayDataSource(tree));
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(new ArrayDataSource(tree)));
                 var mockgrid = {
                     dataSource: ds,
                     getColumnForKey: function (key) {
@@ -58,7 +58,7 @@ define(
 
                 function test(settings, expectedIds, name) {
                     mockgrid.filtering.filter(settings);
-                    return ds.getData().then(function (data) {
+                    return Promise.resolve(ds.getData()).then(function (data) {
                         assert.deepEqual(
                             data.map(function (r) {
                                 return r.id;
@@ -69,7 +69,7 @@ define(
                     });
                 }
 
-                return ds.expandToLevel(3).then(function () {
+                return Promise.resolve(ds.expandToLevel(3)).then(function () {
                     return test(null, [1, 2, 21, 3, 31, 4, 5, 51, 52, 6, 61, 7, 8], "no filter");
                 }).then(function () {
                     return test({
@@ -140,7 +140,7 @@ define(
                     }
                 ];
 
-                var ds = new TreeGridDataSource(new ArrayDataSource(tree));
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(new ArrayDataSource(tree)));
                 var mockgrid = {
                     dataSource: ds,
                     getColumnForKey: function (key) {
@@ -155,7 +155,7 @@ define(
 
                 function test(settings, expectedIds, name) {
                     mockgrid.filtering.filter(settings);
-                    return ds.getData().then(function (data) {
+                    return Promise.resolve(ds.getData()).then(function (data) {
                         assert.deepEqual(
                             data.map(function (r) {
                                 return r.id;
@@ -166,7 +166,7 @@ define(
                     });
                 }
 
-                return ds.expandToLevel(3).then(function () {
+                return Promise.resolve(ds.expandToLevel(3)).then(function () {
                     return test({
                         d: {
                             type: "exclusive",

@@ -1,4 +1,4 @@
-define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) {
+define(['../utils'], function (utils) {
     /**
      * Takes a TreeSource and adapts it to represent the flat list of expanded nodes.
      */
@@ -13,14 +13,11 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
      *   parentId: id of the parent row. undefined for root rows
      */
 
-    function TreeGridDataSource(treesource, options) {
+    function AsyncTreeGridDataSource(treesource, options) {
         this.options = options;
+        this.expandedById = {};
 
-        if (typeof treesource.getRootNodes == 'function') {
-            this.treesource = treesource;
-        } else {
-            this.treesource = new DefaultTreeSource(treesource);
-        }
+        this.treesource = treesource;
 
         if(this.treesource.isReady()) {
             this.load();
@@ -33,7 +30,7 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
         });
     }
 
-    TreeGridDataSource.prototype = {
+    AsyncTreeGridDataSource.prototype = {
         initShadowTree: function () {
             if(!this.treesource.isReady()) {
                 throw new Error("Treesource is not ready yet.");
@@ -129,12 +126,18 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                         if(result.length > range.count) {
                             throw new Error("Treesource returns too many root nodes");
                         }
+                        var promises = [];
                         for(var x=0, l = result.length; x < l; x++) {
                             var row = result[x];
                             self.recordByIdMap[row.id] = row;
-                            lut[range.start + x].id = row.id;
+                            var shadowNode = lut[range.start + x];
+                            shadowNode.id = row.id;
+
+                            if(self.expandedById[row.id]) {
+                                promises.push(self._expandShadowNode(shadowNode, row));
+                            }
                         }
-                        return range;
+                        return Promise.all(promises);
                     });
                 }));
             }
@@ -150,12 +153,18 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                             if(result.length > range.count) {
                                 throw new Error("Treesource returns too many children");
                             }
+                            var promises = [];
                             for(var x=0, l = result.length; x < l; x++) {
                                 var row = result[x];
                                 self.recordByIdMap[row.id] = row;
-                                lut[range.start + x].id = row.id;
+                                var shadowNode = lut[range.start + x];
+                                shadowNode.id = row.id;
+
+                                if(self.expandedById[row.id]) {
+                                    promises.push(self._expandShadowNode(shadowNode, row));
+                                }
                             }
-                            return range;
+                            return Promise.all(promises);
                         });
                     }));
                 })();
@@ -233,6 +242,8 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                 return Promise.resolve();
             }
 
+            this.expandedById[row.id] = true;
+
             return (shadowNode.children === undefined ? Promise.resolve(this.treesource.countChildren(row)).then(function(rowCount) {
                 // generate shadow children
                 shadowNode.children = new Array(rowCount);
@@ -272,6 +283,8 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
                 return Promise.resolve();
             }
 
+            this.expandedById[shadowNode.id] = false;
+
             var start = this.view.indexOf(shadowNode);
 
             shadowNode.expanded = false;
@@ -289,6 +302,10 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
 
         isExpanded: function (row) {
             return this.findShadowNodeForId(row.id).expanded;
+        },
+
+        getTreeLevel: function(row) {
+            return this.findShadowNodeForId(row.id).level;
         },
 
         expandAll: function (rowId, depth) {
@@ -399,5 +416,5 @@ define(['../utils', './defaulttreesource'], function (utils, DefaultTreeSource) 
 
     };
 
-    return TreeGridDataSource;
+    return AsyncTreeGridDataSource;
 });

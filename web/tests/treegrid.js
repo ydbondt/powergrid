@@ -1,7 +1,7 @@
 "use strict";
 define(
-    ['QUnit', '../datasources/treegriddatasource', '../datasources/arraydatasource', '../utils'],
-    function(QUnit, TreeGridDataSource, arraydatasource, utils) {
+    ['QUnit', '../datasources/synctreegriddatasource', '../datasources/arraydatasource', '../utils', '../datasources/defaulttreesource'],
+    function(QUnit, SyncTreeGridDataSource, arraydatasource, utils, DefaultTreeSource) {
         return function() {
             QUnit.test("Tree collapsing and expanding", function(assert) {
                 var data = [
@@ -17,18 +17,18 @@ define(
                     {id: 9, d: "N"}
                 ];
                 var dds = new arraydatasource(data);
-                var ds = new TreeGridDataSource(dds);
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(dds));
 
                 function check(ds, expectedIds, message) {
                     utils.handleAnimationFrames();
-                    return ds.getData().then(function(data) {
+                    return Promise.resolve(ds.getData()).then(function(data) {
                         var ids = data.map(function(e) { return e.id; });
                         console.log(message, ids);
                         assert.deepEqual(ids, expectedIds, message);
                     });
                 }
 
-                return ds.expandToLevel(1).then(function() {
+                return Promise.resolve(ds.expandToLevel(1)).then(function() {
                     return check(ds, [0,1,2,3,9], "initial tree depth");
                 }).then(function() {
                     return ds.toggle(6);
@@ -37,11 +37,7 @@ define(
                 }).then(function() {
                     return ds.toggle(3);
                 }).then(function() {
-                    return check(ds, [0,1,2,3,4,5,6,8,9], "after toggle 3");
-                }).then(function() {
-                    return ds.toggle(6);
-                }).then(function() {
-                    return check(ds, [0,1,2,3,4,5,6,7,8,9], "after toggle 6 again");
+                    return check(ds, [0,1,2,3,4,5,6,7,8,9], "after toggle 3");
                 }).then(function() {
                     return ds.toggle(6);
                 }).then(function() {
@@ -71,16 +67,16 @@ define(
                     {id: 9, d: "N"}
                 ];
                 var dds = new arraydatasource(data);
-                var ds = new TreeGridDataSource(dds);
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(dds));
 
                 function check(ds, expectedIds, message) {
-                    return ds.getData().then(function(data) {
+                    return Promise.resolve(ds.getData()).then(function(data) {
                         var ids = data.map(function(e) { return e.id; });
                         assert.deepEqual(ids, expectedIds, message);
                     });
                 }
 
-                return ds.expandToLevel(3).then(function() {
+                return Promise.resolve(ds.expandToLevel(3)).then(function() {
                     return check(ds, [0,1,2,3,4,5,6,7,8,9], "initial tree depth");
                 }).then(function() {
                     ds.sort(function(a,b) {
