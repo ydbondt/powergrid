@@ -776,7 +776,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         _addRows: function(start, end) {
             var range = this.viewRange();
 
-            this.workingSet.splice(start, 0, new Array(end - start));
+            this.workingSet = this.workingSet.slice(0, start).concat(new Array(end - start)).concat(this.workingSet.slice(start));
 
             if(start >= this.viewport.begin && start <= this.viewport.end) {
                 console.log("Adding rows " + start + " to " + end);
