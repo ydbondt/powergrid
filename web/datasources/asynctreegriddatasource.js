@@ -123,8 +123,8 @@ define(['../utils'], function (utils) {
 
                 promises = promises.concat(rootNodeRanges.map(function(range) {
                     return Promise.resolve(self.treesource.getRootNodes(range.start, range.start + range.count)).then(function(result) {
-                        if(result.length > range.count) {
-                            throw new Error("Treesource returns too many root nodes");
+                        if(result.length != range.count) {
+                            throw new Error("Treesource returned incorrect amount of root nodes");
                         }
                         var promises = [];
                         for(var x=0, l = result.length; x < l; x++) {
@@ -150,8 +150,8 @@ define(['../utils'], function (utils) {
 
                     promises = promises.concat(childNodeRanges.map(function(range) {
                         return Promise.resolve(self.treesource.children(parent, range.start, range.start + range.count)).then(function(result) {
-                            if(result.length > range.count) {
-                                throw new Error("Treesource returns too many children");
+                            if(result.length != range.count) {
+                                throw new Error("Treesource returned incorrect amount of child nodes");
                             }
                             var promises = [];
                             for(var x=0, l = result.length; x < l; x++) {

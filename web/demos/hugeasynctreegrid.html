@@ -8,7 +8,7 @@
 
     <link href="../powergrid.css" rel="stylesheet"/>
     <script>
-        require(['jquery', 'powergrid', 'datasources/asynctreegriddatasource'], function ($, powergrid, AsyncTreeGridDataSource) {
+        require(['jquery', 'powergrid', 'datasources/asynctreegriddatasource', 'datasources/bufferedasynctreesource'], function ($, powergrid, AsyncTreeGridDataSource, BufferedAsyncTreeSource) {
             if (window.requestAnimationFrame === undefined) {
                 requestAnimationFrame = function(f) {
                     setTimeout(f, 0);
@@ -34,11 +34,12 @@
             // The following returns a datasource of numbers of 1 to 1000 in the root. Each number contains the factors of that number with its index.
             // Tree goes infinitely deep
 
-            var datasource = new AsyncTreeGridDataSource({
+            var datasource = new AsyncTreeGridDataSource(new BufferedAsyncTreeSource({
                 isReady: function() {
                     return true;
                 },
                 children: function(row, start, end) {
+                    console.log("Querying children from " + start + " to " + end);
                     return postpone(range(start || 0, end || this.countChildren(row), row.value, row.id), 1500);
                 },
                 hasChildren: function(row) {
@@ -48,12 +49,13 @@
                     return 1000;
                 },
                 getRootNodes: function(start, end) {
+                    console.log("Querying root nodes from " + start + " to " + end);
                     return postpone(range(start || 0, end || this.countRootNodes(), 1, "root"), 1500);
                 },
                 countRootNodes: function() {
                     return 1000;
                 }
-            });
+            }));
 
             $("#test").PowerGrid({
                 columns: [

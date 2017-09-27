@@ -20,6 +20,11 @@ define(['jquery'], function($) {
         load: function() {
             this.nodesById = {};
             this.view = this.flattenTree(this.treesource.getRootNodes(), 0);
+            $(this).trigger("dataloaded");
+        },
+
+        isReady: function() {
+            return this.view && true;
         },
 
         flattenTree: function(nodes, level) {
@@ -145,6 +150,10 @@ define(['jquery'], function($) {
 
         setValue: function(rowId, key, value) {
             this.treesource.setValue(rowId, key, value);
+        },
+
+        recordCount: function() {
+            return this.view.length;
         }
     };
 
