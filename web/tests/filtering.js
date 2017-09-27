@@ -70,6 +70,8 @@ define(
                 }
 
                 return ds.expandToLevel(3).then(function () {
+                    return test(null, [1, 2, 21, 3, 31, 4, 5, 51, 52, 6, 61, 7, 8], "no filter");
+                }).then(function () {
                     return test({
                         d: {
                             type: "exclusive",
