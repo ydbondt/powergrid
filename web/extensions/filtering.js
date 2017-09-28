@@ -67,7 +67,7 @@ define(['../override', '../jquery', '../utils',
                     
                     filtering: {
                         getFilter: function(column) {
-                            if(!column.key) {
+                            if(column.key === undefined) {
                                 column = grid.getColumnForKey(column);
                             }
 
@@ -88,7 +88,12 @@ define(['../override', '../jquery', '../utils',
 
                         createDefaultFilter: function(column) {
                             var listener = utils.createEventListener(),
-                                fragment = $(filterBox),
+                                filterElement = utils.createElement("div", {class: "pg-filter"}),
+                                filterInputElement = utils.createElement("input", {class: "pg-filter-input"}),
+                                fragment = utils.createElement("div", {class: "pg-filter-box"}, [
+                                    filterElement,
+                                    filterInputElement
+                                ]),
                                 filterValue = { value: '', method: 'contains', type: 'inclusive' },
                                 filter = {
                                     filterBox: fragment,
@@ -123,7 +128,7 @@ define(['../override', '../jquery', '../utils',
                                 }
                             }
 
-                            fragment.on("click", ".pg-filter", function(event) {
+                            filterElement.addEventListener("click", function(event) {
                                 var $this = $(this),
                                     key = $this.parents('.pg-columnheader').attr('data-column-key'),
                                     column = grid.getColumnForKey(key);
@@ -155,7 +160,7 @@ define(['../override', '../jquery', '../utils',
                                 });
                             });
 
-                            fragment.on("keyup", ".pg-filter-input", function(event) {
+                            filterInputElement.addEventListener("keyup", function(event) {
                                 var value = this.value;
                                 filterValue.value = value;
                                 updateFilter();

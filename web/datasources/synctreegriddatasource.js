@@ -51,7 +51,7 @@ define(['jquery'], function($) {
         },
 
         isExpanded: function(row) {
-            return this.expandedById[row.id];
+            return this.expandedById[row.id] === true;
         },
 
         findNodeForRowId: function(id) {
@@ -60,6 +60,10 @@ define(['jquery'], function($) {
 
         getTreeLevel: function(row) {
             return this.findNodeForRowId(row.id).level;
+        },
+
+        hasChildren: function(row) {
+            return this.treesource.hasChildren(row);
         },
 
         getData: function(start, end) {
@@ -80,6 +84,7 @@ define(['jquery'], function($) {
                     this.view = this.view.slice(0, idx).concat(subtree).concat(this.view.slice(idx));
                     $(this).trigger('rowsadded', {start: idx, end: idx + subtree.length});
                 }
+                $(this).trigger('treetoggled', {id: row.id, index: idx, state: true});
             }
         },
 
@@ -110,6 +115,7 @@ define(['jquery'], function($) {
                     this.view.splice(startIdx, endIdx - startIdx);
                     $(this).trigger('rowsremoved', {start: startIdx, end: endIdx});
                 }
+                $(this).trigger('treetoggled', {id: row.id, index: startIdx, state: false});
             }
         },
 

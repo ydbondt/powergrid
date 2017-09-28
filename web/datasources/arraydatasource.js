@@ -3,7 +3,7 @@ define(["../jquery", "../utils"], function($, utils) {
     
     function ArrayDataSource(data, delay) {
         if(delay) {
-            setTimeout(this.load.bind(this, [data]), delay);
+            setTimeout(this.load.bind(this, data), delay);
         } else {
             if(data) {
                 this.load(data);

@@ -79,7 +79,6 @@
 .pg-columnheader > .pg-resizehandle {
     position: absolute;
     display: block;
-    /* border-right: 2px dotted #AAA; */
     box-sizing: border-box;
     width: 5px;
     height: 100%;
@@ -97,7 +96,6 @@
 }
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
-    border-left: 2px dotted #AAA;
     border-right: none;
 }
 

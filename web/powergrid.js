@@ -11,6 +11,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         rowHeight: 31
     };
 
+    var columnDefaults = {
+        width: 100
+    };
+
     function determineScrollBarSize() {
         // Creates a dummy div just to measure the scrollbar sizes, then deletes it when it's no longer necessary.
         var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: hidden; opacity: 0'></div>");
@@ -46,11 +50,11 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             el.className=classes;
         }
         return el;
-    };
+    }
 
     function nonFalse(e) {
         return e !== false;
-    };
+    }
 
     function overlap(a,b) {
         if(!a || !b) return false;
@@ -93,6 +97,19 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         beginInit: function(callback) {
             var grid = this;
+
+            // set column defaults
+            this.options.columns.forEach(function(column, index) {
+                if(column.key === undefined) {
+                    column.key = index;
+                }
+
+                for(var i in columnDefaults) {
+                    if(!(i in column)) {
+                        column[i] = columnDefaults[i];
+                    }
+                }
+            });
 
             if(this.options.extensions) {
                 this.loadExtensions(function(pluginList, plugins) {
@@ -201,12 +218,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
             var hiddenColumns = this.loadSetting("hidden");
             this._hideColumns(hiddenColumns);
-
-            this.options.columns.forEach(function(column, index) {
-                if(column.key === undefined) {
-                    column.key = index;
-                }
-            });
 
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
@@ -519,7 +530,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         /**
          * Calls the dataSource's getData, updates the working set and immediately returns the records. This
-         * only works if the dataSource is synchronous (i.e. getData returns an array, not a Promise).
+         * only works if the dataSource is synchronous (i.e. getData returns an array, not a Promise), and throws
+         * an exception otherwise.
          * @param start
          * @param end
          */
@@ -674,8 +686,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         _removeRows: function(start, end) {
-            console.log("Removing rows " +start + " to " + end);
-
             this.workingSet.splice(start, end);
 
             var self = this;
@@ -781,7 +791,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.workingSet = this.workingSet.slice(0, start).concat(new Array(end - start)).concat(this.workingSet.slice(start));
 
             if(end >= this.viewport.begin && start <= this.viewport.end) {
-                console.log("Adding rows " + start + " to " + end);
                 // new rows being added to the virtual scrolling container, so that means:
                 // a) insert some rows between two existing rows
                 // b) remove the rows that are no longer in the viewport
@@ -850,8 +859,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             } else {
                 range = rowsInViewWithExcess;
             }
-
-            //console.log("UpdateViewport (renderExcess = %s, range %d to %d, current viewport %d to %d)",renderExcess && true,range.begin,range.end,this.viewport.begin,this.viewport.end);
 
             this.setViewport(range);
 

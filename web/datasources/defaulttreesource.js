@@ -235,6 +235,10 @@ define([], function() {
 
         statistics: function () {
             return this._statistics;
+        },
+
+        setValue: function(rowId, key, value) {
+            this.delegate.setValue(rowId, key, value);
         }
     };
 

@@ -18,7 +18,7 @@
             return p;
         }
 
-        return key;
+        return [key];
     }
 
     function getValue(object, key) {

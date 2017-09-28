@@ -33,14 +33,14 @@ define(['../utils'], function (utils) {
         },
 
         getRootNodes: function(start, end) {
-            return Promise.resolve(this.view.slice(start || 0, end));
+            return this.view.slice(start || 0, end);
         },
 
         children: function(row, start, end) {
             switch(arguments.length) {
-                case 1: return Promise.resolve(row.children);
-                case 2: return Promise.resolve(row.children.slice(start));
-                case 3: return Promise.resolve(row.children.slice(start, end));
+                case 1: return row.children;
+                case 2: return row.children.slice(start);
+                case 3: return row.children.slice(start, end);
             }
         },
 
@@ -160,9 +160,9 @@ define(['../utils'], function (utils) {
             if(this.groups && this.groups.length) {
                 this.view = group(this.delegate.getData(), this.groups, "group:", 0);
             } else {
-                // make sure view is a copy of the original data, and not original array itself, so when we sort stuff
-                // we don't affect the original datasource
-                this.view = this.delegate.getData().concat([]);
+                this.view = this.delegate.getData().filter(function(row) {
+                    return !ds.filterPredicate || ds.filterPredicate(row) > 0;
+                });
             }
             $(this).trigger("dataloaded");
         },
