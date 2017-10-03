@@ -402,8 +402,8 @@ define(['../utils'], function (utils) {
             return this.parentByIdMap[row.id];
         },
 
-        sort: function (comparator) {
-            this.treesource.sort(comparator);
+        sort: function (comparator, settings) {
+            this.treesource.sort(comparator, settings);
         },
 
         group: function(settings) {
