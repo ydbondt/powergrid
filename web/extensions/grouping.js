@@ -20,9 +20,9 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
             
             var origds = grid.dataSource,
                 groupingds = (typeof origds.group  === 'function' ? origds : new GroupingDataSource(origds)),
-                treeds = new SyncTreeGridDataSource(groupingds),
-                groupRowTemplate = $.templates(grouprow),
-                groupIndicatorTemplate = $.templates(groupindicator);
+                treeds = (typeof origds.group  === 'function' ? origds : new SyncTreeGridDataSource(groupingds)),
+                groupRowTemplate = jsrender.templates(grouprow),
+                groupIndicatorTemplate = jsrender.templates(groupindicator);
 
             grid.dataSource = treeds;
             

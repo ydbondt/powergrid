@@ -4,7 +4,8 @@
 
 define(['../utils'], function (utils) {
     function GroupingDataSource(delegate) {
-        var self = this;
+        utils.Evented.apply(this);
+
         this.delegate = delegate;
         for (var x in this.delegate) {
             if (!this[x] && (typeof this.delegate[x] === "function")) {
@@ -12,12 +13,9 @@ define(['../utils'], function (utils) {
             }
         }
 
-        $(delegate).on("datachanged", function (event, data) {
-            self.load();
-            $(self).trigger(event.type, [data]);
-        });
+        this.passthroughFrom(delegate, "datachanged");
 
-        $(delegate).on("dataloaded", this.load.bind(this));
+        delegate.on("dataloaded", this.load.bind(this));
         this.groups = [];
 
         utils.passthrough(this, delegate, ['commitRow','startEdit','rollbackRow','replace']);
@@ -72,7 +70,7 @@ define(['../utils'], function (utils) {
 
             s(this.view);
 
-            $(this).trigger('dataloaded');
+            this.trigger('dataloaded');
         },
 
         updateView: function () {
@@ -164,7 +162,7 @@ define(['../utils'], function (utils) {
                     return !ds.filterPredicate || ds.filterPredicate(row) > 0;
                 });
             }
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         },
 
         groupRecordCount: function (group) {

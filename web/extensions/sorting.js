@@ -53,7 +53,7 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             event.stopPropagation();
                         });
 
-                        $(grid.dataSource).one("dataloaded", function(e) {
+                        grid.dataSource.one("dataloaded", function(e) {
                             grid.sorting.sort(sortColumns);
                         });
                     },

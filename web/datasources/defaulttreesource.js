@@ -1,4 +1,4 @@
-define([], function() {
+define(['../utils'], function(utils) {
     /**
      * Takes a delegate DataSource and adapts it into a TreeSource. Hierarchy is built up using one of two methods:
      * - each child row has a 'parent' property that references the id of its parent
@@ -8,17 +8,16 @@ define([], function() {
      * @constructor
      */
     function DefaultTreeSource(delegate) {
+        utils.Evented.apply(this);
         this.delegate = delegate;
 
         if (delegate.isReady()) {
             this.load();
         }
 
-        $(delegate).on("dataloaded", this.load.bind(this));
+        delegate.on("dataloaded", this.load.bind(this));
 
-        $(delegate).on("datachanged editabilitychanged validationresultchanged", function (event, data) {
-            $(self).trigger(event.type, [data]);
-        });
+        this.passthroughFrom(delegate, "datachanged","editabilitychanged","validationresultchanged");
     }
 
     DefaultTreeSource.prototype = {
@@ -35,7 +34,7 @@ define([], function() {
                     this.tree.forEach(function(item) {
                         self.nodesPerId[item.id] = item;
                     });
-                    $(this).trigger('dataloaded');
+                    this.trigger('dataloaded');
                 } else {
                     this.buildTree(this.delegate.getData());
                 }
@@ -60,8 +59,7 @@ define([], function() {
             }
 
             sort(this.tree);
-
-            $(this).trigger('dataloaded');
+            this.trigger('dataloaded');
         },
 
         buildTree: function (data) {
@@ -102,7 +100,7 @@ define([], function() {
 
             this.nodesPerId = nodesPerId;
             this.tree = rootNodes;
-            $(this).trigger('dataloaded');
+            this.trigger('dataloaded');
         },
 
         getRootNodes: function(start, end) {
@@ -183,7 +181,7 @@ define([], function() {
         filter: function(columnSettings, predicate) {
             this.predicate = predicate;
             this.refreshFilterAttributes();
-            $(this).trigger('dataloaded');
+            this.trigger('dataloaded');
         },
 
         refreshFilterAttributes: function() {

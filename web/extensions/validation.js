@@ -7,7 +7,7 @@ define(['../jquery','../override'], function($, override) {
                     init: function() {
                         var self = this;
                         $super.init();
-                        $(grid.dataSource).on("validationresultchanged", function(event, data) {
+                        grid.dataSource.on("validationresultchanged", function(event, data) {
                             data.values.forEach(function (e) {
                                 var column = grid.getColumnForKey(e.key);
                                 if(column) {

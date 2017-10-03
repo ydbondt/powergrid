@@ -1,15 +1,19 @@
 define(['../utils'], function (utils) {
     function SummarizingDataSource(delegate, summaryFactory) {
+        utils.Evented.apply(this);
+
         var self = this;
         this.delegate = delegate;
         this.summaryFactory = summaryFactory;
 
-        $(delegate).on("dataloaded", function (event) {
+        delegate.on("dataloaded", function() {
             self.reload();
-            $(self).trigger("dataloaded");
-        }).on("datachanged", function (event, data) {
+            self.trigger("dataloaded");
+        });
+
+        delegate.on("datachanged", function (data) {
             self.reload();
-            $(self).trigger("datachanged", [data]);
+            self.trigger("datachanged", data);
         });
 
         utils.passthrough(this, delegate, ['sort','group','applyFilter','commitRow','startEdit','rollbackRow','replace']);

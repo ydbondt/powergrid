@@ -14,6 +14,8 @@ define(['../utils'], function (utils) {
      */
 
     function AsyncTreeGridDataSource(treesource, options) {
+        utils.Evented.apply(this);
+
         this.options = options;
         this.expandedById = {};
 
@@ -23,11 +25,9 @@ define(['../utils'], function (utils) {
             this.load();
         }
 
-        $(this.treesource).on("dataloaded", this.load.bind(this));
+        this.treesource.on("dataloaded", this.load.bind(this));
 
-        $(this.treesource).on("datachanged editabilitychanged validationresultchanged", function (event, data) {
-            $(self).trigger(event.type, [data]);
-        });
+        this.passthroughFrom(this.treesource, "datachanged", "editabilitychanged", "validationresultchanged");
     }
 
     AsyncTreeGridDataSource.prototype = {
@@ -182,7 +182,7 @@ define(['../utils'], function (utils) {
             this.recordByIdMap = {};
 
             this.initShadowTree();
-            $(self).trigger("dataloaded");
+            self.trigger("dataloaded");
         },
 
         isReady: function () {
@@ -266,9 +266,9 @@ define(['../utils'], function (utils) {
 
                     self.view.splice.apply(self.view, [start + 1, 0].concat(rows));
 
-                    $(self).trigger('rowsadded', {start: start + 1, end: start + 1 + rows.length});
+                    self.trigger('rowsadded', {start: start + 1, end: start + 1 + rows.length});
                 }
-                $(self).trigger('treetoggled', {id: row.id, index: start, state: true});
+                self.trigger('treetoggled', {id: row.id, index: start, state: true});
             });
         },
 
@@ -292,10 +292,10 @@ define(['../utils'], function (utils) {
                 var count = this.getShadowNodeSubTreeSize(shadowNode);
 
                 this.view.splice(start + 1, count);
-                $(this).trigger('rowsremoved', {start: start + 1, end: start + count + 1});
+                this.trigger('rowsremoved', {start: start + 1, end: start + count + 1});
             }
 
-            $(this).trigger('treetoggled', {id: shadowNode.id, index: start, state: false});
+            this.trigger('treetoggled', {id: shadowNode.id, index: start, state: false});
 
             return Promise.resolve();
         },
@@ -404,6 +404,10 @@ define(['../utils'], function (utils) {
 
         sort: function (comparator) {
             this.treesource.sort(comparator);
+        },
+
+        group: function(settings) {
+            return this.treesource.group(settings);
         },
 
         applyFilter: function (columnSettings, filterFunction) {

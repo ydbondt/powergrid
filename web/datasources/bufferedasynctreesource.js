@@ -1,6 +1,8 @@
-define([], function() {
+define(["../utils"], function(utils) {
 
     function BufferedAsyncTreeSource(delegate) {
+        utils.Evented.apply(this);
+
         this.delegate = delegate;
 
         this.windowBuffer = 50; // number of records to fetch ahead. effective excess fetching could be twice this in certain cases
@@ -11,16 +13,16 @@ define([], function() {
             this.initCache();
         }
 
-        $(delegate).on('dataloaded', function() {
+        delegate.on('dataloaded', function() {
             self.initCache();
-            $(self).trigger('dataloaded');
+            self.trigger('dataloaded');
         });
     }
 
     BufferedAsyncTreeSource.prototype = {
         initCache: function() {
             this.childrenCache = {};
-            this.rootCache = [];
+            this.rootCache = new Array(this.countRootNodes());
         },
 
         isReady: function() {
@@ -32,8 +34,7 @@ define([], function() {
         },
 
         getRootNodes: function(start, end) {
-            var totalRootCount = this.countRootNodes(),
-                cache = this.rootCache,
+            var cache = this.rootCache,
                 self = this;
 
             function query(start, end) {
@@ -94,19 +95,21 @@ define([], function() {
             while(cache[fetchEnd] !== undefined) fetchEnd--;
 
             // query resulting window and add to cache
-            var promise = queryFunction(fetchStart, fetchEnd).then(function(results) {
-                for(var x=0,l=results.length;x<l;x++) {
-                    cache[fetchStart + x] = results[x];
-                }
-            });
+            if(fetchEnd > fetchStart) {
+                var promise = queryFunction(fetchStart, fetchEnd).then(function (results) {
+                    for (var x = 0, l = results.length; x < l; x++) {
+                        cache[fetchStart + x] = results[x];
+                    }
+                });
 
-            // add query promise to promises to wait for
-            promises.push(promise);
+                // add query promise to promises to wait for
+                promises.push(promise);
 
-            // store query promises in cache (will be replaced by actual row when promise resolves)
-            for(var x=fetchStart; x< fetchEnd; x++) {
-                if(cache[x] === undefined) {
-                    cache[x] = promise;
+                // store query promises in cache (will be replaced by actual row when promise resolves)
+                for(var x=fetchStart; x< fetchEnd; x++) {
+                    if(cache[x] === undefined) {
+                        cache[x] = promise;
+                    }
                 }
             }
 
@@ -131,6 +134,10 @@ define([], function() {
 
         sort: function(comparator, settings) {
             return this.delegate.sort(comparator, settings);
+        },
+
+        group: function(settings) {
+            return this.delegate.group(settings);
         },
 
         getStatistics: function() {

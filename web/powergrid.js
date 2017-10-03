@@ -254,13 +254,13 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 this.initLoadingIndicator();
             }
 
-            $(this.dataSource).on("dataloaded", function(event) {
+            this.dataSource.on("dataloaded", function(data) {
                 if(!grid.isInited) {
                     grid.isInited = true;
                     grid.trigger('inited', grid);
                 }
 
-                grid.trigger('dataloaded', event.data);
+                grid.trigger('dataloaded', data);
                 utils.inAnimationFrame(function() {
                     grid.renderData();
 
@@ -269,7 +269,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         $(grid.target).removeClass('pg-loading');
                     });
                 });
-            }).on("rowsremoved", function(event, data) {
+            });
+
+            this.dataSource.on("rowsremoved", function(data) {
                 // utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
 
@@ -280,7 +282,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('viewchanged');
                     });
                 // });
-            }).on("rowsadded", function(event, data) {
+            });
+
+            this.dataSource.on("rowsadded", function(data) {
                 // utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
 
@@ -292,7 +296,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('viewchanged');
                     });
                 // });
-            }).on("datachanged", function(event, data) {
+            });
+
+            this.dataSource.on("datachanged", function(data) {
                 utils.inAnimationFrame(function() {
                     if(data.data) {
                         grid._dataChanged(data.data, data.oldData);

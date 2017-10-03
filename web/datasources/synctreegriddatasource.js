@@ -1,6 +1,8 @@
-define(['jquery'], function($) {
+define(['../utils'], function(utils) {
 
     function SyncTreeGridDataSource(treesource) {
+        utils.Evented.apply(this);
+
         this.treesource = treesource;
 
         this.expandedById = {};
@@ -9,18 +11,16 @@ define(['jquery'], function($) {
             this.load();
         }
 
-        $(this.treesource).on("dataloaded", this.load.bind(this));
+        this.treesource.on("dataloaded", this.load.bind(this));
 
-        $(this.treesource).on("datachanged editabilitychanged validationresultchanged", function (event, data) {
-            $(self).trigger(event.type, [data]);
-        });
+        this.passthroughFrom(this.treesource, "datachanged","editabilitychanged","validationresultchanged");
     }
 
     SyncTreeGridDataSource.prototype = {
         load: function() {
             this.nodesById = {};
             this.view = this.flattenTree(this.treesource.getRootNodes(), 0);
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         },
 
         isReady: function() {
@@ -82,9 +82,9 @@ define(['jquery'], function($) {
                 if(idx > 0) {
                     var subtree = this.flattenTree(this.treesource.children(row), node.level + 1);
                     this.view = this.view.slice(0, idx).concat(subtree).concat(this.view.slice(idx));
-                    $(this).trigger('rowsadded', {start: idx, end: idx + subtree.length});
+                    this.trigger('rowsadded', {start: idx, end: idx + subtree.length});
                 }
-                $(this).trigger('treetoggled', {id: row.id, index: idx, state: true});
+                this.trigger('treetoggled', {id: row.id, index: idx, state: true});
             }
         },
 
@@ -113,9 +113,9 @@ define(['jquery'], function($) {
                     for (l = this.view.length; endIdx < l && this.view[endIdx].level > node.level; endIdx++) ;
 
                     this.view.splice(startIdx, endIdx - startIdx);
-                    $(this).trigger('rowsremoved', {start: startIdx, end: endIdx});
+                    this.trigger('rowsremoved', {start: startIdx, end: endIdx});
                 }
-                $(this).trigger('treetoggled', {id: row.id, index: startIdx, state: false});
+                this.trigger('treetoggled', {id: row.id, index: startIdx, state: false});
             }
         },
 

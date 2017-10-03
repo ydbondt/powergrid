@@ -51,7 +51,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                 filterBox = utils.createElement("div", {"class": pluginOptions.filterBoxClass}),
                 filter = utils.createElement("div", {"class": pluginOptions.filterClass}),
                 select = utils.createElement("div", {"class": pluginOptions.filterInputClass}),
-                listener = utils.createEventListener(),
+                listener = new utils.Evented(),
                 filterSettings = {
                     before: null,
                     after: null

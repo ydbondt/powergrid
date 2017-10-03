@@ -5,7 +5,7 @@ define(['../override', '../jquery', 'jsrender', '../utils', '../templates/statis
     
     return {
         init: function(grid, pluginOptions) {
-            var template = $.templates(pluginOptions.template || statisticsTemplate);
+            var template = jsrender.templates(pluginOptions.template || statisticsTemplate);
             override(grid, function($super) {
                 return {
                     init: function() {
@@ -20,7 +20,7 @@ define(['../override', '../jquery', 'jsrender', '../utils', '../templates/statis
 
                         this.statistics.container = $("<div class='pg-statistics'>");
                         this.target.append(this.statistics.container).wrapInner("<div class='pg-statistics-wrapper'>");
-                        $(this.dataSource).on("statisticschanged", function() {
+                        this.dataSource.on("statisticschanged", function() {
                             grid.statistics.updateContents();
                         });
                         this.statistics.updateContents();

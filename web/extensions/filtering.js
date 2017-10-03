@@ -87,7 +87,7 @@ define(['../override', '../jquery', '../utils',
                         },
 
                         createDefaultFilter: function(column) {
-                            var listener = utils.createEventListener(),
+                            var listener = new utils.Evented(),
                                 filterElement = utils.createElement("div", {class: "pg-filter"}),
                                 filterInputElement = utils.createElement("input", {class: "pg-filter-input"}),
                                 fragment = utils.createElement("div", {class: "pg-filter-box"}, [

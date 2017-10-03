@@ -85,7 +85,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                         });
                     }
 
-                    $(this.dataSource).on('editabilitychanged', function(event, attr) {
+                    this.dataSource.on('editabilitychanged', function(attr) {
                         grid.editing.updateEditability(attr.values);
                     });
                 },

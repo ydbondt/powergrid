@@ -1,7 +1,9 @@
-define(["../jquery"], function($) {
+define(["../jquery", "../utils"], function($, utils) {
     "use strict";
 
     function CSVDataSource(settings) {
+        utils.Evented.apply(this);
+
         this.settings = settings;
         this.load();
         this.data = undefined;
@@ -56,7 +58,7 @@ define(["../jquery"], function($) {
                         }
                         return record;
                     });
-                    $(self).trigger("dataloaded");
+                    self.trigger("dataloaded");
                 });
         },
 
