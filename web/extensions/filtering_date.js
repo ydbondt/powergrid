@@ -54,7 +54,8 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                 listener = new utils.Evented(),
                 filterSettings = {
                     before: null,
-                    after: null
+                    after: null,
+                    method: 'date'
                 },
                 filterObj = {
                     filterBox: filterBox,
@@ -79,7 +80,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                 } else {
                     select.textContent = "";
                 }
-                filterObj.trigger("change", filterSettings);
+                filterObj.trigger("change", (filterSettings.before || filterSettings.after) ? filterSettings : null);
             }
 
             function createField(value, callback, fieldName) {
