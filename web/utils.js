@@ -137,6 +137,20 @@
         return ranges;
     }
 
+    function SubscriptionQueue() {
+        var cancelled = false;
+
+        this.queue = function(cb) {
+            return function() {
+                if(!cancelled) cb.apply(this, arguments);
+            }
+        };
+
+        this.cancel = function() {
+            cancelled = true;
+        };
+    }
+
     define(['./jquery'], function($) {
         return {
             inAnimationFrame: function(f, queue) {
@@ -217,7 +231,9 @@
 
             normalizeOptions: normalizeOptions,
 
-            Evented: Evented
+            Evented: Evented,
+
+            SubscriptionQueue: SubscriptionQueue
         }
     });
 })(define);

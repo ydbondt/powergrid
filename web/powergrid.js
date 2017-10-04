@@ -244,6 +244,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     grid.trigger('inited', grid);
                 }
 
+                grid.resetDataSubscriptions();
+
                 grid.trigger('dataloaded');
                 utils.inAnimationFrame(function() {
                     grid.renderData();
@@ -259,6 +261,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     grid.isInited = true;
                     grid.trigger('inited', grid);
                 }
+
+                grid.resetDataSubscriptions();
 
                 grid.trigger('dataloaded', data);
                 utils.inAnimationFrame(function() {
@@ -478,6 +482,18 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         /**
+         * Because data requests are asynchronous, it's possible a data request returns with stale data. This method
+         * invalidates all ongoing data requests so no stale data is handled by methods that have been properly queued
+         * in the dataSubscriptions SubscriptionQueue.
+         */
+        resetDataSubscriptions: function() {
+            if(this.dataSubscriptions) {
+                this.dataSubscriptions.cancel();
+            }
+            this.dataSubscriptions = new utils.SubscriptionQueue();
+        },
+
+        /**
          * Resets the grid contents.
          */
         renderData: function() {
@@ -644,7 +660,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 if(fragmentRight)  fragmentRight.appendChild(rowFixedPartRight);
             }
 
-            Promise.resolve(dataSubset).then(function(dataSubset) {
+            Promise.resolve(dataSubset).then(this.dataSubscriptions.queue(function(dataSubset) {
                 for(var x = start; x < end; x++) {
                     var record = dataSubset[x-start],
                         row = rows[x],
@@ -661,7 +677,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         e.setAttribute("data-row-id", record.id);
                     });
                 }
-            });
+            }));
 
             if(targetLeft) targetLeft[method](fragmentLeft);
             if(targetMiddle) targetMiddle[method](fragmentMiddle);
