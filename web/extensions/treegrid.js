@@ -30,7 +30,7 @@ define(['../override', '../jquery', '../datasources/synctreegriddatasource', '..
                             event.preventDefault();
                         });
 
-                        treeDS.on("treetoggled", function(event, ui) {
+                        treeDS.on("treetoggled", function(ui) {
                             grid.target.find(".pg-row[data-row-id='" + ui.id + "']").toggleClass("pg-tree-expanded", ui.state);
                         });
                     },
