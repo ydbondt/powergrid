@@ -164,14 +164,26 @@ define(['../override', 'vein', '../utils'], function(override, vein, utils) {
 
                     rowHeight: function rowHeight(start, end) {
                         if(end === undefined) {
-                            var r = grid.getDataSync(start, start + 1)[0].id;
-                            return $super.rowHeight(start) + (subviewsExpanded[r] && subViewHeights[r] || 0);
-                        } else {
-                            var ids = grid.getDataSync(start, end).map(function(e) { return e.id; }), subviewheights = 0;
-                            for(var x=start;x<end;x++) {
-                                if(subviewsExpanded[ids[x]]) subviewheights += subViewHeights[ids[x]];
+                            var record = grid.getRow(start);
+                            if(!record || !subviewsExpanded[record.id]) {
+                                return $super.rowHeight(start);
+                            } else {
+                                return $super.rowHeight(start) + subViewHeights[record.id];
                             }
-                            return $super.rowHeight(start, end) + subviewheights;
+                        } else {
+                            var baseHeight = $super.rowHeight(start, end);
+
+                            for(var id in subviewsExpanded) {
+                                if(subviewsExpanded[id]) {
+                                    var record = grid.getRecordById(id);
+                                    var idx = grid.indexOfRow(record);
+                                    if(idx >= start && idx < end) {
+                                        baseHeight += subViewHeights[record.id];
+                                    }
+                                }
+                            }
+
+                            return baseHeight;
                         }
                     }
                 }

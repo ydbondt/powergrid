@@ -28,6 +28,9 @@ define(['../utils'], function (utils) {
         this.treesource.on("dataloaded", this.load.bind(this));
 
         this.passthroughFrom(this.treesource, "datachanged", "editabilitychanged", "validationresultchanged");
+
+        utils.passthrough(this, treesource, ['hasSubView']);
+
     }
 
     AsyncTreeGridDataSource.prototype = {

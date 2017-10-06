@@ -535,6 +535,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         /**
+         * Returns the index of the given row. Only works if it's in the working set (i.e. the row has been loaded in the grid).
+         * @param row
+         * @returns {number}
+         */
+        indexOfRow: function(row) {
+            return this.workingSet.indexOf(row);
+        },
+
+        /**
          * Calls the dataSource's getData, updates the working set and returns a Promise of the results.
          * @param start
          * @param end

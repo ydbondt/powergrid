@@ -17,6 +17,8 @@ define(["../utils"], function(utils) {
             self.initCache();
             self.trigger('dataloaded');
         });
+
+        utils.passthrough(this, delegate, ['hasSubView']);
     }
 
     BufferedAsyncTreeSource.prototype = {

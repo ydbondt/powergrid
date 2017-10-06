@@ -386,6 +386,7 @@
     z-index: 0;
     bottom: 0px;
     width: 100%;
+    pointer-events: all;
 }
 
 @-webkit-keyframes debug {
