@@ -7,12 +7,10 @@ define(['../utils'], function (utils) {
         this.summaryFactory = summaryFactory;
 
         delegate.on("dataloaded", function() {
-            self.reload();
             self.trigger("dataloaded");
         });
 
         delegate.on("datachanged", function (data) {
-            self.reload();
             self.trigger("datachanged", data);
         });
 
