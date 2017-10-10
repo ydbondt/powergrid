@@ -15,7 +15,7 @@ define(['../utils'], function(utils) {
 
         this.passthroughFrom(this.treesource, "datachanged","editabilitychanged","validationresultchanged");
 
-        utils.passthrough(this, treesource, ['hasSubView']);
+        utils.passthrough(this, treesource, ['hasSubView', 'getSummaryRow']);
     }
 
     SyncTreeGridDataSource.prototype = {
