@@ -1,4 +1,4 @@
-define(['../override', '../jquery', '../utils', '../datasources/sortingdatasource.js'], function(override, $, utils, SortingDataSource) {
+define(['../override', '../jquery', '../utils', '../datasources/sortingdatasource'], function(override, $, utils, SortingDataSource) {
     "use strict";
 
     return {
@@ -53,7 +53,7 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             event.stopPropagation();
                         });
 
-                        $(grid.dataSource).one("dataloaded", function(e) {
+                        grid.dataSource.one("dataloaded", function(e) {
                             grid.sorting.sort(sortColumns);
                         });
                     },
@@ -80,6 +80,14 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                                 grid.dataSource.sort(this.compareRow.bind(this, columnSettings), columnSettings);
                             }
                         },
+
+                        compareValues: function(column, a, b) {
+                            if(typeof column.compare === 'function') {
+                                return column.compare(a, b);
+                            } else {
+                                return this.compareValue(a, b);
+                            }
+                        },
                         
                         compareRow: function(columnSettings, a, b) {
                             for(var x=0,l=columnSettings.length;x<l;x++) {
@@ -91,11 +99,7 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                                     continue;
                                 }
 
-                                if(typeof column.compare === 'function') {
-                                    result = column.compare(utils.getValue(a, column.key), utils.getValue(b, column.key));
-                                } else {
-                                    result = this.compareValue(utils.getValue(a, column.key), utils.getValue(b, column.key));
-                                }
+                                result = this.compareValues(column, utils.getValue(a, column.key), utils.getValue(b, column.key));
                                 
                                 if(result !== 0) {
                                     if(setting.direction === 'descending') {

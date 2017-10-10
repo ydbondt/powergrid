@@ -16,7 +16,7 @@ define(
                         if(c.add) {
                             n.splice.apply(n, [c.add[0], 0].concat(dataset2.slice(c.add[0], c.add[1])));
                         } else if (c.remove) {
-                            console.log("Removed", n.splice(c.remove[0],c.remove[1]-c.remove[0]));
+                            n.splice(c.remove[0],c.remove[1]-c.remove[0]);
                         }
                     });
 

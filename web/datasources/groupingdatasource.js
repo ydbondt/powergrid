@@ -1,22 +1,21 @@
+/**
+ * Datasource for client-side grouping of an in-memory datasource.
+ */
+
 define(['../utils'], function (utils) {
     function GroupingDataSource(delegate) {
-        var self = this;
+        utils.Evented.apply(this);
+
         this.delegate = delegate;
         for (var x in this.delegate) {
             if (!this[x] && (typeof this.delegate[x] === "function")) {
                 this[x] = this.delegate[x].bind(this.delegate);
             }
         }
-        if (delegate.isReady()) {
-            this.load();
-        }
 
-        $(delegate).on("datachanged", function (event, data) {
-            self.load();
-            $(self).trigger(event.type, [data]);
-        });
+        this.passthroughFrom(delegate, "datachanged");
 
-        $(delegate).on("dataloaded", this.load.bind(this));
+        delegate.on("dataloaded", this.load.bind(this));
         this.groups = [];
 
         utils.passthrough(this, delegate, ['commitRow','startEdit','rollbackRow','replace']);
@@ -24,32 +23,98 @@ define(['../utils'], function (utils) {
 
     GroupingDataSource.prototype = {
         load: function () {
-            this.parentByIdMap = {};
             this.updateView();
+        },
+
+        getRecordCount: function() {
+            return this.delegate.recordCount();
+        },
+
+        getRootNodes: function(start, end) {
+            return this.view.slice(start || 0, end);
+        },
+
+        children: function(row, start, end) {
+            switch(arguments.length) {
+                case 1: return row.children;
+                case 2: return row.children.slice(start);
+                case 3: return row.children.slice(start, end);
+            }
+        },
+
+        countRootNodes: function() {
+            return this.view.length;
+        },
+
+        countChildren: function(row) {
+            return row.recordCount;
+        },
+
+        filter: function(settings, predicate) {
+            this.filterPredicate = predicate;
+            this.updateView();
+        },
+
+        sort: function(comparator, settings) {
+            var self = this;
+            this.sortComparator = comparator;
+
+            function s(nodes) {
+                nodes.sort(comparator);
+                if(nodes.length && nodes[0].groupRow === true) {
+                    for(var x=0,l=nodes.length;x<l;x++) {
+                        s(nodes[x].children);
+                    }
+                }
+            }
+
+            s(this.view);
+
+            this.trigger('dataloaded');
         },
 
         updateView: function () {
             var ds = this;
             var groupRows = this.groupRows = {};
             var rowToGroupMap = {};
+            var DISCARD_GROUP = {};
+
+            this.parentByIdMap = {};
 
             function group(nodes, groupings, parentGroupId, level) {
                 if (groupings && groupings.length) {
                     var groupMap = {},
                         groups = [],
                         col = groupings[0],
-                        f = col.groupProjection && col.groupProjection(nodes) || function (v) {
-                                return v;
-                            },
+                        groupProjection = col.groupProjection && col.groupProjection(nodes),
                         nextGroupings = groupings.slice(1);
+
                     for (var x = 0, l = nodes.length; x < l; x++) {
                         var baseValue = utils.getValue(nodes[x], col.key);
-                        var g = f(baseValue);
+                        var g = groupProjection ? groupProjection(baseValue) : baseValue;
                         var r = groupMap[g];
+
+                        if(r === DISCARD_GROUP) {
+                            continue;
+                        }
+
+                        if(ds.filterPredicate) {
+                            var filterResult = ds.filterPredicate(nodes[x]);
+                            if(filterResult < 0) {
+                                if(r) {
+                                    groups.splice(groups.indexOf(r), 1);
+                                }
+                                groupMap[g] = DISCARD_GROUP;
+                                continue;
+                            } else if(filterResult == 0) {
+                                continue;
+                            }
+                        }
+
                         if (!r) {
                             groups.push(groupMap[g] = r = {
                                 groupRow: true,
-                                id: parentGroupId + x + ":",
+                                id: parentGroupId + g + ":",
                                 description: g,
                                 children: [],
                                 _groupColumn: col,
@@ -64,17 +129,28 @@ define(['../utils'], function (utils) {
                         groupRows[r.id] = r;
                     }
 
+                    groups = groups.filter(function(g) {
+                        return g !== DISCARD_GROUP;
+                    });
+
                     for (var x = 0, l = groups.length; x < l; x++) {
                         groups[x].recordCount = ds.groupRecordCount(groups[x]);
                         groups[x].children = group(groups[x].children, nextGroupings, groups[x].id, level + 1);
                         ds.processGroup(groups[x]);
                     }
 
+                    groups.sort(this.comparator);
+
                     return groups;
                 } else {
                     for (var x = 0, l = nodes.length; x < l; x++) {
                         rowToGroupMap[nodes[x].id] = parentGroupId;
                     }
+
+                    if(ds.filterPredicate) {
+                        nodes = nodes.filter(ds.filterPredicate);
+                    }
+
                     return nodes;
                 }
             }
@@ -82,11 +158,11 @@ define(['../utils'], function (utils) {
             if(this.groups && this.groups.length) {
                 this.view = group(this.delegate.getData(), this.groups, "group:", 0);
             } else {
-                // make sure view is a copy of the original data, and not original array itself, so when we sort stuff
-                // we don't affect the original datasource
-                this.view = this.delegate.getData().concat([]);
+                this.view = this.delegate.getData().filter(function(row) {
+                    return !ds.filterPredicate || ds.filterPredicate(row) > 0;
+                });
             }
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         },
 
         groupRecordCount: function (group) {
@@ -102,15 +178,6 @@ define(['../utils'], function (utils) {
 
         getRecordById: function (id) {
             return this.groupRows[id] || this.delegate.getRecordById(id);
-        },
-
-        getData: function (start, end) {
-            this.assertReady();
-            if (start !== undefined || end !== undefined) {
-                return this.view.slice(start, end);
-            } else {
-                return this.view;
-            }
         },
 
         recordCount: function () {
@@ -129,13 +196,9 @@ define(['../utils'], function (utils) {
         },
 
         parent: function (row) {
-            if(row.parent) {
-                return row.parent;
-            } else {
-                var parentRow = this.parentByIdMap[row.id];
-                if(parentRow) {
-                    return parentRow.id;
-                }
+            var parentRow = this.parentByIdMap[row.id];
+            if(parentRow) {
+                return parentRow.id;
             }
         },
 
@@ -146,10 +209,6 @@ define(['../utils'], function (utils) {
             } else {
                 return false;
             }
-        },
-
-        buildTree: function () {
-            return this.getData();
         },
 
         processGroup: function(group) {

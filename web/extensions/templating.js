@@ -24,7 +24,7 @@ define(['../override', '../jquery', 'jsrender'], function(override, $, jsrender)
                     $super.init.apply(this, arguments);
                     this.options.columns.forEach(function(column) {
                         if(column.template !== undefined && column.template !== null) {
-                            column.compiledTemplate = $.templates(column.template);
+                            column.compiledTemplate = jsrender.templates(column.template);
                         }
                     });
                 },

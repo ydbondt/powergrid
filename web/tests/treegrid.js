@@ -1,7 +1,7 @@
 "use strict";
 define(
-    ['QUnit', '../extensions/treegrid', '../arraydatasource', '../utils'],
-    function(QUnit, treegrid, arraydatasource, utils) {
+    ['QUnit', '../datasources/synctreegriddatasource', '../datasources/arraydatasource', '../utils', '../datasources/defaulttreesource'],
+    function(QUnit, SyncTreeGridDataSource, arraydatasource, utils, DefaultTreeSource) {
         return function() {
             QUnit.test("Tree collapsing and expanding", function(assert) {
                 var data = [
@@ -17,35 +17,40 @@ define(
                     {id: 9, d: "N"}
                 ];
                 var dds = new arraydatasource(data);
-                var ds = new treegrid.TreeGridDataSource(dds, {initialTreeDepth: 1});
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(dds));
 
                 function check(ds, expectedIds, message) {
                     utils.handleAnimationFrames();
-                    var ids = ds.getData().map(function(e) { return e.id; });
-                    assert.deepEqual(ids, expectedIds, message);
+                    return Promise.resolve(ds.getData()).then(function(data) {
+                        var ids = data.map(function(e) { return e.id; });
+                        console.log(message, ids);
+                        assert.deepEqual(ids, expectedIds, message);
+                    });
                 }
 
-                check(ds, [0,1,2,3,9], "initial tree depth");
-
-                ds.toggle(6);
-
-                check(ds, [0,1,2,3,9], "after toggle 6");
-
-                ds.toggle(3);
-
-                check(ds, [0,1,2,3,4,5,6,7,8,9], "after toggle 3");
-
-                ds.toggle(6);
-
-                check(ds, [0,1,2,3,4,5,6,8,9], "after collapse 6");
-
-                ds.toggle(1);
-
-                check(ds, [0,1,9], "after collapse 1");
-
-                ds.expandAll();
-
-                check(ds, [0,1,2,3,4,5,6,7,8,9], "after expand all");
+                return Promise.resolve(ds.expandToLevel(1)).then(function() {
+                    return check(ds, [0,1,2,3,9], "initial tree depth");
+                }).then(function() {
+                    return ds.toggle(6);
+                }).then(function() {
+                    return check(ds, [0,1,2,3,9], "after toggle 6");
+                }).then(function() {
+                    return ds.toggle(3);
+                }).then(function() {
+                    return check(ds, [0,1,2,3,4,5,6,7,8,9], "after toggle 3");
+                }).then(function() {
+                    return ds.toggle(6);
+                }).then(function() {
+                    return check(ds, [0,1,2,3,4,5,6,8,9], "after collapse 6");
+                }).then(function() {
+                    return ds.toggle(1);
+                }).then(function() {
+                    return check(ds, [0,1,9], "after collapse 1");
+                }).then(function() {
+                    return ds.expandAll();
+                }).then(function() {
+                    return check(ds, [0,1,2,3,4,5,6,7,8,9], "after expand all");
+                })
             });
 
             QUnit.test("Tree sorting", function(assert) {
@@ -62,20 +67,24 @@ define(
                     {id: 9, d: "N"}
                 ];
                 var dds = new arraydatasource(data);
-                var ds = new treegrid.TreeGridDataSource(dds, {initialTreeDepth: 3});
+                var ds = new SyncTreeGridDataSource(new DefaultTreeSource(dds));
 
                 function check(ds, expectedIds, message) {
-                    var ids = ds.getData().map(function(e) { return e.id; });
-                    assert.deepEqual(ids, expectedIds, message);
+                    return Promise.resolve(ds.getData()).then(function(data) {
+                        var ids = data.map(function(e) { return e.id; });
+                        assert.deepEqual(ids, expectedIds, message);
+                    });
                 }
 
-                check(ds, [0,1,2,3,4,5,6,7,8,9], "initial tree depth");
+                return Promise.resolve(ds.expandToLevel(3)).then(function() {
+                    return check(ds, [0,1,2,3,4,5,6,7,8,9], "initial tree depth");
+                }).then(function() {
+                    ds.sort(function(a,b) {
+                        return a.d<b.d?-1:a.d>b.d?1:0;
+                    });
 
-                ds.sort(function(a,b) {
-                    return a.d<b.d?-1:a.d>b.d?1:0;
+                    return check(ds, [1,3,8,4,6,7,5,2,0,9], "after sort");
                 });
-
-                check(ds, [1,3,8,4,6,7,5,2,0,9], "after sort");
             });
         };
     }

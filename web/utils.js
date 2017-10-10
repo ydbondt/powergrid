@@ -1,6 +1,6 @@
 (function(define) {
     "use strict";
-    
+
     var animFrameQueue = [], inAnimFrame = false, animFrameRequested = false;
 
     var pathRegex = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]/g;
@@ -18,7 +18,7 @@
             return p;
         }
 
-        return key;
+        return [key];
     }
 
     function getValue(object, key) {
@@ -77,28 +77,80 @@
         }
     }
 
-    function createEventListener() {
+    function Evented() {
         var handlers = {};
-        return {
-            on: function(eventName, handler) {
-                if(eventName in handlers) {
-                    handlers[eventName] = handlers[eventName].concat(handler);
-                } else {
-                    handlers[eventName] = [handler];
-                }
-            },
+        this.on = function (eventName, handler) {
+            if (eventName in handlers) {
+                handlers[eventName] = handlers[eventName].concat(handler);
+            } else {
+                handlers[eventName] = [handler];
+            }
+        };
 
-            trigger: function(eventName) {
-                var self = this, args = Array.apply(null, arguments).slice(1);
-                if(eventName in handlers) {
-                    handlers[eventName].forEach(function(handler) {
-                        handler.apply(self, args);
+        this.trigger = function (eventName) {
+            var self = this, args = Array.apply(null, arguments).slice(1);
+            if (eventName in handlers) {
+                handlers[eventName].forEach(function (handler) {
+                    handler.apply(self, args);
+                });
+            }
+        };
+
+        this.one = function(eventName, handler) {
+            var selfDestructingHandler = (function() {
+                var idx = handlers[eventName].indexOf(selfDestructingHandler);
+                if(idx > -1) handlers[eventName].splice(idx, 1);
+                handler.apply(this, arguments);
+            });
+
+            this.on(eventName, selfDestructingHandler);
+        };
+
+        this.passthroughFrom = function (target) {
+            var self = this;
+            for (var x = 1; x < arguments.length; x++) {
+                (function (eventName) {
+                    target.on(eventName, function () {
+                        self.trigger.apply(self, [eventName].concat(arguments));
                     });
-                }
+                })(arguments[x]);
+            }
+        };
+    }
+
+    function findRanges(indeces) {
+        var ranges = [];
+        indeces.sort(function(a,b) { return a-b; });
+
+        var prevIdx = indeces[0], currentCount=1;
+        for(var x=1; x<indeces.length;x++) {
+            if(indeces[x] == indeces[x - 1] + 1) {
+                currentCount++;
+            } else {
+                ranges.push({start: prevIdx, count: currentCount});
+                prevIdx = indeces[x];
+                currentCount = 1;
             }
         }
+
+        ranges.push({start: prevIdx, count: currentCount});
+        return ranges;
     }
-    
+
+    function SubscriptionQueue() {
+        var cancelled = false;
+
+        this.queue = function(cb) {
+            return function() {
+                if(!cancelled) cb.apply(this, arguments);
+            }
+        };
+
+        this.cancel = function() {
+            cancelled = true;
+        };
+    }
+
     define(['./jquery'], function($) {
         return {
             inAnimationFrame: function(f, queue) {
@@ -124,7 +176,7 @@
                     animFrameRequested = false;
                 }
             },
-            
+
             handleEventInAnimationFrame: function (event) {
                 var self = this, args = arguments;
                 requestAnimationFrame(function() {
@@ -148,14 +200,14 @@
                     }
                 }
             },
-            
+
             loggingInterceptor: function(callback) {
                 var args = Array.prototype.slice.apply(arguments, [1]);
                 var r = callback.apply(this, args);
                 console.log(args.map(function(e) { return e }).join(",") + " -> " + r);
                 return r;
             },
-            
+
             cancelEvent: function(event) {
                 event.stopPropagation();
                 event.stopImmediatePropagation();
@@ -170,6 +222,8 @@
                 }
             },
 
+            findRanges: findRanges,
+
             getValue: getValue,
             setValue: setValue,
 
@@ -177,7 +231,9 @@
 
             normalizeOptions: normalizeOptions,
 
-            createEventListener: createEventListener
+            Evented: Evented,
+
+            SubscriptionQueue: SubscriptionQueue
         }
     });
 })(define);

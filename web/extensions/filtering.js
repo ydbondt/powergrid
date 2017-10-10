@@ -1,7 +1,7 @@
 define(['../override', '../jquery', '../utils',
     '../datasources/filteringdatasource',
-    '../templates/filterPane.html!text',
-    '../templates/filterBox.html!text'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
+    '../templates/filterPane',
+    '../templates/filterBox'], function(override, $, utils, FilteringDataSource, filterPane, filterBox) {
     "use strict";
 
     return {
@@ -67,7 +67,7 @@ define(['../override', '../jquery', '../utils',
                     
                     filtering: {
                         getFilter: function(column) {
-                            if(!column.key) {
+                            if(column.key === undefined) {
                                 column = grid.getColumnForKey(column);
                             }
 
@@ -87,8 +87,13 @@ define(['../override', '../jquery', '../utils',
                         },
 
                         createDefaultFilter: function(column) {
-                            var listener = utils.createEventListener(),
-                                fragment = $(filterBox),
+                            var listener = new utils.Evented(),
+                                filterElement = utils.createElement("div", {class: "pg-filter"}),
+                                filterInputElement = utils.createElement("input", {class: "pg-filter-input"}),
+                                fragment = utils.createElement("div", {class: "pg-filter-box"}, [
+                                    filterElement,
+                                    filterInputElement
+                                ]),
                                 filterValue = { value: '', method: 'contains', type: 'inclusive' },
                                 filter = {
                                     filterBox: fragment,
@@ -115,7 +120,15 @@ define(['../override', '../jquery', '../utils',
                                 currentFilterPane = null;
                             }
 
-                            fragment.on("click", ".pg-filter", function(event) {
+                            function updateFilter() {
+                                if(filterValue.value === "") {
+                                    filter.trigger('change', null);
+                                } else {
+                                    filter.trigger('change', filterValue);
+                                }
+                            }
+
+                            filterElement.addEventListener("click", function(event) {
                                 var $this = $(this),
                                     key = $this.parents('.pg-columnheader').attr('data-column-key'),
                                     column = grid.getColumnForKey(key);
@@ -130,7 +143,7 @@ define(['../override', '../jquery', '../utils',
                                 currentFilterPane.on("click", "[data-filter-method],[data-filter-type]", function(event) {
                                     filterValue.method = $(this).attr("data-filter-method");
                                     filterValue.type = $(this).attr("data-filter-type");
-                                    filter.trigger('change', filterValue);
+                                    updateFilter();
                                     closeFilterPane();
                                 });
 
@@ -147,10 +160,10 @@ define(['../override', '../jquery', '../utils',
                                 });
                             });
 
-                            fragment.on("keyup", ".pg-filter-input", function(event) {
+                            filterInputElement.addEventListener("keyup", function(event) {
                                 var value = this.value;
                                 filterValue.value = value;
-                                filter.trigger('change', filterValue);
+                                updateFilter();
                             });
 
                             return filter;

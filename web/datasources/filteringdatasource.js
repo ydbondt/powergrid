@@ -1,14 +1,18 @@
 define(['../utils'], function (utils) {
     function FilteringDataSource(delegate) {
+        utils.Evented.apply(this);
+
         var self = this;
         this.delegate = delegate;
 
-        $(delegate).on("dataloaded", function (event) {
+        delegate.on("dataloaded", function () {
             self.reload();
-            $(self).trigger("dataloaded");
-        }).on("datachanged", function (event, data) {
+            self.trigger("dataloaded");
+        });
+
+        delegate.on("datachanged", function (data) {
             self.reload();
-            $(self).trigger("datachanged", [data]);
+            self.trigger("datachanged", [data]);
         });
 
         if (delegate.isReady()) {
@@ -68,7 +72,7 @@ define(['../utils'], function (utils) {
             this.view = view;
             this.filter = filter;
             this.settings = settings;
-            $(this).trigger('datachanged', {data: view, oldData: oldview});
+            this.trigger('datachanged', {data: view, oldData: oldview});
         },
 
         getRecordById: function (id) {

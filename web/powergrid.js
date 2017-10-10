@@ -11,6 +11,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         rowHeight: 31
     };
 
+    var columnDefaults = {
+        width: 100
+    };
+
     function determineScrollBarSize() {
         // Creates a dummy div just to measure the scrollbar sizes, then deletes it when it's no longer necessary.
         var dummy = $("<div style='overflow: scroll; width: 100px; height: 100px; visibility: hidden; opacity: 0'></div>");
@@ -34,8 +38,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         scrollBarSize = determineScrollBarSize();
 
         //adjust the margin to compensate for the scrollbar
-        vein.inject('.pg-rowgroup', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
-        vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
+        if (vein) {
+            vein.inject('.pg-rowgroup', {'width': "calc(100% - " + scrollBarSize.width + "px)"});
+            vein.inject('.pg-rowgroup.pg-footer', {'bottom': scrollBarSize.width + "px"});
+        }
     });
 
     function elementWithClasses(tagname, classes) {
@@ -44,11 +50,11 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             el.className=classes;
         }
         return el;
-    };
+    }
 
     function nonFalse(e) {
         return e !== false;
-    };
+    }
 
     function overlap(a,b) {
         if(!a || !b) return false;
@@ -91,6 +97,19 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
 
         beginInit: function(callback) {
             var grid = this;
+
+            // set column defaults
+            this.options.columns.forEach(function(column, index) {
+                if(column.key === undefined) {
+                    column.key = index;
+                }
+
+                for(var i in columnDefaults) {
+                    if(!(i in column)) {
+                        column[i] = columnDefaults[i];
+                    }
+                }
+            });
 
             if(this.options.extensions) {
                 this.loadExtensions(function(pluginList, plugins) {
@@ -200,12 +219,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             var hiddenColumns = this.loadSetting("hidden");
             this._hideColumns(hiddenColumns);
 
-            this.options.columns.forEach(function(column, index) {
-                if(column.key === undefined) {
-                    column.key = index;
-                }
-            });
-
             this.fixedLeft = this.fixedRight = this.middleScrollers = $();
 
             this.columnheadergroup = this.createRowGroup(columnheadercontainer);
@@ -231,6 +244,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     grid.trigger('inited', grid);
                 }
 
+                grid.resetDataSubscriptions();
+
                 grid.trigger('dataloaded');
                 utils.inAnimationFrame(function() {
                     grid.renderData();
@@ -241,13 +256,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 this.initLoadingIndicator();
             }
 
-            $(this.dataSource).on("dataloaded", function(event) {
+            this.dataSource.on("dataloaded", function(data) {
                 if(!grid.isInited) {
                     grid.isInited = true;
                     grid.trigger('inited', grid);
                 }
 
-                grid.trigger('dataloaded', event.data);
+                grid.resetDataSubscriptions();
+
+                grid.trigger('dataloaded', data);
                 utils.inAnimationFrame(function() {
                     grid.renderData();
 
@@ -256,8 +273,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         $(grid.target).removeClass('pg-loading');
                     });
                 });
-            }).on("rowsremoved", function(event, data) {
-                utils.inAnimationFrame(function() {
+            });
+
+            this.dataSource.on("rowsremoved", function(data) {
+                // utils.inAnimationFrame(function() {
                     grid._removeRows(data.start, data.end);
 
                     grid.queueUpdateViewport();
@@ -266,9 +285,11 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('rowsremoved', data);
                         grid.trigger('viewchanged');
                     });
-                });
-            }).on("rowsadded", function(event, data) {
-                utils.inAnimationFrame(function() {
+                // });
+            });
+
+            this.dataSource.on("rowsadded", function(data) {
+                // utils.inAnimationFrame(function() {
                     grid._addRows(data.start, data.end);
 
                     grid.queueUpdateViewport();
@@ -278,8 +299,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         grid.trigger('rowsadded', data);
                         grid.trigger('viewchanged');
                     });
-                });
-            }).on("datachanged", function(event, data) {
+                // });
+            });
+
+            this.dataSource.on("datachanged", function(data) {
                 utils.inAnimationFrame(function() {
                     if(data.data) {
                         grid._dataChanged(data.data, data.oldData);
@@ -458,10 +481,32 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             };
         },
 
+        /**
+         * Because data requests are asynchronous, it's possible a data request returns with stale data. This method
+         * invalidates all ongoing data requests so no stale data is handled by methods that have been properly queued
+         * in the dataSubscriptions SubscriptionQueue.
+         */
+        resetDataSubscriptions: function() {
+            if(this.dataSubscriptions) {
+                this.dataSubscriptions.cancel();
+            }
+            this.dataSubscriptions = new utils.SubscriptionQueue();
+        },
+
+        /**
+         * Resets the grid contents.
+         */
         renderData: function() {
             this.headergroup && this.headergroup.all.empty();
             this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
+
+            /**
+             * The working set contains all rows that are currently in the grid (though not necessarily in view) and have
+             * been loaded through 'getData'. If the dataset changes, this needs to be kept up to date and the indexes in
+             * the working set should always match the index in the grid for any given row.
+             */
+            this.workingSet = new Array(this.dataSource.recordCount());
 
             this.allRowsDisposed();
 
@@ -470,15 +515,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 end: 0
             });
 
-            this._renderDataErrorMessage = '';            
-            
             this.headergroup && this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
             this.footergroup && this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
-            
-            if ( typeof this._renderDataErrorMessage !== "undefined" && this._renderDataErrorMessage ) {
-                $.msgbox(i18n(this._renderDataErrorMessage), { type:'error', buttons : [{type: 'submit', value: i18n('close')}] });
-                this._renderDataErrorMessage = '';
-            }
             
             this.queueUpdateViewport();
             this.queueAdjustHeights();
@@ -486,6 +524,58 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.queueAfterRender(function() {
                 this.trigger("datarendered");
             });
+        },
+
+        /**
+         * Returns a row by index from the working set, or undefined if the row wasn't loaded yet.
+         * @param index
+         */
+        getRow: function(index) {
+            return this.workingSet[index];
+        },
+
+        /**
+         * Returns the index of the given row. Only works if it's in the working set (i.e. the row has been loaded in the grid).
+         * @param row
+         * @returns {number}
+         */
+        indexOfRow: function(row) {
+            return this.workingSet.indexOf(row);
+        },
+
+        /**
+         * Calls the dataSource's getData, updates the working set and returns a Promise of the results.
+         * @param start
+         * @param end
+         * @returns {Promise.<TResult>|*}
+         */
+        getData: function(start, end) {
+            var self = this;
+            return Promise.resolve(this.dataSource.getData(start, end)).then(function(result) {
+                for(var x=0,l=result.length;x<l;x++) {
+                    self.workingSet[(start || 0) + x] = result[x];
+                }
+                return result;
+            });
+        },
+
+        /**
+         * Calls the dataSource's getData, updates the working set and immediately returns the records. This
+         * only works if the dataSource is synchronous (i.e. getData returns an array, not a Promise), and throws
+         * an exception otherwise.
+         * @param start
+         * @param end
+         */
+        getDataSync: function(start, end) {
+            var result = this.dataSource.getData(start, end);
+            if(Array.isArray(result)) {
+                for(var x=0,l=result.length;x<l;x++) {
+                    this.workingSet[(start || 0) + x] = result[x];
+                }
+                return result;
+            } else {
+                throw new Error("This method requires a synchronous datasource.");
+            }
         },
 
         renderColumnHeaderContents: function(rowgroup) {
@@ -554,24 +644,23 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 fragmentMiddle = targetMiddle && document.createDocumentFragment(),
                 fragmentRight = targetRight && document.createDocumentFragment();
 
-            var dataSubset = this.dataSource.getData(start<0?0:start, end);
+            var dataSubset = this.getData(start<0?0:start, end);
+            var rows = new Array(end-start);
 
             for(var x = start; x < end; x++) {
-                var record = dataSubset[x-start];
-
                 var rowFixedPartLeft = targetLeft && this.rowGroupTemplates.fixed.cloneNode();
                 var rowScrollingPart = targetMiddle && this.rowGroupTemplates.scrolling.cloneNode();
                 var rowFixedPartRight = targetRight && this.rowGroupTemplates.fixed.cloneNode();
-
                 var rowParts = [rowFixedPartLeft, rowScrollingPart, rowFixedPartRight].filter(nonFalse);
 
-                this.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
-
-                this.afterRenderRow(record, x, rowParts);
+                rows[x] = {
+                    rowFixedPartLeft: rowFixedPartLeft,
+                    rowScrollingPart: rowScrollingPart,
+                    rowFixedPartRight: rowFixedPartRight
+                };
 
                 rowParts.forEach(function(e) {
                     e.setAttribute("data-row-idx", x);
-                    e.setAttribute("data-row-id", record.id);
                     e.style.height = self.rowHeight(x) + "px";
                 });
 
@@ -579,6 +668,25 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 if(fragmentMiddle) fragmentMiddle.appendChild(rowScrollingPart);
                 if(fragmentRight)  fragmentRight.appendChild(rowFixedPartRight);
             }
+
+            Promise.resolve(dataSubset).then(this.dataSubscriptions.queue(function(dataSubset) {
+                for(var x = start; x < end; x++) {
+                    var record = dataSubset[x-start],
+                        row = rows[x],
+                        rowFixedPartLeft = row.rowFixedPartLeft,
+                        rowScrollingPart = row.rowScrollingPart,
+                        rowFixedPartRight = row.rowFixedPartRight;
+
+                    var rowParts = [rowFixedPartLeft, rowScrollingPart, rowFixedPartRight].filter(nonFalse);
+
+                    self.renderRowToParts(record, x, rowFixedPartLeft, rowScrollingPart, rowFixedPartRight);
+                    self.afterRenderRow(record, x, rowParts);
+
+                    rowParts.forEach(function(e) {
+                        e.setAttribute("data-row-id", record.id);
+                    });
+                }
+            }));
 
             if(targetLeft) targetLeft[method](fragmentLeft);
             if(targetMiddle) targetMiddle[method](fragmentMiddle);
@@ -609,7 +717,8 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         _removeRows: function(start, end) {
-            console.log("Removing rows " +start + " to " + end);
+            this.workingSet.splice(start, end);
+
             var self = this;
             function r(start, end, rowgroup) {
                 var selector = ".pg-row:lt(" + end + ")";
@@ -710,13 +819,15 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         _addRows: function(start, end) {
             var range = this.viewRange();
 
-            if(start >= this.viewport.begin && start <= this.viewport.end) {
-                console.log("Adding rows " + start + " to " + end);
+            this.workingSet = this.workingSet.slice(0, start).concat(new Array(end - start)).concat(this.workingSet.slice(start));
+
+            if(end >= this.viewport.begin && start <= this.viewport.end) {
                 // new rows being added to the virtual scrolling container, so that means:
                 // a) insert some rows between two existing rows
                 // b) remove the rows that are no longer in the viewport
                 // Preferably we'd do b first.
                 end = Math.min(range.end, end);
+                start = Math.max(range.begin, start);
                 this._incrementRowIndexes(start, end-start);
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
                 this.viewport.end += (end - start);
@@ -780,8 +891,6 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 range = rowsInViewWithExcess;
             }
 
-            //console.log("UpdateViewport (renderExcess = %s, range %d to %d, current viewport %d to %d)",renderExcess && true,range.begin,range.end,this.viewport.begin,this.viewport.end);
-
             this.setViewport(range);
 
             if(!renderExcess) {
@@ -825,7 +934,13 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     // no overlap, just clear the entire thing and rebuild
                     allParts.empty();
                     this.allRowsDisposed();
-                    this.renderRowGroupContents(Math.max(start, range.begin), Math.min(range.end, end), this.scrollinggroup, false);
+
+                    var scrollingStart = Math.max(start, range.begin);
+                    var scrollingEnd =   Math.min(range.end, end);
+
+                    if(scrollingEnd > scrollingStart) {
+                        this.renderRowGroupContents(scrollingStart, scrollingEnd, this.scrollinggroup, false);
+                    }
                 }
 
                 allParts.css('padding-top', leadingHeight + 'px');

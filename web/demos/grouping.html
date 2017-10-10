@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>PowerGrid proof of concept</title>
-    <script src="../bower_components/requirejs/require.js" type="text/javascript"></script>
-    <script src="config.js" type="text/javascript"></script>
+    <title>PowerGrid: grouping</title>
+    <script>var require = { baseUrl: '../' };</script>
+    <script src="../../bower_components/requirejs/require.js" type="text/javascript"></script>
+    <script src="../config.js" type="text/javascript"></script>
 
-    <link href="powergrid.css" rel="stylesheet" />
+    <link href="../powergrid.css" rel="stylesheet"/>
     <script>
-        require(['jquery', 'powergrid', 'jsondatasource'], function($, powergrid, JSONDataSource) {
+        require(['jquery', 'powergrid', 'datasources/jsondatasource', 'datasources/sortingdatasource', 'datasources/filteringdatasource'], function($, powergrid, JSONDataSource, SortingDataSource, FilteringDataSource) {
             if (window.requestAnimationFrame === undefined) {
                 requestAnimationFrame = function(f) {
                     setTimeout(f, 0);
@@ -136,9 +136,9 @@
                 frozenColumnsLeft: 2,
                 columns: columns,
 
-                dataSource: new JSONDataSource({
+                dataSource: new SortingDataSource(new FilteringDataSource(new JSONDataSource({
                     url: './opportunities.json'
-                }),
+                }))),
 
                 extensions: {
                     'columnsizing': {},

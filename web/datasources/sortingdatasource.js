@@ -1,5 +1,7 @@
 define(['../utils'], function(utils) {
     function SortingDataSource(delegate) {
+        utils.Evented.apply(this);
+
         var self = this;
         this.delegate = delegate;
 
@@ -7,12 +9,14 @@ define(['../utils'], function(utils) {
             this.applyFilter = delegate.applyFilter.bind(delegate);
         }
 
-        $(delegate).on("dataloaded", function(event) {
+        delegate.on("dataloaded", function() {
             self.reload();
-            $(self).trigger("dataloaded");
-        }).on("datachanged", function(event, data) {
+            self.trigger("dataloaded");
+        });
+
+        delegate.on("datachanged", function(data) {
             self.reload();
-            $(self).trigger("datachanged", [data]);
+            self.trigger("datachanged", data);
         });
 
         if(delegate.isReady()) {
@@ -74,7 +78,7 @@ define(['../utils'], function(utils) {
         sort: function(comparator) {
             this.comparator = comparator;
             this.reload();
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         }
     };
 

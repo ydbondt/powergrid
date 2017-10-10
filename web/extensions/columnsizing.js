@@ -81,12 +81,14 @@ define(['../override', '../utils', '../jquery'], function(override, utils, $) {
                         this.container
                             .on("mousedown", ".pg-resizehandle", startResize)
                             .on("mousemove", doResize)
-                            .on("mouseup", ":not(.pg-resizehandle)", endResize)
                             .on("click", ".pg-resizehandle", function(event) {
                                 event.stopImmediatePropagation();
                                 event.preventDefault();
                                 event.stopPropagation();
                             });
+
+                        $(window)
+                            .on("mouseup", endResize);
                     }
                 }
             });

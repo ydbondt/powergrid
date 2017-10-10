@@ -1,9 +1,11 @@
-define(["./jquery", "./utils"], function($, utils) {
+define(["../jquery", "../utils"], function($, utils) {
     "use strict";
     
     function ArrayDataSource(data, delay) {
+        utils.Evented.apply(this);
+
         if(delay) {
-            setTimeout(this.load.bind(this, [data]), delay);
+            setTimeout(this.load.bind(this, data), delay);
         } else {
             if(data) {
                 this.load(data);
@@ -24,7 +26,7 @@ define(["./jquery", "./utils"], function($, utils) {
             }
 
             this.ready = true;
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         },
         
         recordCount: function() {
@@ -55,7 +57,7 @@ define(["./jquery", "./utils"], function($, utils) {
         setValue: function(rowId, key, value) {
             this.assertReady();
             utils.setValue(this.getRecordById(rowId), key, value);
-            $(this).trigger("datachanged", { values: [ { id: rowId, key: key } ] });
+            this.trigger("datachanged", { values: [ { id: rowId, key: key } ] });
         },
 
         assertReady: function() {
@@ -69,7 +71,7 @@ define(["./jquery", "./utils"], function($, utils) {
         sort: function(comparator) {
             this.assertReady();
             this.data.sort(comparator);
-            $(this).trigger("dataloaded");
+            this.trigger("dataloaded");
         },
 
         replace: function(record) {
@@ -77,7 +79,7 @@ define(["./jquery", "./utils"], function($, utils) {
                 existingRow = data.find(function(r) { return r.id == record.id; });
             if(existingRow !== undefined) {
                 data.splice(data.indexOf(existingRow), 1, record);
-                $(this).trigger("datachanged", { rows: [record] })
+                this.trigger("datachanged", { rows: [record] })
             }
         }
     };

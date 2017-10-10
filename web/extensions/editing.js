@@ -85,7 +85,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                         });
                     }
 
-                    $(this.dataSource).on('editabilitychanged', function(event, attr) {
+                    this.dataSource.on('editabilitychanged', function(attr) {
                         grid.editing.updateEditability(attr.values);
                     });
                 },
@@ -241,7 +241,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                                 case -1:
                                     do {
                                         nextRowIdx += move;
-                                        nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                        nextRecord = grid.getRow(nextRowIdx);
                                     } while(nextRecord && !this.isEditable(nextRecord, nextColumn));
                                     break;
                                 case 2:
@@ -251,7 +251,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                                         i += move / 2;
                                         if(i >= grid.columnCount() || i < 0) {
                                             nextRowIdx += move / 2;
-                                            nextRecord = grid.dataSource.getData(nextRowIdx, nextRowIdx+1)[0];
+                                            nextRecord = grid.getRow(nextRowIdx);
                                             i = move < 0 ? grid.columnCount() - 1 : 0;
                                         }
                                         nextColumn = grid.getColumnForIndex(i);
@@ -289,7 +289,7 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                     },
 
                     createDefaultEditor: function(record, column, value) {
-                        return $("<input>").attr("type", column.type).val(value)
+                        return $("<input>").attr("type", column.type).val(value);
                     },
 
                     createEditor: function(record, column, value) {
@@ -304,14 +304,15 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                             editor = this.createDefaultEditor(record, column, value);
                         }
 
-                        if(editor instanceof Element || editor instanceof DocumentFragment || $.isArray(editor)) {
+                        if(editor instanceof Element || editor instanceof DocumentFragment || editor instanceof $) {
+                            var element = editor;
                             editor = {
-                                editor: editor,
+                                editor: element,
                                 value: function() {
-                                    return $(editor).val();
+                                    return $(element).val();
                                 },
                                 on: function(eventName, handler) {
-                                    $(editor).on(eventName, handler);
+                                    $(element).on(eventName, handler);
                                 }
                             }
                         }
@@ -353,9 +354,13 @@ define(['../override', '../jquery', '../utils'], function(override, $, utils) {
                         var editorNode = $(editor.editor)[0];
 
                         if (editorNode.select) {
-                            setTimeout(editorNode.select.bind(editor.editor), 10);
+                            setTimeout(function() {
+                                editorNode.select();
+                            }, 10);
                         } else if (editorNode.focus) {
-                            setTimeout(editorNode.focus.bind(editor.editor), 10);
+                            setTimeout(function() {
+                                editorNode.focus();
+                            }, 10);
                         }
                         return editor.editor;
                     },

@@ -1,8 +1,9 @@
 define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treegrid', '../dragndrop', '../datasources/groupingdatasource',
-        '../templates/grouper.html!text',
-        '../templates/grouprow.html!text',
-        '../templates/groupindicator.html!text'],
-       function(override, utils, $, jsrender, treegrid, DragNDrop, GroupingDataSource, grouperTemplate, grouprow, groupindicator) {
+        '../templates/grouper',
+        '../templates/grouprow',
+        '../templates/groupindicator',
+        '../datasources/synctreegriddatasource'],
+       function(override, utils, $, jsrender, treegrid, DragNDrop, GroupingDataSource, grouperTemplate, grouprow, groupindicator, SyncTreeGridDataSource) {
     "use strict";
     
     return {
@@ -17,11 +18,12 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
         },
         init: function(grid, pluginOptions) {
             
-            var groupingds = (typeof grid.dataSource.group  === 'function' ? grid.dataSource : new GroupingDataSource(grid.dataSource)),
-                treeds = new treegrid.TreeGridDataSource(groupingds),
-                groupRowTemplate = $.templates(grouprow),
-                groupIndicatorTemplate = $.templates(groupindicator);
-            
+            var origds = grid.dataSource,
+                groupingds = (typeof origds.group  === 'function' ? origds : new GroupingDataSource(origds)),
+                treeds = (typeof origds.group  === 'function' ? origds : new SyncTreeGridDataSource(groupingds)),
+                groupRowTemplate = jsrender.templates(grouprow),
+                groupIndicatorTemplate = jsrender.templates(groupindicator);
+
             grid.dataSource = treeds;
             
             return override(grid,function($super) {
@@ -52,7 +54,11 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         }
 
                         this.grouping.updateGroups();
-                        
+
+                        if(origds.isReady() && !groupingds.isReady()) {
+                            groupingds.load();
+                        }
+
                         this.container.on("click", ".pg-grouping-grouptoggle", function(event) {
                             var toggle = this,
                                 groupId = $(toggle).attr("data-id");

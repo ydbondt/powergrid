@@ -79,7 +79,6 @@
 .pg-columnheader > .pg-resizehandle {
     position: absolute;
     display: block;
-    /* border-right: 2px dotted #AAA; */
     box-sizing: border-box;
     width: 5px;
     height: 100%;
@@ -97,7 +96,6 @@
 }
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
-    border-left: 2px dotted #AAA;
     border-right: none;
 }
 
@@ -273,7 +271,7 @@
     display: inline-block;
     background: #887878;
     color: white;
-    padding: 0px 10px 4px 10px;
+    padding: 2px 10px 2px 5px;
     margin-right: 11px;
     cursor: default;
     font-size: 85%;
@@ -351,8 +349,7 @@
 
 .pg-group-delete:after {
     position: absolute;
-    content: '\e083';
-    font-family: "Glyphicons Halflings";
+    content: '\00d7';
     font-size: 10pt;
 }
 
@@ -381,6 +378,7 @@
 .pg-inner-row {
     background: inherit;
     position: absolute;
+    min-width: 100%; /* fix issue where last cell would be truncated when a subview is added */
 }
 
 .pg-subview {
@@ -388,6 +386,7 @@
     z-index: 0;
     bottom: 0px;
     width: 100%;
+    pointer-events: all;
 }
 
 @-webkit-keyframes debug {
@@ -429,6 +428,10 @@
 
 .pg-fixed.pg-right .pg-columnheader > .pg-resizehandle {
     left: 0px;
+}
+
+.pg-fixed.pg-right > .pg-row > .pg-columnheader:last-child {
+    width: auto !important; /* last column header should take remaining width */
 }
 
 .powergrid > .pg-scrolling {
@@ -702,8 +705,7 @@ ul.pg-menu > li:hover {
 
 #columnsettings-close:after {
     position: absolute;
-    content: '\e014';
-    font-family: "Glyphicons Halflings";
+    content: '\00d7';
     font-size: 12pt;
 }
 #columnsettings-close {
@@ -783,4 +785,15 @@ ul.pg-menu > li:hover {
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
     cursor: grabbing;
+}
+
+/**
+ * Make rows transparent for pointer events. This fixes issues where pg-rows from the fixed left column overlap cells from the scrolling part and intercept click events.
+ */
+.pg-row:not(.pg-grouping-grouprow) {
+    pointer-events: none;
+}
+
+.pg-cell, .pg-columnheader {
+    pointer-events: all;
 }
