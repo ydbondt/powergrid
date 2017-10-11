@@ -118,10 +118,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     pluginList.forEach(function(key) {
                         console.info("Initing extension " + key);
                         var p = plugins[key];
-                        if(typeof p === 'function') {
-                            p(grid, grid.options.extensions[key]);
-                        } else if(typeof p.init === 'function') {
-                            p.init(grid, grid.options.extensions[key]);
+                        try {
+                            if (typeof p === 'function') {
+                                p(grid, grid.options.extensions[key]);
+                            } else if (typeof p.init === 'function') {
+                                p.init(grid, grid.options.extensions[key]);
+                            }
+                        } catch(e) {
+                            console.error("Error initializing extension " + key);
+                            console.error(e);
+                            throw e;
                         }
                     });
 
@@ -556,6 +562,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     self.workingSet[(start || 0) + x] = result[x];
                 }
                 return result;
+            }).catch(function(error) {
+                console.error(error);
+                throw error;
             });
         },
 
@@ -686,7 +695,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         e.setAttribute("data-row-id", record.id);
                     });
                 }
-            }));
+            })).catch(function(error) {
+                console.error(error);
+            });
 
             if(targetLeft) targetLeft[method](fragmentLeft);
             if(targetMiddle) targetMiddle[method](fragmentMiddle);
