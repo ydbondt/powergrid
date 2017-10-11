@@ -233,7 +233,17 @@
 
             Evented: Evented,
 
-            SubscriptionQueue: SubscriptionQueue
+            SubscriptionQueue: SubscriptionQueue,
+
+            notNull: function(n) { return n != null; },
+
+            map: function(input, func) {
+                if(typeof input.then === 'function') {
+                    return input.then(func);
+                } else {
+                    return func(input);
+                }
+            }
         }
     });
 })(define);

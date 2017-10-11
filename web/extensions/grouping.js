@@ -29,8 +29,6 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
             return override(grid,function($super) {
                 return {
                     init: function() {
-                        $super.init();
-
                         var groupKeys = grid.loadSetting("grouping"),
                             groupSettings;
                         if ((!groupKeys || groupKeys.length == 0) && pluginOptions.defaultGroupedColumns) {
@@ -38,7 +36,7 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                         }
 
                         if(pluginOptions.fixedGroupedColumns) {
-                            this.grouping.fixedGroups = pluginOptions.fixedGroupedColumns.map(this.getColumnForKey.bind(this));
+                            this.grouping.fixedGroups = pluginOptions.fixedGroupedColumns.map(this.getColumnForKey.bind(this)).filter(utils.notNull);
                         }
 
                         if(groupKeys) {
@@ -47,13 +45,15 @@ define(['../override', '../utils', '../jquery', 'jsrender', '../extensions/treeg
                                     return pluginOptions.fixedGroupedColumns.indexOf(k) == -1;
                                 });
                             }
-                            groupSettings = groupKeys.map(this.getColumnForKey.bind(this));
+                            groupSettings = groupKeys.map(this.getColumnForKey.bind(this)).filter(utils.notNull);
                             if (groupSettings !== undefined && groupSettings !== null && groupSettings !== "") {
                                 this.grouping.groups = groupSettings;
                             }
                         }
 
-                        this.grouping.updateGroups();
+                        groupingds.group(this.grouping.groupColumns());
+
+                        $super.init();
 
                         if(origds.isReady() && !groupingds.isReady()) {
                             groupingds.load();
