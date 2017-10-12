@@ -68,9 +68,10 @@ define(['../utils'], function (utils) {
                 }
             }
 
-            s(this.view);
-
-            this.trigger('dataloaded');
+            if(this.view) {
+                s(this.view);
+                this.trigger('dataloaded');
+            }
         },
 
         updateView: function () {

@@ -20,6 +20,8 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             this.dataSource = new SortingDataSource(this.dataSource);
                         }
 
+                        this.sorting.sort(sortColumns);
+
                         $super.init();
                         this.container.on("click", ".pg-columnheader", function(event) {
                             var key = $(this).attr('data-column-key'),
@@ -51,10 +53,6 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                             grid.saveSetting("sorting", sortColumns);
 
                             event.stopPropagation();
-                        });
-
-                        grid.dataSource.one("dataloaded", function(e) {
-                            grid.sorting.sort(sortColumns);
                         });
                     },
 
