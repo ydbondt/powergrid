@@ -25,6 +25,9 @@ define(["../utils"], function(utils) {
         reset: function() {
             this.childrenCache = undefined;
             this.rootCache = undefined;
+            this.rootCount = undefined;
+            this.childCount = {};
+            this.recordCount = undefined;
         },
 
         initCache: function() {
@@ -44,7 +47,14 @@ define(["../utils"], function(utils) {
         },
 
         getRecordCount: function() {
-            return this.delegate.getRecordCount();
+            var self = this;
+            if(this.rootCount === undefined) {
+                return utils.map(this.delegate.getRecordCount(), function(count) {
+                    return self.rootCount = count;
+                });
+            } else {
+                return this.rootCount;
+            }
         },
 
         getRootNodes: function(start, end) {
@@ -139,11 +149,25 @@ define(["../utils"], function(utils) {
         },
 
         countChildren: function(parent) {
-            return this.delegate.countChildren(parent);
+            var self = this;
+            if(!(parent.id in this.childCount)) {
+                return utils.map(this.delegate.countChildren(parent), function(count) {
+                    return self.childCount[parent.id] = count;
+                });
+            } else {
+                return this.childCount[parent.id];
+            }
         },
 
         countRootNodes: function() {
-            return this.delegate.countRootNodes();
+            var self = this;
+            if(this.rootCount === undefined) {
+                return utils.map(this.delegate.countRootNodes(), function(count) {
+                    return self.rootCount = count;
+                });
+            } else {
+                return this.rootCount;
+            }
         },
 
         filter: function(settings, predicate) {
