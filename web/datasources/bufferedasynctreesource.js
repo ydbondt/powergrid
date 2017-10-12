@@ -10,11 +10,11 @@ define(["../utils"], function(utils) {
         var self = this;
 
         if(delegate.isReady()) {
-            this.initCache();
+            this.reset();
         }
 
         delegate.on('dataloaded', function() {
-            self.initCache();
+            self.reset();
             self.trigger('dataloaded');
         });
 
@@ -22,9 +22,21 @@ define(["../utils"], function(utils) {
     }
 
     BufferedAsyncTreeSource.prototype = {
+        reset: function() {
+            this.childrenCache = undefined;
+            this.rootCache = undefined;
+        },
+
         initCache: function() {
-            this.childrenCache = {};
-            this.rootCache = new Array(this.countRootNodes());
+            var self = this;
+            if(this.childrenCache && this.rootCache) {
+                return Promise.resolve();
+            } else {
+                return Promise.resolve(this.countRootNodes()).then(function (rootCount) {
+                    self.childrenCache = {};
+                    self.rootCache = new Array(rootCount);
+                });
+            }
         },
 
         isReady: function() {
@@ -36,14 +48,16 @@ define(["../utils"], function(utils) {
         },
 
         getRootNodes: function(start, end) {
-            var cache = this.rootCache,
-                self = this;
+            var self = this;
+            return this.initCache().then(function() {
+                var cache = self.rootCache;
 
-            function query(start, end) {
-                return self.delegate.getRootNodes(start, end);
-            }
+                function query(start, end) {
+                    return self.delegate.getRootNodes(start, end);
+                }
 
-            return this.bufferQuery(query, start, end, cache);
+                return self.bufferQuery(query, start, end, cache);
+            });
         },
 
         hasChildren: function(row) {
@@ -51,21 +65,23 @@ define(["../utils"], function(utils) {
         },
 
         children: function(parent, start, end) {
-            var totalChildCount = this.countChildren(parent),
-                childCache,
-                self = this;
+            var self = this;
+            return this.initCache().then(function() {
+                var totalChildCount = self.countChildren(parent),
+                    childCache;
 
-            if(!(parent.id in this.childrenCache)) {
-                childCache = this.childrenCache[parent.id] = new Array(totalChildCount);
-            } else {
-                childCache = this.childrenCache[parent.id];
-            }
+                if(!(parent.id in self.childrenCache)) {
+                    childCache = self.childrenCache[parent.id] = new Array(totalChildCount);
+                } else {
+                    childCache = self.childrenCache[parent.id];
+                }
 
-            function query(start, end) {
-                return self.delegate.children(parent, start, end);
-            }
+                function query(start, end) {
+                    return self.delegate.children(parent, start, end);
+                }
 
-            return this.bufferQuery(query, start, end, childCache);
+                return self.bufferQuery(query, start, end, childCache);
+            });
         },
 
         bufferQuery: function(queryFunction, start, end, cache) {
@@ -147,9 +163,6 @@ define(["../utils"], function(utils) {
         },
 
         getRecordById: function(id) {
-            if(id in this.recordCache) {
-                return this.recordCache[id];
-            }
             return this.delegate.getRecordById(id);
         }
     };

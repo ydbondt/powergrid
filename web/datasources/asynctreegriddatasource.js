@@ -39,25 +39,31 @@ define(['../utils'], function (utils) {
                 throw new Error("Treesource is not ready yet.");
             }
 
-            this.shadowTree = [];
+            var self = this;
 
-            for (var x = 0, l = this.treesource.countRootNodes(); x < l; x++) {
-                this.shadowTree[x] = {
-                    level: 0,
-                    index: x,
-                    expanded: false
-                };
-            }
+            return Promise.resolve(this.treesource.countRootNodes()).then(function(rootNodeCount) {
+                self.shadowTree = [];
+                for (var x = 0, l = rootNodeCount; x < l; x++) {
+                    self.shadowTree[x] = {
+                        level: 0,
+                        index: x,
+                        expanded: false
+                    };
+                }
 
-            this.view = this.shadowTree.concat([]); // initial (unexpanded) view is copy of root shadow tree
+                self.view = self.shadowTree.concat([]); // initial (unexpanded) view is copy of root shadow tree
+                self.viewPromise = undefined;
+
+                return self.view;
+            });
         },
 
         findShadowNodeForId: function(id, searchIn) {
-            if(arguments.length == 1) {
+            if(arguments.length === 1) {
                 return this.findShadowNodeForId(id, this.shadowTree);
             } else {
                 for(var x=0,l=searchIn.length;x<l;x++) {
-                    if(searchIn[x].id == id) return searchIn[x];
+                    if(searchIn[x].id === id) return searchIn[x];
                     if(searchIn[x].children) {
                         var result = this.findShadowNodeForId(id, searchIn[x].children);
                         if(result !== null) {
@@ -184,12 +190,14 @@ define(['../utils'], function (utils) {
             this.childrenByIdMap = {};
             this.recordByIdMap = {};
 
-            this.initShadowTree();
+            this.view = undefined;
+            this.shadowTree = undefined;
+
             self.trigger("dataloaded");
         },
 
         isReady: function () {
-            return this.view !== undefined;
+            return true;
         },
 
         assertReady: function () {
@@ -199,24 +207,26 @@ define(['../utils'], function (utils) {
         },
 
         getData: function (start, end) {
-            this.assertReady();
-            var self = this, shadowRows;
-            if (start !== undefined || end !== undefined) {
-                shadowRows = this.view.slice(start, end);
-            } else {
-                shadowRows = this.view;
-            }
+            var self = this;
+            return this.getView().then(function(view) {
+                var shadowRows;
+                if (start !== undefined || end !== undefined) {
+                    shadowRows = view.slice(start, end);
+                } else {
+                    shadowRows = view;
+                }
 
-            return this.loadShadowEntries(shadowRows).then(function() {
-                return shadowRows.map(function(shadowRow) {
-                    return self.getRecordById(shadowRow.id);
+                return self.loadShadowEntries(shadowRows).then(function() {
+                    return shadowRows.map(function(shadowRow) {
+                        return self.getRecordById(shadowRow.id);
+                    });
                 });
             });
         },
 
         recordCount: function () {
             this.assertReady();
-            return this.view.length;
+            return this.getView().then(function(view) { return view.length; });
         },
 
         toggle: function (rowId) {
@@ -238,6 +248,10 @@ define(['../utils'], function (utils) {
         },
 
         _expandShadowNode: function(shadowNode, row) {
+            if(this.view === undefined) {
+                throw "Collapse node but view isn't loaded";
+            }
+
             var self = this;
 
             if(shadowNode.expanded) {
@@ -281,6 +295,9 @@ define(['../utils'], function (utils) {
         },
 
         _collapseShadowNode: function(shadowNode) {
+            if(this.view === undefined) {
+                throw "Collapse node but view isn't loaded";
+            }
             if (!shadowNode.expanded) {
                 // already collapsed, don't do anything
                 return Promise.resolve();
@@ -304,11 +321,13 @@ define(['../utils'], function (utils) {
         },
 
         isExpanded: function (row) {
-            return this.findShadowNodeForId(row.id).expanded;
+            var nodeForId = this.findShadowNodeForId(row.id);
+            return nodeForId && nodeForId.expanded;
         },
 
         getTreeLevel: function(row) {
-            return this.findShadowNodeForId(row.id).level;
+            var nodeForId = this.findShadowNodeForId(row.id);
+            return nodeForId && nodeForId.level;
         },
 
         expandAll: function (rowId, depth) {
@@ -328,10 +347,13 @@ define(['../utils'], function (utils) {
             var nodes;
             if(rowId) {
                 nodes = [this.findShadowNodeForId(rowId)];
+                return expand(nodes, depth);
             } else {
-                nodes = this.shadowTree;
+                return this.initShadowTree().then(function() {
+                    nodes = self.shadowTree;
+                    return expand(nodes, depth);
+                });
             }
-            return expand(nodes, depth);
         },
 
         expandToLevel: function(depth) {
@@ -419,6 +441,16 @@ define(['../utils'], function (utils) {
 
         setValue: function(rowId, key, value) {
             this.treesource.setValue(rowId, key, value);
+        },
+
+        getView: function() {
+            if(this.view) {
+                return Promise.resolve(this.view);
+            } else if(this.viewPromise) {
+                return this.viewPromise;
+            } else {
+                return this.viewPromise = this.initShadowTree();
+            }
         }
 
     };

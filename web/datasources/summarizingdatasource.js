@@ -1,3 +1,5 @@
+var SUMMARY_ROW_ID = "summary_row";
+
 define(['../utils'], function (utils) {
     function SummarizingDataSource(delegate, summaryFactory) {
         utils.Evented.apply(this);
@@ -29,32 +31,35 @@ define(['../utils'], function (utils) {
         },
 
         recordCount: function () {
-            return this.delegate.recordCount() + 1;
+            return utils.map(this.delegate.recordCount(), function(rc) {return rc + 1});
         },
 
         getData: function (start, end) {
-            var rc = this.delegate.recordCount();
-            if(start == rc) {
-                var s = this.getSummaryRow();
-                if(typeof s.then === 'function') {
-                    return s.then(function(r) {
-                        return [r];
-                    });
+            var rc = this.delegate.recordCount(),
+                self = this;
+            return utils.map(rc, function(rc) {
+                if(start == rc) {
+                    var s = self.getSummaryRow();
+                    if(typeof s.then === 'function') {
+                        return s.then(function(r) {
+                            return [r];
+                        });
+                    } else {
+                        return [s];
+                    }
+                } else if((start === undefined && end === undefined) || (end !== undefined && end > rc)) {
+                    var r = self.delegate.getData(start, end), s = this.getSummaryRow();
+                    if(typeof r.then === 'function' || typeof s.then === 'function') {
+                        return Promise.all([r,s]).then(function(r) {
+                            return r[0].concat([r[1]]);
+                        });
+                    } else {
+                        return r.concat([self.getSummaryRow()]);
+                    }
                 } else {
-                    return [r];
+                    return self.delegate.getData(start, end);
                 }
-            } else if((start === undefined && end === undefined) || (end !== undefined && end > rc)) {
-                var r = this.delegate.getData(start, end), s = this.getSummaryRow();
-                if(typeof r.then === 'function' || typeof s.then === 'function') {
-                    return Promise.all([r,s]).then(function(r) {
-                        return r[0].concat([r[1]]);
-                    });
-                } else {
-                    return r.concat([self.getSummaryRow()]);
-                }
-            } else {
-                return this.delegate.getData(start, end);
-            }
+            });
         },
 
         setValue: function (rowId, key, value) {
@@ -66,7 +71,7 @@ define(['../utils'], function (utils) {
         },
 
         getRecordById: function (id) {
-            if(id == "summary_row") {
+            if(id == SUMMARY_ROW_ID) {
                 return this.getSummaryRow();
             } else {
                 return this.delegate.getRecordById(id);
@@ -84,11 +89,11 @@ define(['../utils'], function (utils) {
             }
             if(typeof sr.then === 'function') {
                 return sr.then(function(sr) {
-                    sr.id = "summary_row";
+                    sr.id = SUMMARY_ROW_ID;
                     return sr;
                 });
             } else {
-                sr.id = "summary_row";
+                sr.id = SUMMARY_ROW_ID;
                 return sr;
             }
         }
