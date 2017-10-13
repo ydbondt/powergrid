@@ -8,7 +8,7 @@
 
     <link href="../powergrid.css" rel="stylesheet"/>
     <script>
-        require(['jquery', 'powergrid', 'datasources/asynctreegriddatasource'], function ($, powergrid, AsyncTreeGridDataSource) {
+        require(['jquery', 'powergrid', 'datasources/asynctreegriddatasource', 'utils'], function ($, powergrid, AsyncTreeGridDataSource, utils) {
             if (window.requestAnimationFrame === undefined) {
                 requestAnimationFrame = function(f) {
                     setTimeout(f, 0);
@@ -88,7 +88,7 @@
                 }
             }
 
-            var datasource = new AsyncTreeGridDataSource({
+            var treesource = {
                 isReady: function() {
                     return true;
                 },
@@ -107,7 +107,11 @@
                 countRootNodes: function() {
                     return data.length;
                 }
-            });
+            };
+
+            utils.Evented.apply(treesource);
+
+            var datasource = new AsyncTreeGridDataSource(treesource);
 
             datasource.expandToLevel(1);
 

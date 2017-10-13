@@ -118,10 +118,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     pluginList.forEach(function(key) {
                         console.info("Initing extension " + key);
                         var p = plugins[key];
-                        if(typeof p === 'function') {
-                            p(grid, grid.options.extensions[key]);
-                        } else if(typeof p.init === 'function') {
-                            p.init(grid, grid.options.extensions[key]);
+                        try {
+                            if (typeof p === 'function') {
+                                p(grid, grid.options.extensions[key]);
+                            } else if (typeof p.init === 'function') {
+                                p.init(grid, grid.options.extensions[key]);
+                            }
+                        } catch(e) {
+                            console.error("Error initializing extension " + key);
+                            console.error(e);
+                            throw e;
                         }
                     });
 
@@ -497,33 +503,38 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
          * Resets the grid contents.
          */
         renderData: function() {
+            var self = this;
             this.headergroup && this.headergroup.all.empty();
             this.footergroup && this.footergroup.all.empty();
             this.scrollinggroup.all.empty();
 
-            /**
-             * The working set contains all rows that are currently in the grid (though not necessarily in view) and have
-             * been loaded through 'getData'. If the dataset changes, this needs to be kept up to date and the indexes in
-             * the working set should always match the index in the grid for any given row.
-             */
-            this.workingSet = new Array(this.dataSource.recordCount());
+            var recordCount = Promise.resolve(this.dataSource.recordCount()).then(this.dataSubscriptions.queue(function(recordCount) {
+                self.recordCount = recordCount;
 
-            this.allRowsDisposed();
+                /**
+                 * The working set contains all rows that are currently in the grid (though not necessarily in view) and have
+                 * been loaded through 'getData'. If the dataset changes, this needs to be kept up to date and the indexes in
+                 * the working set should always match the index in the grid for any given row.
+                 */
+                self.workingSet = new Array(recordCount);
 
-            this.setViewport({
-                begin: 0,
-                end: 0
-            });
+                self.allRowsDisposed();
 
-            this.headergroup && this.renderRowGroupContents(0, this.options.frozenRowsTop, this.headergroup);
-            this.footergroup && this.renderRowGroupContents(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount(), this.footergroup);
-            
-            this.queueUpdateViewport();
-            this.queueAdjustHeights();
-            //this.queueSyncScroll();
-            this.queueAfterRender(function() {
-                this.trigger("datarendered");
-            });
+                self.setViewport({
+                    begin: 0,
+                    end: 0
+                });
+
+                self.headergroup && self.renderRowGroupContents(0, self.options.frozenRowsTop, self.headergroup);
+                self.footergroup && self.renderRowGroupContents(recordCount - self.options.frozenRowsBottom, recordCount, self.footergroup);
+
+                self.queueUpdateViewport();
+                self.queueAdjustHeights();
+                //this.queueSyncScroll();
+                self.queueAfterRender(function() {
+                    self.trigger("datarendered");
+                });
+            }));
         },
 
         /**
@@ -544,6 +555,16 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         /**
+         * Returns the current number of records known to be in the datasource, or throws an Exception if the amount isn't known.
+         */
+        getRecordCount: function() {
+            if(this.recordCount === undefined) {
+                throw "Record count currently unknown."
+            }
+            return this.recordCount;
+        },
+
+        /**
          * Calls the dataSource's getData, updates the working set and returns a Promise of the results.
          * @param start
          * @param end
@@ -556,6 +577,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     self.workingSet[(start || 0) + x] = result[x];
                 }
                 return result;
+            }).catch(function(error) {
+                console.error(error);
+                throw error;
             });
         },
 
@@ -686,7 +710,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                         e.setAttribute("data-row-id", record.id);
                     });
                 }
-            }));
+            })).catch(function(error) {
+                console.error(error);
+            });
 
             if(targetLeft) targetLeft[method](fragmentLeft);
             if(targetMiddle) targetMiddle[method](fragmentMiddle);
@@ -717,6 +743,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         _removeRows: function(start, end) {
+            this.recordCount -= end - start;
             this.workingSet.splice(start, end);
 
             var self = this;
@@ -731,7 +758,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 return end-start;
             }
 
-            var scrollEnd = this.dataSource.recordCount() - this.options.frozenRowsTop;
+            var scrollEnd = this.getRecordCount() - this.options.frozenRowsTop;
 
             if(start < end && start >= this.viewport.begin && start < this.viewport.end) {
                 var count = r(start - this.viewport.begin, Math.min(this.viewport.end, end) - this.viewport.begin, this.scrollingcontainer);
@@ -741,10 +768,14 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             }
         },
 
+        /**
+         * The current range of rows that should be rendered.
+         * @returns {*|{begin, end}}
+         */
         viewRange: function() {
             var self = this,
                 start = this.options.frozenRowsTop,
-                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                end = this.getRecordCount() - this.options.frozenRowsBottom,
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end);
@@ -759,7 +790,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         scrollToCell: function(rowIdx, columnKey) {
             var self = this,
                 start = this.options.frozenRowsTop,
-                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                end = this.getRecordCount() - this.options.frozenRowsBottom,
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
                 range = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
@@ -767,7 +798,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 newScrollLeft = sPos.left;
 
             if( (!this.options.frozenRowsTop || rowIdx >= this.options.frozenRowsTop) &&
-                (!this.options.frozenRowsBottom || rowIdx < this.dataSource.recordCount() - this.options.frozenRowsBottom)) {
+                (!this.options.frozenRowsBottom || rowIdx < this.getRecordCount() - this.options.frozenRowsBottom)) {
 
                 // row is in scrolling part
                 if(rowIdx <= range.begin || rowIdx >= range.end) {
@@ -817,8 +848,11 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         _addRows: function(start, end) {
-            var range = this.viewRange();
+            this.recordCount += end - start; // adjust the record count first so viewRange can take the new record count into account
+            var range = this.viewRange(),
+                self = this;
 
+            // insert the appropriate amount of new empty entries in the workingSet
             this.workingSet = this.workingSet.slice(0, start).concat(new Array(end - start)).concat(this.workingSet.slice(start));
 
             if(end >= this.viewport.begin && start <= this.viewport.end) {
@@ -826,11 +860,25 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 // a) insert some rows between two existing rows
                 // b) remove the rows that are no longer in the viewport
                 // Preferably we'd do b first.
+
                 end = Math.min(range.end, end);
                 start = Math.max(range.begin, start);
+                var count = end - start;
+
+                // update the data-row-idx attributes
                 this._incrementRowIndexes(start, end-start);
+
+                // we have to remove (count) entries from the end of the grid
+                var rowsToDelete = Math.min(this.viewport.end - start, count);
+                if(rowsToDelete > 0) {
+                    this.scrollinggroup.all.each(function (i, part) {
+                        self.destroyRows($(part).children('.pg-row:gt(' + (self.viewport.end - rowsToDelete - 1 - self.viewport.begin) + ')'));
+                    });
+                }
+
+                this.viewport.end += count - rowsToDelete;
+
                 this.renderRowGroupContents(start, end, this.scrollinggroup, false, start-this.viewport.begin-1);
-                this.viewport.end += (end - start);
             }
         },
 
@@ -856,7 +904,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         updateViewport: function(renderExcess) {
             var self = this,
                 start = this.options.frozenRowsTop,
-                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                end = this.getRecordCount() - this.options.frozenRowsBottom,
                 sPos = this.getScrollPosition(),
                 sArea = this.getScrollAreaSize(),
                 rowsInView = this.rowsInView(sPos.top, sPos.top + sArea.height, start, end),
@@ -902,7 +950,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         setViewport: function(range) {
             var self = this,
                 start = this.options.frozenRowsTop,
-                end = this.dataSource.recordCount() - this.options.frozenRowsBottom,
+                end = this.getRecordCount() - this.options.frozenRowsBottom,
                 group = this.scrollinggroup,
                 allParts = group.all;
                 
@@ -1022,7 +1070,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             // Adjusts the heights of onscreen parts. Triggered during init, or when changing row heights and such
             var columnHeaderHeight = this.headerContainerHeight();
             var headerHeight = this.rowHeight(0, this.options.frozenRowsTop);
-            var footerHeight = this.rowHeight(this.dataSource.recordCount() - this.options.frozenRowsBottom, this.dataSource.recordCount());
+            var footerHeight = this.rowHeight(this.getRecordCount() - this.options.frozenRowsBottom, this.getRecordCount());
             this.columnheadercontainer.css("height", (columnHeaderHeight) + "px");
             this.columnheadergroup.all.css("height", (this.headerHeight()) + "px");
 
@@ -1032,10 +1080,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.scrollingcontainer.css("top", (columnHeaderHeight + headerHeight) + "px").css("bottom", (footerHeight + (this.options.autoResize ? 0 : scrollBarSize.height)) + "px");
 
             this.scroller.css("top", columnHeaderHeight + "px");
-            this.scrollFiller.css({"height": this.rowHeight(0, this.dataSource.recordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
+            this.scrollFiller.css({"height": this.rowHeight(0, this.getRecordCount()) + this.scroller.height() - this.scrollingcontainer.height() });
 
             if(this.options.autoResize) {
-                this.container.css({"height": (this.rowHeight(0, this.dataSource.recordCount()) + columnHeaderHeight) + "px"});
+                this.container.css({"height": (this.rowHeight(0, this.getRecordCount()) + columnHeaderHeight) + "px"});
             }
         },
 
@@ -1172,7 +1220,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             // If start is defined, row position is measured relative to start index.
             // If end is defined, counting stops at end index
             var begin=-1, ct=0;
-            for(var x=(start||0),l=end||this.dataSource.recordCount();x<l;x++) {
+            for(var x=(start||0),l=end||this.getRecordCount();x<l;x++) {
                 ct += this.rowHeight(x);
                 if(ct>=top && begin===-1) {
                     begin = x;
@@ -1393,7 +1441,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         getRowGroupFor: function(rowIndex) {
             if(rowIndex < this.options.frozenRowsTop) {
                 return this.headergroup;
-            } else if(rowIndex > this.dataSource.recordCount() - this.options.frozenRowsBottom) {
+            } else if(rowIndex > this.getRecordCount() - this.options.frozenRowsBottom) {
                 return this.footergroup;
             } else {
                 return this.scrollinggroup;

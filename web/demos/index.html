@@ -9,7 +9,7 @@
 
     <link href="../powergrid.css" rel="stylesheet"/>
     <script>
-        require(['jquery', 'powergrid'], function ($, powergrid) {
+        require(['jquery', 'powergrid', 'utils'], function ($, powergrid, utils) {
             if (window.requestAnimationFrame === undefined) {
                 requestAnimationFrame = function (f) {
                     setTimeout(f, 0);
@@ -32,6 +32,48 @@
 
             var data = new Array(2500);
 
+            var dataSource = {
+                recordCount: function () {
+                    return data.length;
+                },
+
+                getRowByIndex: function (idx) {
+                    if (data[idx] === undefined) {
+                        var row = columns.map(function (e, i) {
+                            return "Cell " + idx + ", " + i;
+                        });
+                        row.id = idx + "";
+                        return data[idx] = row;
+                    } else {
+                        return data[idx];
+                    }
+                },
+
+                getRecordById: function (id) {
+                    return this.getRowByIndex(parseInt(id));
+                },
+
+                getData: function (start, end) {
+                    if (!start) start = 0;
+                    if (!end) end = this.recordCount();
+                    var d = new Array(end - start);
+                    for (var x = start; x < end; x++) {
+                        d[x - start] = this.getRowByIndex(x);
+                    }
+                    return d;
+                },
+
+                setValue: function (rowIdx, key, value) {
+                    data[rowIdx][key] = value;
+                },
+
+                isReady: function () {
+                    return true;
+                }
+            };
+
+            utils.Evented.apply(dataSource);
+
             $("#test").PowerGrid({
                 columns: columns,
 
@@ -41,45 +83,7 @@
                 frozenRowsTop: 2,
                 frozenRowsBottom: 1,
 
-                dataSource: {
-                    recordCount: function () {
-                        return data.length;
-                    },
-
-                    getRowByIndex: function (idx) {
-                        if (data[idx] === undefined) {
-                            var row = columns.map(function (e, i) {
-                                return "Cell " + idx + ", " + i;
-                            });
-                            row.id = idx + "";
-                            return data[idx] = row;
-                        } else {
-                            return data[idx];
-                        }
-                    },
-
-                    getRecordById: function (id) {
-                        return this.getRowByIndex(parseInt(id));
-                    },
-
-                    getData: function (start, end) {
-                        if (!start) start = 0;
-                        if (!end) end = this.recordCount();
-                        var d = new Array(end - start);
-                        for (var x = start; x < end; x++) {
-                            d[x - start] = this.getRowByIndex(x);
-                        }
-                        return d;
-                    },
-
-                    setValue: function (rowIdx, key, value) {
-                        data[rowIdx][key] = value;
-                    },
-
-                    isReady: function () {
-                        return true;
-                    }
-                },
+                dataSource: dataSource,
 
                 extensions: {
                     'columnsizing': {},
