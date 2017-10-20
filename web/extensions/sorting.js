@@ -10,7 +10,7 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                     var sortSettings = grid.loadSetting("sorting");
                     if (sortSettings !== undefined && sortSettings !== null && sortSettings !== "") {
                         sortColumns = sortSettings;
-                    } else {
+                    } else if(pluginOptions.defaultSortedColumns) {
                         sortColumns = pluginOptions.defaultSortedColumns;
                     }
                 }
