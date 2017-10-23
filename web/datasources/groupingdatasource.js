@@ -55,21 +55,21 @@ define(['../utils'], function (utils) {
             this.updateView();
         },
 
+        _applySorting: function(nodes) {
+            nodes.sort(this.sortComparator);
+            if(nodes.length && nodes[0].groupRow === true) {
+                for(var x=0,l=nodes.length;x<l;x++) {
+                    this._applySorting(nodes[x].children);
+                }
+            }
+        },
+
         sort: function(comparator, settings) {
             var self = this;
             this.sortComparator = comparator;
 
-            function s(nodes) {
-                nodes.sort(comparator);
-                if(nodes.length && nodes[0].groupRow === true) {
-                    for(var x=0,l=nodes.length;x<l;x++) {
-                        s(nodes[x].children);
-                    }
-                }
-            }
-
             if(this.view) {
-                s(this.view);
+                this._applySorting(this.view);
                 this.trigger('dataloaded');
             }
         },
@@ -163,6 +163,11 @@ define(['../utils'], function (utils) {
                     return !ds.filterPredicate || ds.filterPredicate(row) > 0;
                 });
             }
+
+            if(this.sortComparator) {
+                this._applySorting(this.view);
+            }
+
             this.trigger("dataloaded");
         },
 
