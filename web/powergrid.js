@@ -758,12 +758,9 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 return end-start;
             }
 
-            var scrollEnd = this.getRecordCount() - this.options.frozenRowsTop;
-
             if(start < end && start >= this.viewport.begin && start < this.viewport.end) {
                 var count = r(start - this.viewport.begin, Math.min(this.viewport.end, end) - this.viewport.begin, this.scrollingcontainer);
                 this._incrementRowIndexes(start, start - end);
-                start = Math.min(scrollEnd, end);
                 this.viewport.end -= count;
             }
         },
@@ -972,7 +969,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                     if(range.end < this.viewport.end && range.end > this.viewport.begin) {
                         // have to remove rows from end
                         allParts.each(function(i,part) {
-                            self.destroyRows($(part).children('.pg-row:gt(' + (self.viewport.begin + range.end - range.begin - 1) + ')'));
+                            self.destroyRows($(part).children('.pg-row:gt(' + (range.end - range.begin - 1) + ')'));
                         });
                     } else if(range.end > this.viewport.end) {
                         // have to add rows to end
@@ -1216,7 +1213,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
         },
 
         rowsInView: function(top, bottom, start, end) {
-            // Finds rows within the viewport defined by poth coordinates in pixels
+            // Finds rows within the viewport defined by both coordinates in pixels
             // If start is defined, row position is measured relative to start index.
             // If end is defined, counting stops at end index
             var begin=-1, ct=0;
@@ -1229,7 +1226,7 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
                 }
             }
             if(begin > -1) {
-                return { begin: begin - (begin%2), end: x };
+                return { begin: begin - ((begin%2) - (this.options.frozenRowsTop%2)), end: x };
             } else {
                 return { begin: 0, end: 0 };
             }
