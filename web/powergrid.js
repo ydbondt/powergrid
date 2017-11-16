@@ -810,8 +810,10 @@ define(['./jquery', 'vein', './utils', './promise', 'require'], function($, vein
             this.scrollTo(newScrollLeft, newScrollTop);
         },
 
-        updateColumns: function () {
-            this.renderData();
+        updateColumns: function (renderData) {
+            if(renderData !== false) {
+                this.renderData();
+            }
             this.columnheadergroup.all.empty();
             this.renderColumnHeaderContents(this.columnheadergroup);
             this.queueAdjustColumnPositions(false);
