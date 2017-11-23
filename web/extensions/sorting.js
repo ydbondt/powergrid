@@ -30,6 +30,10 @@ define(['../override', '../jquery', '../utils', '../datasources/sortingdatasourc
                                 col = grid.getColumnForKey(key),
                                 direction;
 
+                            if(col.sortable === false) {
+                                return;
+                            }
+
                             if($(this).parents(".powergrid").get(0) != grid.container.get(0)) {
                                 // columnheader does not belong to this grid
                                 return;
