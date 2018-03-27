@@ -12,7 +12,7 @@ define(['../utils'], function (utils) {
 
         delegate.on("datachanged", function (data) {
             self.reload();
-            self.trigger("datachanged", [data]);
+            self.trigger("datachanged", data);
         });
 
         if (delegate.isReady()) {
